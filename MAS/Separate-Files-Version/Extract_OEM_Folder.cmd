@@ -4,28 +4,28 @@
 
 
 
-::============================================================================
+::=================================================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
-::============================================================================
+::=================================================================================================
 
 
 
 ::========================================================================================================================================
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
-:: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
-:: or with ARM64 process if it was initiated by x86/ARM32 process on ARM64 Windows
+::  如果脚本是由 x64 位 Windows 上的 x86 进程启动的，则将使用 x64 进程重新启动脚本
+::  或者如果它是由 ARM64 Windows 上的 x86/ARM32 进程启动的，则将使用 ARM64 进程
 
 set "_cmdf=%~f0"
 for %%# in (%*) do (
@@ -33,22 +33,22 @@ if /i "%%#"=="r1" set r1=1
 if /i "%%#"=="r2" set r2=1
 if /i "%%#"=="-qedit" (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "1" /f %nul1%
-rem check the code below admin elevation to understand why it's here
+rem 查看下方的管理员提升代码了解它为什么在这里
 )
 )
 
 if exist %SystemRoot%\Sysnative\cmd.exe if not defined r1 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
+start wt.exe new-tab %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
 )
 
-:: Re-launch the script with ARM32 process if it was initiated by x64 process on ARM64 Windows
+::  使用 ARM32 进程重新启动脚本（如果此脚本是由 ARM64 Windows 上的 x64 进程启动的）
 
 if exist %SystemRoot%\SysArm32\cmd.exe if %PROCESSOR_ARCHITECTURE%==AMD64 if not defined r2 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
+start wt.exe new-tab %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
 )
 
 ::========================================================================================================================================
@@ -56,27 +56,27 @@ exit /b
 set "blank="
 set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
 
-::  Check if Null service is working, it's important for the batch script
+::  检查 Null 服务是否正常工作，这对批处理脚本很重要
 
 sc query Null | find /i "RUNNING"
 if %errorlevel% NEQ 0 (
 echo:
-echo Null service is not running, script may crash...
+echo Null 服务未运行，脚本可能会崩溃……
 echo:
 echo:
-echo Help - %mas%troubleshoot.html
+echo 帮助 - %mas%troubleshoot.html
 echo:
 echo:
 ping 127.0.0.1 -n 10
 )
 cls
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -88,7 +88,7 @@ popd
 
 cls
 color 07
-title Extract $OEM$ Folder %masver%
+title 解压 $OEM$ 文件夹 %masver%
 
 set _args=
 set _elev=
@@ -133,27 +133,27 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :ex_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :ex_color %Red% "==== 错误 ====" &echo:"
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 7600 (
 %nceline%
-echo Unsupported OS version detected [%winbuild%].
-echo Project is supported only for Windows 7/8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo 此项目仅支持 Windows 7/8/8.1/10/11 和它们对应的服务器版本。
 goto done2
 )
 
 for %%# in (powershell.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find powershell.exe in the system.
+echo 在系统中未找到 powershell.exe。
 goto done2
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -171,43 +171,45 @@ setlocal EnableDelayedExpansion
 echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %eline%
-echo Script is launched from the temp folder,
-echo Most likely you are running the script directly from the archive file.
+echo 脚本是从 temp 文件夹启动的，
+echo 最有可能的原因是，你是直接从压缩文件运行脚本。
 echo:
-echo Extract the archive file and launch the script from the extracted folder.
+echo 请解压压缩文件并从解压文件夹中启动脚本。
 goto done2
 )
 )
 
 ::========================================================================================================================================
 
-::  Elevate script as admin and pass arguments and preventing loop
+::  将脚本提升为管理员权限及传递参数并防止循环
 
 %nul1% fltmc || (
-if not defined _elev %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev for %%# in (wt.exe) do @if "%%~$PATH:#"=="" %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev %psc% "start wt.exe -arg 'new-tab cmd.exe /c \"!_PSarg:'=''!\"' -verb runas" && exit /b
 %eline%
-echo This script needs admin rights.
-echo To do so, right click on this script and select 'Run as administrator'.
+echo 此脚本需要管理员权限。
+echo 为此，右键单击此脚本并选择“以管理员身份运行”。
 goto done2
 )
 
 ::========================================================================================================================================
 
-::  This code disables QuickEdit for this cmd.exe session only without making permanent changes to the registry
-::  It is added because clicking on the script window pauses the operation and leads to the confusion that script stopped due to an error
+::  此代码仅禁用此 cmd.exe 会话的快速编辑，而不对注册表进行永久更改
+::  添加它的原因是单击脚本窗口会暂停操作并导致脚本因错误而停止的混乱
 
 for %%# in (%_args%) do (if /i "%%#"=="-qedit" set quedit=1)
 
 reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% || if not defined quedit (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "0" /f %nul1%
-start cmd.exe /c ""!_batf!" %_args% -qedit"
-rem quickedit reset code is added at the starting of the script instead of here because it takes time to reflect in some cases
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+start wt.exe new-tab cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+rem 快速编辑重置代码应添加在脚本的开头而不是此处，因为在某些情况下需要时间来反映
 exit /b
 )
 
 ::========================================================================================================================================
 
-::  Check for updates
+::  检查更新
 
 set -=
 set old=
@@ -219,13 +221,13 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version MAS %masver%
+echo echo 你正在运行旧版本的 MAS 版本 %masver%
 echo ________________________________________________
 echo:
-echo [1] Get Latest MAS
-echo [0] Continue Anyway
+echo [1] 下载最新版本 MAS
+echo [0] 仍然继续
 echo:
-call :ex_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
+call :ex_color %_Green% "请输入一个菜单选项 [1,0] ："
 choice /C:10 /N
 if !errorlevel!==2 rem
 if !errorlevel!==1 (start ht%-%tps://github.com/mass%-%gravel/Microsoft-Acti%-%vation-Scripts & start %mas% & exit /b)
@@ -236,7 +238,7 @@ cls
 
 setlocal DisableDelayedExpansion
 
-::  Check desktop location
+::  检测桌面位置
 
 set desktop=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop') do call set "desktop=%%b"
@@ -247,7 +249,7 @@ set "_dir=%desktop%\$OEM$\$$\Setup\Scripts"
 
 if exist "!desktop!\" (
 %eline%
-echo Desktop location was not detected, aborting...
+echo 桌面位置未被检测到，正在中止……
 goto done2
 )
 
@@ -260,7 +262,7 @@ mode con cols=78 lines=30
 if exist "!desktop!\$OEM$\" (
 echo _____________________________________________________
 %eline%
-echo $OEM$ folder already exists on the Desktop.
+echo $OEM$ 文件夹已经存在于桌面上。
 echo _____________________________________________________
 goto done2
 )
@@ -301,25 +303,25 @@ echo:
 echo:
 echo:
 echo:
-echo:                     Extract $OEM$ folder on the desktop           
+echo:                        将 $OEM$ 文件夹解压缩到桌面上
 echo:           ________________________________________________________
 echo:
-echo:              [1] HWID
-echo:              [2] Ohook
-echo:              [3] KMS38
-echo:              [4] Online KMS
+echo:             [1] HWID
+echo:             [2] Ohook
+echo:             [3] KMS38
+echo:             [4] 在线 KMS
 echo:
-echo:              [5] HWID       ^(Windows^) ^+ Ohook      ^(Office^)
-echo:              [6] HWID       ^(Windows^) ^+ Online KMS ^(Office^)
-echo:              [7] KMS38      ^(Windows^) ^+ Ohook      ^(Office^)
-echo:              [8] KMS38      ^(Windows^) ^+ Online KMS ^(Office^)
-echo:              [9] Online KMS ^(Windows^) ^+ Ohook      ^(Office^)
+echo:             [5] HWID       （Windows） ^+ Ohook      （Office）
+echo:             [6] HWID       （Windows） ^+ 在线 KMS   （Office）
+echo:             [7] KMS38      （Windows） ^+ Ohook      （Office）
+echo:             [8] KMS38      （Windows） ^+ 在线 KMS   （Office）
+echo:             [9] 在线 KMS   （Windows） ^+ Ohook      （Office）
 echo:
-call :ex_color2 %_White% "              [R] " %_Green% "ReadMe"
-echo:              [0] Exit
+call :ex_color2 %_White% "              [R] " %_Green% "自述文件"
+echo:             [0] 返回
 echo:           ________________________________________________________
 echo:  
-call :ex_color2 %_White% "             " %_Green% "Enter a menu option in the Keyboard :"
+call :ex_color2 %_White% "             " %_Green% "请输入一个菜单选项 ："
 choice /C:123456789R0 /N
 set _erl=%errorlevel%
 
@@ -442,7 +444,7 @@ if not exist "!_dir!\Online_KMS_Activation.cmd" set _error=1
 if not exist "!_dir!\SetupComplete.cmd" set _error=1
 if defined _error goto errorfound
 
-set oem=Online KMS
+set oem=在线 KMS
 goto done
 
 :kms_setup:
@@ -512,7 +514,7 @@ if not exist "!_dir!\Online_KMS_Activation.cmd" set _error=1
 if not exist "!_dir!\SetupComplete.cmd" set _error=1
 if defined _error goto errorfound
 
-set oem=HWID [Windows] + Online KMS [Office]
+set oem=HWID [Windows] + 在线 KMS [Office]
 goto done
 
 :hwid_kms_setup:
@@ -588,7 +590,7 @@ if not exist "!_dir!\Online_KMS_Activation.cmd" set _error=1
 if not exist "!_dir!\SetupComplete.cmd" set _error=1
 if defined _error goto errorfound
 
-set oem=KMS38 [Windows] + Online KMS [Office]
+set oem=KMS38 [Windows] + 在线 KMS [Office]
 goto done
 
 :kms38_kms_setup:
@@ -626,7 +628,7 @@ if not exist "!_dir!\Ohook_Activation_AIO.cmd" set _error=1
 if not exist "!_dir!\SetupComplete.cmd" set _error=1
 if defined _error goto errorfound
 
-set oem=Online KMS [Windows] + Ohook [Office]
+set oem=在线 KMS [Windows] + Ohook [Office]
 goto done
 
 :kms_ohook_setup:
@@ -651,7 +653,7 @@ cd \
 :errorfound
 
 %eline%
-echo $OEM$ Folder was not created successfully...
+echo $OEM$ 文件夹未能成功创建……
 goto :done2
 
 :done
@@ -659,28 +661,28 @@ goto :done2
 echo ______________________________________________________________
 echo:
 call :ex_color %Blue% "%oem%"
-call :ex_color %Green% "$OEM$ folder is successfully created on the Desktop."
+call :ex_color %Green% "$OEM$ 文件夹已在桌面上成功创建。"
 echo "%oem%" | find /i "38" %nul% && (
 echo:
-echo To KMS38 activate Server Cor/Acor editions ^(No GUI Versions^),
-echo Check this page %mas%oem-folder
+echo 对于 KMS38 激活服务器 Cor/Acor 版本（无 GUI 版本），
+echo 查看此页面 %mas%oem-folder
 )
 echo ______________________________________________________________
 
 :done2
 
 echo:
-call :ex_color %_Yellow% "Press any key to exit..."
+call :ex_color %_Yellow% "请按任意键退出脚本……"
 pause %nul1%
 exit /b
 
 ::========================================================================================================================================
 
-::  Extract the text from batch script without character and file encoding issue
+::  从批处理脚本中解压文本，无字符和文件编码问题
 
 :export
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split \":%~1\:.*`r`n\"; [io.file]::WriteAllText('!_pdesk!\$OEM$\$$\Setup\Scripts\SetupComplete.cmd',$f[1].Trim(),[System.Text.Encoding]::ASCII);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split \":%~1\:.*`r`n\"; [io.file]::WriteAllText('!_pdesk!\$OEM$\$$\Setup\Scripts\SetupComplete.cmd',$f[1].Trim(),[System.Text.Encoding]::ASCII);"
 exit /b
 
 ::========================================================================================================================================
@@ -704,4 +706,4 @@ if not exist %psc% (echo %~3%~6) else (%psc% write-host -back '%1' -fore '%2' '%
 exit /b
 
 ::========================================================================================================================================
-:: Leave empty line below
+::  下方保留空行

@@ -3,8 +3,8 @@
 
 
 
-::  Check-Activation-Status
-::  Written by @abbodi1406
+::  Check-Activation-Status-wmi.cmd
+::  由 @abbodi1406 编写
 ::  forums.mydigitallife.net/posts/838808
 
 
@@ -30,7 +30,7 @@ start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" -arm"
 exit /b
 )
 color 07
-title Check Activation Status [wmi]
+title 检查激活状态 [wmi]
 set wspp=SoftwareLicensingProduct
 set wsps=SoftwareLicensingService
 set ospp=OfficeSoftwareProtectionProduct
@@ -57,18 +57,18 @@ setlocal DisableDelayedExpansion
 if %winbuild% LSS 9200 if not exist "%SystemRoot%\servicing\Packages\Microsoft-Windows-PowerShell-WTR-Package~*.mum" set _Identity=0
 
 set "SysPath=%SystemRoot%\System32"
-set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
 set "SysPath=%SystemRoot%\Sysnative"
-set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%Path%"
+set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%Path%"
 )
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -98,11 +98,11 @@ wmic path Win32_ComputerSystem get CreationClassName /value 2>nul | find /i "Com
 
 if %_cwmi% EQU 0 (
 echo:
-echo Error: WMI is not responding in the system.
+echo 错误：WMI 在系统中未响应。
 echo:
-echo In MAS, Goto Troubleshoot and run Fix WMI option.
+echo 在 MAS 中，请转到疑难解答并运行修复 WMI 选项。
 echo:
-echo Press any key to exit...
+echo 请按任意键退出脚本……
 pause >nul
 exit /b
 )
@@ -151,11 +151,11 @@ if %winbuild% LSS 9200 call :casWpkey %ospp% %o15App% osppsvc ospp15
 )
 
 echo %line2%
-echo ***                   Windows Status                     ***
+echo ***                  Windows 激活状态                    ***
 echo %line2%
 if not defined cW1nd0ws (
 echo.
-echo Error: product key not found.
+echo 错误：未找到产品密钥。
 goto :casWcon
 )
 set winID=1
@@ -172,10 +172,10 @@ if defined ohook (
 echo.
 echo.
 echo %line2%
-echo ***            Office Ohook Activation Status            ***
+echo ***                Office Ohook 激活状态                 ***
 echo %line2%
 echo.
-powershell "write-host -back 'Black' -fore 'Yellow' 'Ohook for permanent Office activation is installed.'; write-host -back 'Black' -fore 'Yellow' 'You can ignore below Office activation status.'"
+powershell "write-host -back 'Black' -fore 'Yellow' '已使用 Ohook 永久激活 Office。'; write-host -back 'Black' -fore 'Yellow' '你可以忽略以下的 Office 激活状态。'"
 echo.
 )
 
@@ -187,7 +187,7 @@ if defined osppsvc goto :casWospp
 goto :casWend
 )
 echo %line2%
-echo ***                   Office Status                      ***
+echo ***                  Office 激活状态                     ***
 echo %line2%
 set "_qr=%_zz7% %wspp% %_zz2% %_zz5%ApplicationID='%o15App%' and PartialProductKey is not null%_zz6% %_zz3% ID %_zz8%"
 for /f "tokens=2 delims==" %%# in ('%_qr%') do (
@@ -204,7 +204,7 @@ goto :casWend
 :casWospp
 if %verbose% EQU 1 (
 echo %line2%
-echo ***                   Office Status                      ***
+echo ***                  Office 激活状态                     ***
 echo %line2%
 )
 set "_qr=%_zz7% %ospp% %_zz2% %_zz5%ApplicationID='%o15App%' and PartialProductKey is not null%_zz6% %_zz3% ID %_zz8%"
@@ -243,75 +243,75 @@ if %WMI_VBS% NEQ 0 set "_qr=%_csg% %~1 "ID='%chkID%'" "%~3""
 for /f "tokens=* delims=" %%# in ('%_qr%') do set "%%#"
 
 set /a _gpr=(GracePeriodRemaining+1440-1)/1440
-echo %Description%| findstr /i VOLUME_KMSCLIENT 1>nul && (set cKmsClient=1&set _mTag=Volume)
-echo %Description%| findstr /i TIMEBASED_ 1>nul && (set cTblClient=1&set _mTag=Timebased)
-echo %Description%| findstr /i VIRTUAL_MACHINE_ACTIVATION 1>nul && (set cAvmClient=1&set _mTag=Automatic VM)
+echo %Description%| findstr /i VOLUME_KMSCLIENT 1>nul && (set cKmsClient=1&set _mTag=批量)
+echo %Description%| findstr /i TIMEBASED_ 1>nul && (set cTblClient=1&set _mTag=基于时间的)
+echo %Description%| findstr /i VIRTUAL_MACHINE_ACTIVATION 1>nul && (set cAvmClient=1&set _mTag=自动虚拟机)
 cmd /c exit /b %LicenseStatusReason%
 set "LicenseReason=%=ExitCode%"
-set "LicenseMsg=Time remaining: %GracePeriodRemaining% minute(s) (%_gpr% day(s))"
+set "LicenseMsg=剩余时间：%GracePeriodRemaining% 分钟（%_gpr% 天）"
 if %_gpr% GEQ 1 if %_WSH% EQU 1 (
 for /f "tokens=* delims=" %%# in ('%_csx% %GracePeriodRemaining%') do set "_xpr=%%#"
 )
 if %_gpr% GEQ 1 if %_prsh% EQU 1 if not defined _xpr (
 for /f "tokens=* delims=" %%# in ('%_psc% "$([DateTime]::Now.addMinutes(%GracePeriodRemaining%)).ToString('yyyy-MM-dd HH:mm:ss')" 2^>nul') do set "_xpr=%%#"
-title Check Activation Status [wmi]
+title 检查激活状态 [wmi]
 )
 
 if %LicenseStatus% EQU 0 (
-set "License=Unlicensed"
+set "License=未许可"
 set "LicenseMsg="
 )
 if %LicenseStatus% EQU 1 (
-set "License=Licensed"
+set "License=已许可"
 set "LicenseMsg="
 if %GracePeriodRemaining% EQU 0 (
-  if %winID% EQU 1 (set "ExpireMsg=The machine is permanently activated.") else (set "ExpireMsg=The product is permanently activated.")
+  if %winID% EQU 1 (set "ExpireMsg=计算机已永久激活。") else (set "ExpireMsg=产品已永久激活。")
   ) else (
-  set "LicenseMsg=%_mTag% activation expiration: %GracePeriodRemaining% minute(s) (%_gpr% day(s))"
-  if defined _xpr set "ExpireMsg=%_mTag% activation will expire %_xpr%"
+  set "LicenseMsg=%_mTag%激活过期：%GracePeriodRemaining% 分钟（%_gpr% 天）"
+  if defined _xpr set "ExpireMsg=%_mTag%激活将于 %_xpr% 过期"
   )
 )
 if %LicenseStatus% EQU 2 (
-set "License=Initial grace period"
-if defined _xpr set "ExpireMsg=Initial grace period ends %_xpr%"
+set "License=初始宽限期"
+if defined _xpr set "ExpireMsg=初始宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 3 (
-set "License=Additional grace period (KMS license expired or hardware out of tolerance)"
-if defined _xpr set "ExpireMsg=Additional grace period ends %_xpr%"
+set "License=附加宽限期（KMS 许可证已过期或硬件超出容差范围）"
+if defined _xpr set "ExpireMsg=附加宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 4 (
-set "License=Non-genuine grace period."
-if defined _xpr set "ExpireMsg=Non-genuine grace period ends %_xpr%"
+set "License=非正版宽限期。"
+if defined _xpr set "ExpireMsg=非正版宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 6 (
-set "License=Extended grace period"
-if defined _xpr set "ExpireMsg=Extended grace period ends %_xpr%"
+set "License=延长宽限期"
+if defined _xpr set "ExpireMsg=延长宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 5 (
-set "License=Notification"
-  if "%LicenseReason%"=="C004F200" (set "LicenseMsg=Notification Reason: 0xC004F200 (non-genuine)."
-  ) else if "%LicenseReason%"=="C004F009" (set "LicenseMsg=Notification Reason: 0xC004F009 (grace time expired)."
-  ) else (set "LicenseMsg=Notification Reason: 0x%LicenseReason%"
+set "License=通知"
+  if "%LicenseReason%"=="C004F200" (set "LicenseMsg=通知原因：0xC004F200（非正版）。"
+  ) else if "%LicenseReason%"=="C004F009" (set "LicenseMsg=通知原因：0xC004F009（宽限期到期）。"
+  ) else (set "LicenseMsg=通知原因：0x%LicenseReason%"
   )
 )
 if %LicenseStatus% GTR 6 (
-set "License=Unknown"
+set "License=未知"
 set "LicenseMsg="
 )
 if not defined cKmsClient exit /b
 
 if %KeyManagementServicePort%==0 set KeyManagementServicePort=1688
-set "KmsReg=Registered KMS machine name: %KeyManagementServiceMachine%:%KeyManagementServicePort%"
-if "%KeyManagementServiceMachine%"=="" set "KmsReg=Registered KMS machine name: KMS name not available"
+set "KmsReg=已注册的 KMS 计算机名称：%KeyManagementServiceMachine%:%KeyManagementServicePort%"
+if "%KeyManagementServiceMachine%"=="" set "KmsReg=已注册的 KMS 计算机名称：KMS 名称不可用"
 
 if %DiscoveredKeyManagementServiceMachinePort%==0 set DiscoveredKeyManagementServiceMachinePort=1688
-set "KmsDns=KMS machine name from DNS: %DiscoveredKeyManagementServiceMachineName%:%DiscoveredKeyManagementServiceMachinePort%"
-if "%DiscoveredKeyManagementServiceMachineName%"=="" set "KmsDns=DNS auto-discovery: KMS name not available"
+set "KmsDns=来自 DNS 的 KMS 计算机名称：%DiscoveredKeyManagementServiceMachineName%:%DiscoveredKeyManagementServiceMachinePort%"
+if "%DiscoveredKeyManagementServiceMachineName%"=="" set "KmsDns=DNS 自动发现：KMS 名称不可用"
 
 set "_qr="wmic path %~2 get ClientMachineID, KeyManagementServiceHostCaching /value" ^| findstr ^="
 if %WMI_VBS% NEQ 0 set "_qr=%_csg% %~2 "ClientMachineID, KeyManagementServiceHostCaching""
 for /f "tokens=* delims=" %%# in ('%_qr%') do set "%%#"
-if /i %KeyManagementServiceHostCaching%==True (set KeyManagementServiceHostCaching=Enabled) else (set KeyManagementServiceHostCaching=Disabled)
+if /i %KeyManagementServiceHostCaching%==True (set KeyManagementServiceHostCaching=启用) else (set KeyManagementServiceHostCaching=禁用)
 
 if %winbuild% LSS 9200 exit /b
 if /i %~1==%ospp% exit /b
@@ -319,67 +319,67 @@ if /i %~1==%ospp% exit /b
 if "%KeyManagementServiceLookupDomain%"=="" set "KeyManagementServiceLookupDomain="
 
 if %VLActivationTypeEnabled% EQU 3 (
-set VLActivationType=Token
+set VLActivationType=令牌
 ) else if %VLActivationTypeEnabled% EQU 2 (
 set VLActivationType=KMS
 ) else if %VLActivationTypeEnabled% EQU 1 (
 set VLActivationType=AD
 ) else (
-set VLActivationType=All
+set VLActivationType=所有
 )
 
 if %winbuild% LSS 9600 exit /b
-if "%DiscoveredKeyManagementServiceMachineIpAddress%"=="" set "DiscoveredKeyManagementServiceMachineIpAddress=not available"
+if "%DiscoveredKeyManagementServiceMachineIpAddress%"=="" set "DiscoveredKeyManagementServiceMachineIpAddress=不可用"
 exit /b
 
 :casWout
 echo.
-echo Name: %Name%
-echo Description: %Description%
-echo Activation ID: %ID%
-echo Extended PID: %ProductKeyID%
-if defined ProductKeyChannel echo Product Key Channel: %ProductKeyChannel%
-echo Partial Product Key: %PartialProductKey%
-echo License Status: %License%
+echo 名称：%Name%
+echo 描述：%Description%
+echo 激活 ID：%ID%
+echo 扩展 PID：%ProductKeyID%
+if defined ProductKeyChannel echo 产品密钥通道：%ProductKeyChannel%
+echo 部分产品密钥：%PartialProductKey%
+echo 许可状态：%License%
 if defined LicenseMsg echo %LicenseMsg%
-if not %LicenseStatus%==0 if not %EvaluationEndDate:~0,8%==16010101 echo Evaluation End Date: %EvaluationEndDate:~0,4%-%EvaluationEndDate:~4,2%-%EvaluationEndDate:~6,2% %EvaluationEndDate:~8,2%:%EvaluationEndDate:~10,2% UTC
+if not %LicenseStatus%==0 if not %EvaluationEndDate:~0,8%==16010101 echo 评估结束日期：%EvaluationEndDate:~0,4%-%EvaluationEndDate:~4,2%-%EvaluationEndDate:~6,2% %EvaluationEndDate:~8,2%:%EvaluationEndDate:~10,2% UTC
 if not defined cKmsClient (
 if defined ExpireMsg echo.&echo.    %ExpireMsg%
 exit /b
 )
-if defined VLActivationTypeEnabled echo Configured Activation Type: %VLActivationType%
+if defined VLActivationTypeEnabled echo 已配置的激活类型：%VLActivationType%
 echo.
 if not %LicenseStatus%==1 (
-echo Please activate the product in order to update KMS client information values.
+echo 请激活产品以更新 KMS 客户端信息值。
 exit /b
 )
-echo Most recent activation information:
-echo Key Management Service client information
-echo.    Client Machine ID (CMID): %ClientMachineID%
+echo 最新的激活信息：
+echo 密钥管理服务客户端信息
+echo.    客户端计算机 ID（CMID）：%ClientMachineID%
 echo.    %KmsDns%
 echo.    %KmsReg%
-if defined DiscoveredKeyManagementServiceMachineIpAddress echo.    KMS machine IP address: %DiscoveredKeyManagementServiceMachineIpAddress%
-echo.    KMS machine extended PID: %KeyManagementServiceProductKeyID%
-echo.    Activation interval: %VLActivationInterval% minutes
-echo.    Renewal interval: %VLRenewalInterval% minutes
-echo.    K.M.S host caching: %KeyManagementServiceHostCaching%
-if defined KeyManagementServiceLookupDomain echo.    KMS SRV record lookup domain: %KeyManagementServiceLookupDomain%
+if defined DiscoveredKeyManagementServiceMachineIpAddress echo.    KMS 计算机 IP 地址：%DiscoveredKeyManagementServiceMachineIpAddress%
+echo.    KMS 计算机扩展 PID：%KeyManagementServiceProductKeyID%
+echo.    激活间隔：%VLActivationInterval% 分钟
+echo.    续订间隔：%VLRenewalInterval% 分钟
+echo.    KMS 主机缓存：%KeyManagementServiceHostCaching%
+if defined KeyManagementServiceLookupDomain echo.    KMS 服务器记录查找域：%KeyManagementServiceLookupDomain%
 if defined ExpireMsg echo.&echo.    %ExpireMsg%
 exit /b
 
 :casWend
 if %_Identity% EQU 1 if %_prsh% EQU 1 (
 echo %line2%
-echo ***                  Office vNext Status                 ***
+echo ***                Office vNext 激活状态                 ***
 echo %line2%
 setlocal EnableDelayedExpansion
-%_psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':vNextDiag\:.*';iex ($f[1])"
-title Check Activation Status [wmi]
+%_psc% "$f=[IO.File]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':vNextDiag\:.*';iex ($f[1])"
+title 检查激活状态 [wmi]
 echo %line3%
 echo.
 )
 echo.
-echo Press any key to exit.
+echo 请按任意键退出脚本。
 pause >nul
 exit /b
 
@@ -390,7 +390,7 @@ function PrintModePerPridFromRegistry
 	$vNextPrids = Get-Item -Path $vNextRegkey -ErrorAction Ignore | Select-Object -ExpandProperty 'property' | Where-Object -FilterScript {$_.ToLower() -like "*retail" -or $_.ToLower() -like "*volume"}
 	If ($vNextPrids -Eq $null)
 	{
-		Write-Host "No registry keys found."
+		Write-Host "没有找到注册表项。"
 		Return
 	}
 	$vNextPrids | ForEach `
@@ -415,7 +415,7 @@ function PrintSharedComputerLicensing
 	$scaPolicyValue = Get-ItemProperty -Path $scaPolicyKey -ErrorAction Ignore | Select-Object -ExpandProperty "SharedComputerLicensing" -ErrorAction Ignore
 	If ($scaValue -Eq $null -And $scaValue2 -Eq $null -And $scaPolicyValue -Eq $null)
 	{
-		Write-Host "No registry keys found."
+		Write-Host "没有找到注册表项。"
 		Return
 	}
 	$scaModeValue = $scaValue -Or $scaValue2 -Or $scaPolicyValue
@@ -437,7 +437,7 @@ function PrintSharedComputerLicensing
 	}
 	If ($tokenFiles.length -Eq 0)
 	{
-		Write-Host "No tokens found."
+		Write-Host "没有找到令牌。"
 		Return
 	}
 	$tokenFiles | ForEach `
@@ -474,7 +474,7 @@ function PrintLicensesInformation
 	}
 	If ($licenseFiles.length -Eq 0)
 	{
-		Write-Host "No licenses found."
+		Write-Host "没有找到许可证。"
 		Return
 	}
 	$licenseFiles | ForEach `
@@ -544,21 +544,21 @@ function PrintLicensesInformation
 	}
 }
 	Write-Host
-	Write-Host "========== Mode per ProductReleaseId =========="
+	Write-Host "============== 产品 ID 及许可方式 =============="
 	Write-Host
 PrintModePerPridFromRegistry
 	Write-Host
-	Write-Host "========== Shared Computer Licensing =========="
+	Write-Host "================ 共享计算机许可 ================"
 	Write-Host
 PrintSharedComputerLicensing
 	Write-Host
-	Write-Host "========== vNext licenses =========="
+	Write-Host "================= vNext 许可证 ================="
 	Write-Host
 PrintLicensesInformation -Mode "NUL"
 	Write-Host
-	Write-Host "========== Device licenses =========="
+	Write-Host "================== 设备许可证 =================="
 	Write-Host
 PrintLicensesInformation -Mode "Device"
 :vNextDiag:
 ::===================================================
-:: Leave empty line below
+::  下方保留空行

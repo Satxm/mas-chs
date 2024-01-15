@@ -4,38 +4,38 @@
 
 
 
-::============================================================================
+::=================================================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
-::============================================================================
+::=================================================================================================
 
 
 
-::  To activate Office with Ohook activation, run the script with "/Ohook" parameter or change 0 to 1 in below line
+::  若要使用 Ohook 激活激活 Office，请使用“/Ohook”参数运行脚本，或在以下行中将 0 更改为 1
 set _act=0
 
-::  To remove Ohook activation, run the script with /Ohook-Uninstall parameter or change 0 to 1 in below line
+::  若要移除 Ohook 激活，请使用 /Ohook-Uninstall 参数运行脚本，或在以下行中将 0 更改为 1
 set _rem=0
 
-::  If value is changed in above lines or parameter is used then script will run in unattended mode
+::  如果在上面几行中更改了值或使用参数，脚本将会在无人值守模式下运行
 
 
 
 ::========================================================================================================================================
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
-:: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
-:: or with ARM64 process if it was initiated by x86/ARM32 process on ARM64 Windows
+::  如果脚本是由 x64 位 Windows 上的 x86 进程启动的，则将使用 x64 进程重新启动脚本
+::  或者如果它是由 ARM64 Windows 上的 x86/ARM32 进程启动的，则将使用 ARM64 进程
 
 set "_cmdf=%~f0"
 for %%# in (%*) do (
@@ -43,22 +43,22 @@ if /i "%%#"=="r1" set r1=1
 if /i "%%#"=="r2" set r2=1
 if /i "%%#"=="-qedit" (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "1" /f 1>nul
-rem check the code below admin elevation to understand why it's here
+rem 查看下方的管理员提升代码了解它为什么在这里
 )
 )
 
 if exist %SystemRoot%\Sysnative\cmd.exe if not defined r1 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
+start wt.exe new-tab %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
 )
 
-:: Re-launch the script with ARM32 process if it was initiated by x64 process on ARM64 Windows
+::  使用 ARM32 进程重新启动脚本（如果此脚本是由 ARM64 Windows 上的 x64 进程启动的）
 
 if exist %SystemRoot%\SysArm32\cmd.exe if %PROCESSOR_ARCHITECTURE%==AMD64 if not defined r2 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
+start wt.exe new-tab %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
 )
 
 ::========================================================================================================================================
@@ -66,27 +66,27 @@ exit /b
 set "blank="
 set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
 
-::  Check if Null service is working, it's important for the batch script
+::  检查 Null 服务是否正常工作，这对批处理脚本很重要
 
 sc query Null | find /i "RUNNING"
 if %errorlevel% NEQ 0 (
 echo:
-echo Null service is not running, script may crash...
+echo Null 服务未运行，脚本可能会崩溃……
 echo:
 echo:
-echo Help - %mas%troubleshoot.html
+echo 帮助 - %mas%troubleshoot.html
 echo:
 echo:
 ping 127.0.0.1 -n 10
 )
 cls
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -98,7 +98,7 @@ popd
 
 cls
 color 07
-title  Ohook Activation %masver%
+title Ohook Activation %masver%
 
 set _args=
 set _elev=
@@ -150,34 +150,34 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 if %~z0 GEQ 200000 (
-set "_exitmsg=Go back"
-set "_fixmsg=Go back to Main Menu, select Troubleshoot and run Fix Licensing option."
+set "_exitmsg=返回"
+set "_fixmsg=请返回主菜单，选择疑难解答并运行修复许可选项。"
 ) else (
-set "_exitmsg=Exit"
-set "_fixmsg=In MAS folder, run Troubleshoot script and select Fix Licensing option."
+set "_exitmsg=退出"
+set "_fixmsg=在 MAS 文件夹中，请运行疑难解答脚本并选择修复许可选项。"
 )
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 9200 (
 %eline%
-echo Unsupported OS version detected [%winbuild%].
-echo Ohook Activation is supported on Windows 8 and later and their server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo Ohook 激活在 Windows 8 及更高版本及其服务器对应方上受支持。
 goto dk_done
 )
 
 for %%# in (powershell.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find powershell.exe in the system.
+echo 在系统中未找到 powershell.exe。
 goto dk_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -196,44 +196,46 @@ setlocal EnableDelayedExpansion
 echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %eline%
-echo Script is launched from the temp folder,
-echo Most likely you are running the script directly from the archive file.
+echo 脚本是从 temp 文件夹启动的，
+echo 最有可能的原因是，你是直接从压缩文件运行脚本。
 echo:
-echo Extract the archive file and launch the script from the extracted folder.
+echo 请解压压缩文件并从解压文件夹中启动脚本。
 goto dk_done
 )
 )
 
 ::========================================================================================================================================
 
-::  Elevate script as admin and pass arguments and preventing loop
+::  将脚本提升为管理员权限及传递参数并防止循环
 
 %nul1% fltmc || (
-if not defined _elev %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev for %%# in (wt.exe) do @if "%%~$PATH:#"=="" %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev %psc% "start wt.exe -arg 'new-tab cmd.exe /c \"!_PSarg:'=''!\"' -verb runas" && exit /b
 %eline%
-echo This script needs admin rights.
-echo To do so, right click on this script and select 'Run as administrator'.
+echo 此脚本需要管理员权限。
+echo 为此，右键单击此脚本并选择“以管理员身份运行”。
 goto dk_done
 )
 
 ::========================================================================================================================================
 
-::  This code disables QuickEdit for this cmd.exe session only without making permanent changes to the registry
-::  It is added because clicking on the script window pauses the operation and leads to the confusion that script stopped due to an error
+::  此代码仅禁用此 cmd.exe 会话的快速编辑，而不对注册表进行永久更改
+::  添加它的原因是单击脚本窗口会暂停操作并导致脚本因错误而停止的混乱
 
 if %_unattended%==1 set quedit=1
 for %%# in (%_args%) do (if /i "%%#"=="-qedit" set quedit=1)
 
 reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% || if not defined quedit (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "0" /f %nul1%
-start cmd.exe /c ""!_batf!" %_args% -qedit"
-rem quickedit reset code is added at the starting of the script instead of here because it takes time to reflect in some cases
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+start wt.exe new-tab cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+rem 快速编辑重置代码应添加在脚本的开头而不是此处，因为在某些情况下需要时间来反映
 exit /b
 )
 
 ::========================================================================================================================================
 
-::  Check for updates
+::  检查更新
 
 set -=
 set old=
@@ -245,14 +247,14 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version MAS %masver%
+echo echo 你正在运行旧版本的 MAS 版本 %masver%
 echo ________________________________________________
 echo:
 if not %_unattended%==1 (
-echo [1] Get Latest MAS
-echo [0] Continue Anyway
+echo [1] 下载最新版本 MAS
+echo [0] 仍然继续
 echo:
-call :dk_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
+call :dk_color %_Green% "请输入一个菜单选项 [1,0] ："
 choice /C:10 /N
 if !errorlevel!==2 rem
 if !errorlevel!==1 (start ht%-%tps://github.com/mass%-%gravel/Microsoft-Acti%-%vation-Scripts & start %mas% & exit /b)
@@ -269,7 +271,7 @@ if %_rem%==1 goto :oh_uninstall
 if %_unattended%==0 (
 cls
 mode 76, 25
-title  Ohook Activation %masver%
+title Ohook 激活 %masver%
 
 echo:
 echo:
@@ -277,17 +279,17 @@ echo:
 echo:
 echo         ____________________________________________________________
 echo:
-echo                 [1] Install Ohook Office Activation
+echo                 [1] 安装 Ohook Office 激活
 echo:
-echo                 [2] Uninstall
+echo                 [2] 卸载
 echo                 ____________________________________________
 echo:
-echo                 [3] Download Office
+echo                 [3] 下载 Office
 echo:
 echo                 [0] %_exitmsg%
 echo         ____________________________________________________________
 echo: 
-call :dk_color2 %_White% "              " %_Green% "Enter a menu option in the Keyboard [1,2,3,0]"
+call :dk_color2 %_White% "              " %_Green% "请输入一个菜单选项 [1,2,3,0]"
 choice /C:1230 /N
 set _el=!errorlevel!
 if !_el!==4  exit /b
@@ -305,21 +307,21 @@ cls
 mode 130, 32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=32;$B.Height=300;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 
-title  Ohook Activation %masver%
+title Ohook 激活 %masver%
 
 echo:
-echo Initializing...
+echo 正在初始化……
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto dk_done
 )
 
@@ -328,13 +330,13 @@ goto dk_done
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
@@ -346,11 +348,11 @@ cls
 echo:
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set osarch=%%b
 for /f "tokens=6-7 delims=[]. " %%i in ('ver') do if "%%j"=="" (set fullbuild=%%i) else (set fullbuild=%%i.%%j)
-echo Checking OS Info                        [%winos% ^| %fullbuild% ^| %osarch%]
+echo 正在检查操作系统信息                    [%winos% ^| %fullbuild% ^| %osarch%]
 
 ::========================================================================================================================================
 
-::  Check Windows Script Host
+::  检查 Windows Script Host
 
 set _WSH=1
 reg query "HKCU\SOFTWARE\Microsoft\Windows Script Host\Settings" /v Enabled %nul2% | find /i "0x0" %nul1% && (set _WSH=0)
@@ -360,18 +362,18 @@ if %_WSH% EQU 0 (
 reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 reg add "HKCU\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 if not "%arch%"=="x86" reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f /reg:32 %nul%
-echo Enabling Windows Script Host            [Successful]
+echo 正在启用 Windows Script Host            [成功]
 )
 
 ::========================================================================================================================================
 
-echo Initiating Diagnostic Tests...
+echo 正在初始化诊断测试……
 
 set "_serv=sppsvc Winmgmt"
 set officeact=1
 call :dk_errorcheck
 
-::  Check unsupported office versions
+::  检查不支持的 office 版本
 
 set o14msi=
 set o14c2r=
@@ -388,12 +390,12 @@ if %winbuild% GEQ 10240 %psc% "Get-AppxPackage -name "Microsoft.Office.Desktop""
 
 if not "%o14msi%%o14c2r%%o16uwp%"=="" (
 echo:
-call :dk_color %Red% "Checking Unsupported Office Install     [ %o14msi%%o14c2r%%o16uwp%]"
+call :dk_color %Red% "正在检查不受支持的 Office 安装          [ %o14msi%%o14c2r%%o16uwp%]"
 )
 
 ::========================================================================================================================================
 
-::  Check supported office versions
+::  检查受支持的 office 版本
 
 call :oh_getpath
 
@@ -401,7 +403,7 @@ sc query ClickToRunSvc %nul%
 set error1=%errorlevel%
 
 if defined o16c2r if %error1% EQU 1060 (
-call :dk_color %Red% "Checking ClickToRun Service             [Not found, Office 16.0 files found]"
+call :dk_color %Red% "正在检查 ClickToRun 服务                [未找到，已找到 Office 16.0 文件]"
 set o16c2r=
 set error=1
 )
@@ -410,7 +412,7 @@ sc query OfficeSvc %nul%
 set error2=%errorlevel%
 
 if defined o15c2r if %error1% EQU 1060 if %error2% EQU 1060 (
-call :dk_color %Red% "Checking ClickToRun Service             [Not found, Office 15.0 files found]"
+call :dk_color %Red% "正在检查 ClickToRun 服务                [未找到，已找到 Office 15.0 文件]"
 set o15c2r=
 set error=1
 )
@@ -419,17 +421,17 @@ if "%o16c2r%%o15c2r%%o16msi%%o15msi%"=="" (
 set error=1
 echo:
 if not "%o14msi%%o14c2r%%o16uwp%"=="" (
-call :dk_color %Red% "Checking Supported Office Install       [Not Found]"
+call :dk_color %Red% "正在检查受支持的 Office 安装            [未找到]"
 ) else (
-call :dk_color %Red% "Checking Installed Office               [Not Found]"
+call :dk_color %Red% "正在检查已安装的 Office                 [未找到]"
 )
 
 if %winbuild% GEQ 10240 %psc% "Get-AppxPackage -name "Microsoft.MicrosoftOfficeHub"" | find /i "Office" %nul1% && (
 echo:
-echo You have only Office dashboard app installed, you need to install full Office version.
+echo 你只安装了 Office 仪表板应用，你需要安装完整的 Office 版本。
 )
 echo:
-call :dk_color %Blue% "Download and install Office from below URL and try again."
+call :dk_color %Blue% "请从以下 URL 下载并安装 Office，然后重试。"
 echo:
 echo %mas%genuine-installation-media.html
 goto dk_done
@@ -440,12 +442,12 @@ if not "%o16c2r%%o15c2r%%o16msi%%o15msi%"=="1" set multioffice=1
 if not "%o14msi%%o14c2r%%o16uwp%"=="" set multioffice=1
 
 if defined multioffice (
-call :dk_color %Gray% "Checking Multiple Office Install        [Found. Its best to install only one version]"
+call :dk_color %Gray% "正在检查是否有多个 Office 安装          [已找到。最好只安装一个版本]"
 )
 
 ::========================================================================================================================================
 
-::  Process Office 15.0 C2R
+::  处理 Office 15.0 C2R
 
 if not defined o15c2r goto :starto16c2r
 
@@ -475,10 +477,10 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 )
 
 echo:
-echo Activating Office 15.0 %_oArch% C2R...
+echo 正在激活 Office 15.0 %_oArch% C2R……
 
 if not defined _oIds (
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 set error=1
 goto :starto16c2r
 )
@@ -490,7 +492,7 @@ call :oh_hookinstall
 
 :starto16c2r
 
-::  Process Office 16.0 C2R
+::  处理 Office 16.0 C2R
 
 if not defined o16c2r goto :startmsi
 
@@ -520,10 +522,10 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 )
 
 echo:
-echo Activating Office 16.0 %_oArch% C2R...
+echo 正在激活 Office 16.0 %_oArch% C2R……
 
 if not defined _oIds (
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 set error=1
 goto :startmsi
 )
@@ -533,7 +535,7 @@ call :oh_hookinstall
 
 ::========================================================================================================================================
 
-::  Find remnants of Office vNext license block and remove it because it stops non vNext licenses from appearing
+::  查找 Office vNext 许可证块的残余并将其删除，因为它会阻止非 vNext 许可证的显示
 ::  https://learn.microsoft.com/en-us/office/troubleshoot/activation/reset-office-365-proplus-activation-state
 
 set _sid=
@@ -542,7 +544,7 @@ set sub_next=
 for /f "tokens=* delims=" %%a in ('%psc% "Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList' | ForEach-Object { Split-Path -Path $_.PSPath -Leaf }" %nul6%') do (if defined _sid (set "_sid=!_sid! HKU\%%a") else (set "_sid=HKU\%%a"))
 
 if not defined _sid (
-call :dk_color %Red% "Checking User Accounts SID              [Not Found]"
+call :dk_color %Red% "检查用户账号 SID                        [未找到]"
 )
 
 dir /b /s /a:-d "!_Local!\Microsoft\Office\Licenses\*" %nul% && set sub_next=1
@@ -566,12 +568,12 @@ reg delete %%#\Software\Microsoft\Office\16.0\Registration /f %nul%
 )
 )
 
-if defined sub_next echo Removing Office vNext Block             [Successful]
+if defined sub_next echo 正在移除 Office vNext 许可              [成功]
 
 ::========================================================================================================================================
 
-::  Subscription products attempt to validate the license and may show a banner "There was a problem checking this device's license status."
-::  Resiliency registry entry can skip this check
+::  订阅产品会尝试验证许可证，并可能显示横幅“检查此设备的许可证状态时出现问题”。
+::  复原注册表项可以跳过此检查
 
 if defined o16c2r (
 for %%# in (!_sid! HKCU) do (reg delete %%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f %nul%)
@@ -580,14 +582,14 @@ reg query "%%#\Volatile Environment" %nul% && (
 reg add %%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /v "TimeOfLastHeartbeatFailure" /t REG_SZ /d "2040-01-01T00:00:00Z" /f %nul%
 )
 )
-echo Adding Reg Keys To Skip License Check   [Successful]
+echo 添加注册表以跳过许可证检查              [成功]
 )
 
 ::========================================================================================================================================
 
 ::  mass grave[.]dev/office-license-is-not-genuine.html
-::  Add registry keys for volume products so that 'non-genuine' banner won't appear 
-::  Script already is using MAK instead of GVLK so it won't appear anyway, but registry keys are added incase Office installs default GVLK grace key for volume products
+::  为批量产品添加注册表项，以便不会显示“非正版”横幅
+::  脚本已使用 MAK 而不是 GVLK，因此无论如何都不会显示，但如果 Office 为批量产品安装默认 GVLK 宽限密钥，则会添加注册表项
 
 echo "%_oIds%" | find /i "Volume" %nul1% && (
 if %winbuild% GEQ 9200 (
@@ -597,7 +599,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPla
 )
 reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f %nul%
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f /v KeyManagementServiceName /t REG_SZ /d "10.0.0.10" %nul%
-echo Adding a Reg To Prevent Banner          [Successful]
+echo 添加注册表以防止显示“非正版”横幅        [成功]
 )
 )
 
@@ -610,7 +612,7 @@ if defined o16msi call :oh_processmsi 16 %o16msi_reg%
 
 ::========================================================================================================================================
 
-::  Uninstall other / grace Keys
+::  卸载其他 / 宽限期密钥
 
 set upk_result=0
 set allapplist=
@@ -631,13 +633,13 @@ set upk_result=2
 )
 
 if not %upk_result%==0 echo:
-if %upk_result%==1 echo Uninstalling Other/Grace Keys           [Successful]
-if %upk_result%==2 call :dk_color %Red% "Uninstalling Other/Grace Keys           [Failed]"
+if %upk_result%==1 echo 正在卸载其他/宽限期密钥                 [成功]
+if %upk_result%==2 call :dk_color %Red% "正在卸载其他/宽限期密钥                 [失败]"
 
 ::========================================================================================================================================
 
-::  Refresh Windows Insider Preview Licenses
-::  It required in Insider versions otherwise office may not activate
+::  刷新 Windows Insider Preview 许可证
+::  在 Insider 版本中需要它，否则 office 可能无法激活
 
 if exist "%windir%\system32\spp\store_test\2.0\tokens.dat" (
 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
@@ -648,13 +650,13 @@ if !errorlevel! NEQ 0 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 
 echo:
 if not defined error (
-call :dk_color %Green% "Office is permanently activated."
-echo Help: %mas%troubleshoot
+call :dk_color %Green% "Office 已永久激活。"
+echo 帮助：%mas%troubleshoot
 ) else (
-call :dk_color %Red% "Some errors were detected."
+call :dk_color %Red% "检测到一些错误。"
 if not defined ierror if not defined showfix if not defined serv_cor if not defined serv_cste call :dk_color %Blue% "%_fixmsg%"
 echo:
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 )
 
 goto :dk_done
@@ -665,7 +667,7 @@ goto :dk_done
 
 cls
 mode 99, 28
-title  Uninstall Ohook Activation %masver%
+title 卸载 Ohook 激活 %masver%
 
 set _present=
 set _unerror=
@@ -673,7 +675,7 @@ call :oh_reset
 call :oh_getpath
 
 echo:
-echo Uninstalling Ohook Activation...
+echo 正在卸载 Ohook 激活……
 echo:
 
 if defined o16c2r_reg (for /f "skip=2 tokens=2*" %%a in ('"reg query %o16c2r_reg% /v InstallPath" %nul6%') do (set "_16CHook=%%b\root\vfs"))
@@ -704,7 +706,7 @@ if exist "%%~A\Microsoft %%~G\root\vfs\%%#\sppc*dll" (set _present=1& del /s /f 
 
 reg query HKCU\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency %nul% && (
 echo:
-echo Deleting - Registry keys to skip license check
+echo 正在删除 - 用于跳过许可证检查的注册表项
 reg delete HKCU\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f
 
 for /f "tokens=* delims=" %%a in ('%psc% "Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList' | ForEach-Object { Split-Path -Path $_.PSPath -Leaf }" %nul6%') do (if defined _sid (set "_sid=!_sid! %%a") else (set "_sid=%%a"))
@@ -716,7 +718,7 @@ reg delete HKU\%%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" %nul% && (
 echo:
-echo Deleting - Registry keys to prevent non-genuine banner
+echo 正在删除 - 防止“非正版”横幅的注册表项
 reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f
 )
 
@@ -728,13 +730,13 @@ echo ___________________________________________________________________________
 echo:
 
 if not defined _present (
-echo Ohook Activation is not installed.
+echo Ohook 激活未安装。
 ) else (
 if defined _unerror (
-call :dk_color %Red% "Failed to uninstall Ohook activation."
-call :dk_color %Blue% "Close Office apps if they are running and try again."
+call :dk_color %Red% "卸载 Ohook 激活失败。"
+call :dk_color %Blue% "如果 Office 应用正在运行，请关闭它们，然后重试。"
 ) else (
-call :dk_color %Green% "Successfully uninstalled Ohook activation."
+call :dk_color %Green% "卸载 Ohook 激活成功。"
 )
 )
 echo __________________________________________________________________________________________
@@ -796,9 +798,9 @@ if %errorcode% NEQ 0 set "errorcode=[0x%=ExitCode%]"
 
 if %errorcode% EQU 0 (
 call :dk_refresh
-echo Installing Generic Product Key          [%_key%] [%_prod%] [%_lic%] [Successful]
+echo 正在安装通用产品密钥                    [%_key%] [%_prod%] [%_lic%] [成功]
 ) else (
-call :dk_color %Red% "Installing Generic Product Key          [%_key%] [%_prod%] [Failed] %errorcode%"
+call :dk_color %Red% "正在安装通用产品密钥                    [%_key%] [%_prod%] [失败] %errorcode%"
 if not defined error (
 call :dk_color %Blue% "%_fixmsg%"
 set showfix=1
@@ -822,11 +824,11 @@ if %oVer%==16 (
 
 call :oh_actids
 echo "!oapplist!" | find /i "!_actid!" %nul1% && (
-call :dk_color %Gray% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Successful]"
+call :dk_color %Gray% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [成功]"
 exit /b
 )
 
-::  Fallback to /ilc method to install licenses incase integrator.exe is not working
+::  回退到 /ilc 方法以安装许可证，以防 integrator.exe 不可用
 
 set _License=%_License:XVolume=XC2RVL_%
 
@@ -853,10 +855,10 @@ cscript //nologo %windir%\system32\slmgr.vbs /ilc "!_oLPath!\%%~nx#" %nul%
 
 call :oh_actids
 echo "!oapplist!" | find /i "!_actid!" %nul1% && (
-call :dk_color %Gray% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Successful with /ilc Method]"
+call :dk_color %Gray% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [使用 /ilc 方法成功]"
 ) || (
 set error=1
-call :dk_color %Red% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Failed]"
+call :dk_color %Red% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [失败]"
 )
 
 exit /b
@@ -885,25 +887,25 @@ if not exist "%_hookPath%\sppc.dll" set ierror=1
 
 echo:
 if not defined ierror (
-echo Symlinking System's sppc.dll To         ["%_hookPath%\sppcs.dll"] [Successful]
-echo Extracting Custom %_hook% To         ["%_hookPath%\sppc.dll"] [Successful]
+echo 正在用符号链接系统 sppc.dll 至          ["%_hookPath%\sppcs.dll"] [成功]
+echo 正在解压自定义 %_hook% 到            ["%_hookPath%\sppc.dll"] [成功]
 ) else (
 set error=1
-call :dk_color %Red% "Symlinking Systems sppc.dll             [Failed]"
-call :dk_color %Red% "Extracting Custom %_hook%            [Failed]"
+call :dk_color %Red% "正在用符号链接系统 sppc.dll             [失败]"
+call :dk_color %Red% "正在解压自定义 %_hook%               [失败]"
 echo ["%_hookPath%\sppc.dll"]
 echo:
-call :dk_color %Blue% "Close ALL Office apps including Outlook and try again."
-call :dk_color %Blue% "If its still not resolved then restart system and try again."
+call :dk_color %Blue% "请关闭所有 Office 应用（包括 Outlook），然后重试。"
+call :dk_color %Blue% "如果仍未解决，请重新启动系统并再试一次。"
 )
 
 if not defined ierror (
 if defined hasherror (
 set error=1
 set ierror=1
-call :dk_color %Red% "Modifying Hash of Custom %_hook%     [Failed]"
+call :dk_color %Red% "正在修改自定义 %_hook% 的哈希值      [失败]"
 ) else (
-echo Modifying Hash of Custom %_hook%     [Successful]
+echo 正在修改自定义 %_hook% 的哈希值      [成功]
 )
 )
 
@@ -932,8 +934,8 @@ echo "!oapplist!" | find /i "!_actid!" %nul1% || call :oh_installlic
 call :oh_installkey
 ) else (
 set error=1
-call :dk_color %Red% "Checking Product In Script              [Office %oVer%.0 !_prod! not found in script]"
-call :dk_color %Blue% "Make sure you are using Latest MAS script."
+call :dk_color %Red% "检查脚本中产品列表              [Office %oVer%.0 %%# 未在脚本中找到]"
+call :dk_color %Blue% 请确保你使用的是 MAS 脚本的最新版本。
 )
 )
 
@@ -960,7 +962,7 @@ exit /b
 
 :oh_processmsi
 
-::  Process Office MSI Version
+::  处理 Office MSI 版本
 
 call :oh_reset
 call :oh_actids
@@ -985,11 +987,11 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 call :oh_msiproducts
 
 echo:
-echo Activating Office %1.0 %_oArch% MSI...
+echo 正在激活 Office %1.0 %_oArch% MSI 版本……
 
 if not defined _oIds (
 set error=1
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 exit /b
 )
 
@@ -1000,7 +1002,7 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Refresh license status
+::  刷新许可证状态
 
 :dk_refresh
 
@@ -1008,7 +1010,7 @@ if %_wmic% EQU 1 wmic path SoftwareLicensingService where __CLASS='SoftwareLicen
 if %_wmic% EQU 0 %psc% "$null=(([WMICLASS]'SoftwareLicensingService').GetInstances()).RefreshLicenseStatus()" %nul%
 exit /b
 
-::  Get Windows Activation IDs
+::  获取 Windows 激活 ID
 
 :dk_actids
 
@@ -1018,7 +1020,7 @@ if %_wmic% EQU 0 set "chkapp=for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISE
 %chkapp% do (if defined applist (call set "applist=!applist! %%a") else (call set "applist=%%a"))
 exit /b
 
-::  Get Office Activation IDs
+::  获取 Office 激活 ID
 
 :oh_actids
 
@@ -1028,7 +1030,7 @@ if %_wmic% EQU 0 set "chkapp=for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISE
 %chkapp% do (if defined oapplist (call set "oapplist=!oapplist! %%a") else (call set "oapplist=%%a"))
 exit /b
 
-::  Check wmic.exe
+::  检查 wmic.exe
 
 :dk_ckeckwmic
 
@@ -1038,7 +1040,7 @@ wmic path Win32_ComputerSystem get CreationClassName /value %nul2% | find /i "co
 )
 exit /b
 
-::  Get Product name (WMI/REG methods are not reliable in all conditions, hence winbrand.dll method is used)
+::  获取产品名称（WMI/REG 方法并非在所有条件下都可靠，因此使用 winbrand.dll 方法）
 
 :dk_product
 
@@ -1057,7 +1059,7 @@ set winos=!winos:Windows 10=Windows 11!
 )
 exit /b
 
-::  Common lines used in PowerShell reflection code
+::  PowerShell 中使用反射代码的常见行
 
 :dk_reflection
 
@@ -1072,7 +1074,7 @@ exit /b
 
 set showfix=
 
-::  Check corrupt services
+::  检查损坏的服务
 
 set serv_cor=
 for %%# in (%_serv%) do (
@@ -1090,12 +1092,12 @@ if defined _corrupt (if defined serv_cor (set "serv_cor=!serv_cor! %%#") else (s
 
 if defined serv_cor (
 set error=1
-call :dk_color %Red% "Checking Corrupt Services               [%serv_cor%]"
+call :dk_color %Red% "正在检查损坏的服务                      [%serv_cor%]"
 )
 
 ::========================================================================================================================================
 
-::  Check disabled services
+::  检查禁用的服务
 
 set serv_ste=
 for %%# in (%_serv%) do (
@@ -1103,7 +1105,7 @@ sc start %%# %nul%
 if !errorlevel! EQU 1058 (if defined serv_ste (set "serv_ste=!serv_ste! %%#") else (set "serv_ste=%%#"))
 )
 
-::  Change disabled services startup type to default
+::  将禁用的服务启动类型更改为默认值
 
 set serv_csts=
 set serv_cste=
@@ -1130,17 +1132,17 @@ if defined serv_cste (set "serv_cste=!serv_cste! %%#") else (set "serv_cste=%%#"
 )
 )
 
-if defined serv_csts call :dk_color %Gray% "Enabling Disabled Services              [Successful] [%serv_csts%]"
+if defined serv_csts call :dk_color %Gray% "正在启用禁用的服务                      [成功] [%serv_csts%]"
 
 if defined serv_cste (
 set error=1
-call :dk_color %Red% "Enabling Disabled Services              [Failed] [%serv_cste%]"
+call :dk_color %Red% "正在启用禁用的服务                      [失败] [%serv_cste%]"
 )
 
 ::========================================================================================================================================
 
-::  Check if the services are able to run or not
-::  Workarounds are added to get correct status and error code because sc query doesn't output correct results in some conditions
+::  检查服务是否能够运行
+::  添加获取正确状态和错误代码的解决方法，因为 sc 查询在某些情况下不会输出正确的结果
 
 set serv_e=
 for %%# in (%_serv%) do (
@@ -1160,31 +1162,31 @@ if defined checkerror if defined serv_e (set "serv_e=!serv_e!, %%#-!errorcode!")
 
 if defined serv_e (
 set error=1
-call :dk_color %Red% "Starting Services                       [Failed] [%serv_e%]"
+call :dk_color %Red% "正在启动服务                            [失败] [%serv_e%]"
 echo %serv_e% | findstr /i "ClipSVC-1058 sppsvc-1058" %nul% && (
-call :dk_color %Blue% "Restart the system to fix this error."
+call :dk_color %Blue% "请重新启动系统修复已禁用服务错误 1058。"
 set showfix=1
 )
 )
 
 ::========================================================================================================================================
 
-::  Various error checks
+::  各类错误检查
 
 if defined safeboot_option (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking Boot Mode                      [%safeboot_option%] " %Blue% "[Safe mode found. Run in normal mode.]"
+call :dk_color2 %Red% "正在检查引导模式                        [%safeboot_option%] " %Blue% "[系统正在安全模式下运行。将以正常模式运行。]"
 )
 
 
 for /f "skip=2 tokens=2*" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\State" /v ImageState') do (set imagestate=%%B)
 if /i not "%imagestate%"=="IMAGE_STATE_COMPLETE" (
 set error=1
-call :dk_color %Red% "Checking Windows Setup State            [%imagestate%]"
+call :dk_color %Red% "检查 Windows 安装状态                   [%imagestate%]"
 echo "%imagestate%" | find /i "RESEAL" %nul% && (
 set showfix=1
-call :dk_color %Blue% "You need to run it in normal mode in case you are running it in Audit Mode."
+call :dk_color %Blue% "你需要它在正常模式下运行,以防你在审计模式运行。"
 )
 )
 
@@ -1192,19 +1194,19 @@ call :dk_color %Blue% "You need to run it in normal mode in case you are running
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinPE" /v InstRoot %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking WinPE                          " %Blue% "[WinPE mode found. Run in normal mode.]"
+call :dk_color2 %Red% "正在检查 WinPE                          " %Blue% "[系统正在 WinPE 模式下运行。将以正常模式运行。]"
 )
 
 
 set wpainfo=
 set wpaerror=
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
 echo "%wpainfo%" | find /i "Error Found" %nul% && (
 set error=1
 set wpaerror=1
-call :dk_color %Red% "Checking WPA Registry Error             [%wpainfo%]"
+call :dk_color %Red% "正在检查WPA注册表错误                   [%wpainfo%]"
 ) || (
-echo Checking WPA Registry Count             [%wpainfo%]
+echo 正在检查WPA注册表总数                   [%wpainfo%]
 )
 
 
@@ -1213,41 +1215,41 @@ set dism_error=%errorlevel%
 cmd /c exit /b %dism_error%
 if %dism_error% NEQ 0 set "dism_error=0x%=ExitCode%"
 if %dism_error% NEQ 0 (
-call :dk_color %Red% "Checking DISM                           [Not Responding] [%dism_error%]"
+call :dk_color %Red% "正在检查 DISM                           [未响应] [%dism_error%]"
 )
 
 
 if not defined officeact if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*EvalEdition~*.mum" (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking Eval Packages                  [Non-Eval Licenses are installed in Eval Windows]"
-call :dk_color %Blue% "Evaluation Windows can not be activated and different License install may lead to errors."
-call :dk_color %Blue% "It is recommended to install full version of %winos%."
-call :dk_color %Blue% "You can download it from %mas%genuine-installation-media.html"
+call :dk_color %Red% "正在检查评估程序包                      [非评估许可证被安装在 Windows 评估版本中]"
+call :dk_color %Blue% "无法激活 Windows 评估版本，不同的许可证安装可能会导致错误。"
+call :dk_color %Blue% "推荐安装 %winos% 的完整版本。"
+call :dk_color %Blue% "你可以从 %mas%genuine-installation-media.html 下载"
 )
 
 
 set osedition=
 for /f "skip=2 tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul6%') do set "osedition=%%a"
 
-::  Workaround for an issue in builds between 1607 and 1709 where ProfessionalEducation is shown as Professional
+::  解决了在1607至1709版本中将专业教育版显示为专业版的问题。
 
 if "%osSKU%"=="164" set osedition=ProfessionalEducation
 if "%osSKU%"=="165" set osedition=ProfessionalEducationN
 
 if not defined officeact (
 if not defined osedition (
-call :dk_color %Red% "Checking Edition Name                   [Not Found In Registry]"
+call :dk_color %Red% "检查 Windows 版本名称                   [注册表中未找到]"
 ) else (
 
 if not exist "%SystemRoot%\System32\spp\tokens\skus\%osedition%\%osedition%*.xrm-ms" (
 set error=1
-call :dk_color %Red% "Checking License Files                  [Not Found] [%osedition%]"
+call :dk_color %Red% "检查许可证文件                          [未找到] [%osedition%]"
 )
 
 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*-%osedition%-*.mum" (
 set error=1
-call :dk_color %Red% "Checking Package File                   [Not Found] [%osedition%]"
+call :dk_color %Red% "检查包文件                              [未找到] [%osedition%]"
 )
 )
 )
@@ -1259,12 +1261,12 @@ cmd /c exit /b %error_code%
 if %error_code% NEQ 0 set "error_code=0x%=ExitCode%"
 if %error_code% NEQ 0 (
 set error=1
-call :dk_color %Red% "Checking slmgr /dlv                     [Not Responding] %error_code%"
+call :dk_color %Red% "正在检查 slmgr /dlv                     [未响应] %error_code%"
 )
 
 
 for %%# in (wmic.exe) do @if "%%~$PATH:#"=="" (
-call :dk_color %Gray% "Checking WMIC.exe                       [Not Found]"
+call :dk_color %Gray% "正在检查 WMIC.exe                       [未找到]"
 )
 
 
@@ -1276,8 +1278,8 @@ if %errorlevel% NEQ 0 set wmifailed=1
 echo "%error_code%" | findstr /i "0x800410 0x800440" %nul1% && set wmifailed=1& ::  https://learn.microsoft.com/en-us/windows/win32/wmisdk/wmi-error-constants
 if defined wmifailed (
 set error=1
-call :dk_color %Red% "Checking WMI                            [Not Responding]"
-call :dk_color %Blue% "In MAS, Goto Troubleshoot and run Fix WMI option."
+call :dk_color %Red% "正在检查 WMI                            [未响应]"
+call :dk_color %Blue% "在 MAS 中，请转到疑难解答并运行修复 WMI 选项。"
 set showfix=1
 )
 
@@ -1285,35 +1287,35 @@ set showfix=1
 %nul% set /a "sum=%slcSKU%+%regSKU%+%wmiSKU%"
 set /a "sum/=3"
 if not defined officeact if not "%sum%"=="%slcSKU%" (
-call :dk_color %Red% "Checking SLC/WMI/REG SKU                [Difference Found - SLC:%slcSKU% WMI:%wmiSKU% Reg:%regSKU%]"
+call :dk_color %Red% 正在检查 SLC/WMI/REG SKU                [发现差异 - SLC:%slcSKU% WMI:%wmiSKU% Reg:%regSKU%]"
 )
 
 
 reg query "HKU\S-1-5-20\Software\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\PersistedTSReArmed" %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking Rearm                          " %Blue% "[System Restart Is Required]"
+call :dk_color2 %Red% "正在检查 Rearm                          " %Blue% "[需要重新启动系统]"
 )
 
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState" %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking ClipSVC                        " %Blue% "[System Restart Is Required]"
+call :dk_color2 %Red% "正在检查 ClipSVC                        " %Blue% "[需要重新启动系统]"
 )
 
 
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v "SkipRearm" %nul6%') do if /i %%b NEQ 0x0 (
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v "SkipRearm" /t REG_DWORD /d "0" /f %nul%
-call :dk_color %Red% "Checking SkipRearm                      [Default 0 Value Not Found. Changing To 0]"
+call :dk_color %Red% "正在检查 SkipRearm                      [默认值 0 未找到，更改为 0]"
 %psc% Restart-Service sppsvc %nul%
 set error=1
 )
 
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Plugins\Objects\msft:rm/algorithm/hwid/4.0" /f ba02fed39662 /d %nul% || (
-call :dk_color %Red% "Checking SPP Registry Key               [Incorrect ModuleId Found]"
-call :dk_color %Blue% "Possibly Caused By Gaming Spoofers. Help: %mas%troubleshoot"
+call :dk_color %Red% "正在检查 SPP 注册表键值                 [已找到不正确的模块 ID]"
+call :dk_color %Blue% "可能是由 Gaming Spoofer 引起的。帮助：%mas%troubleshoot"
 set error=1
 set showfix=1
 )
@@ -1323,14 +1325,14 @@ set tokenstore=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v TokenStore %nul6%') do call set "tokenstore=%%b"
 if not exist "%tokenstore%\" (
 set error=1
-REM This code creates token folder only if it's missing and sets default permission for it
+REM 此代码仅在缺少令牌文件夹时创建令牌文件夹，并为其设置默认权限
 mkdir "%tokenstore%" %nul%
 set "d=$sddl = 'O:BAG:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICIIO;GR;;;BU)(A;;FR;;;BU)(A;OICI;FA;;;S-1-5-80-123231216-2592883651-3715271367-3753151631-4175906628)';"
 set "d=!d! $AclObject = New-Object System.Security.AccessControl.DirectorySecurity;"
 set "d=!d! $AclObject.SetSecurityDescriptorSddlForm($sddl);"
 set "d=!d! Set-Acl -Path %tokenstore% -AclObject $AclObject;"
 %psc% "!d!" %nul%
-call :dk_color %Gray% "Checking SPP Token Folder               [Not Found. Creating Now] [%tokenstore%\]"
+call :dk_color %Gray% "正在检查 SPP Token 文件夹               [未找到。立即创建] [%tokenstore%\]"
 )
 
 
@@ -1343,25 +1345,25 @@ call :dk_refresh
 call :dk_actids
 if not defined applist (
 set error=1
-call :dk_color %Red% "Checking Activation IDs                 [Not Found]"
+call :dk_color %Red% "正在检查激活 ID                         [未找到]"
 )
 )
 
 
 if exist "%tokenstore%\" if not exist "%tokenstore%\tokens.dat" (
 set error=1
-call :dk_color %Red% "Checking SPP tokens.dat                 [Not Found] [%tokenstore%\]"
+call :dk_color %Red% "正在检查 SPP tokens.dat                 [未找到] [%tokenstore%\]"
 )
 
 
 if not exist %SystemRoot%\system32\sppsvc.exe (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking sppsvc.exe File                [Not Found]"
+call :dk_color %Red% "正在检查 sppsvc.exe 文件                [未找到]"
 )
 
 
-::  This code checks if NT SERVICE\sppsvc has permission access to tokens folder and required registry keys. It's often caused by gaming spoofers. 
+::  这段代码检查NT SERVICE\sppsvc 是否有权限访问令牌文件夹和所需的注册表项。这通常是由 Gaming Spoofer 引起的。
 
 set permerror=
 if not exist "%tokenstore%\" set permerror=1
@@ -1377,27 +1379,27 @@ if !errorlevel!==2 set permerror=1
 if defined permerror (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking SPP Permissions                [Error Found]"
+call :dk_color %Red% "正在检查 SPP 权限                       [发现错误]"
 call :dk_color %Blue% "%_fixmsg%"
 )
 
 
-::  If required services are not disabled or corrupted + if there is any error + slmgr /dlv errorlevel is not Zero + no fix was shown before
+::  如果所需的服务未被禁用或损坏 + 是否有任何错误 + slmgr /dlv 错误级别不为零 + 之前未显示修复程序，则执行以下检查
 
 if not defined serv_cor if not defined serv_cste if defined error if /i not %error_code%==0 if not defined showfix (
 set showfix=1
 call :dk_color %Blue% "%_fixmsg%"
-if not defined permerror call :dk_color %Blue% "If activation still fails then run Fix WPA Registry option."
+if not defined permerror call :dk_color %Blue% "如果激活仍然失败，之后运行修复 WPA 注册表选项。"
 )
 
 if not defined showfix if defined wpaerror (
 set showfix=1
-call :dk_color %Blue% "If activation fails then go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
+call :dk_color %Blue% "如果激活失败，请返回主菜单，选择“故障排除”并运行“修复WPA注册表”选项。"
 )
 
 exit /b
 
-::  This code checks for invalid registry keys in HKLM\SYSTEM\WPA. This issue may appear even on healthy systems
+::  此代码检查 HKLM\SYSTEM\WPA 中是否存在无效的注册表项。即使在正常运行的系统上也可能会出现此问题。
 
 :wpatest:
 $wpaKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', 'Registry64').OpenSubKey("SYSTEM\\WPA")
@@ -1459,18 +1461,18 @@ exit /b
 
 echo:
 if %_unattended%==1 timeout /t 2 & exit /b
-call :dk_color %_Yellow% "Press any key to %_exitmsg%..."
+call :dk_color %_Yellow% "请按任意键%_exitmsg%脚本……"
 pause %nul1%
 exit /b
 
 ::========================================================================================================================================
 
-::  1st column = Office version number
-::  2nd column = Activation ID
-::  3rd column = Generic key. Preference is given in this order, Retail:TB:Sub > Retail > OEM:NONSLP > Volume:MAK > Volume:GVLK
-::  4th column = Last part of license description
-::  5th column = Edition
-::  Separator  = "_"
+::  第 1 列 = Office 版本号
+::  第 2 列 = 激活 ID
+::  第 3 列 = 通用密钥。给出优先顺序，Retail:TB:Sub > Retail > OEM:NONSLP > Volume:MAK > Volume:GVLK
+::  第 4 列 = 许可证描述的最后一部分
+::  第 5 列 = 版本
+::  分隔符  = "_"
 
 :ohookdata
 
@@ -1637,8 +1639,8 @@ for %%# in (
 16_fb33d997-4aa3-494e-8b58-03e9ab0f181d_VN%f%CC4-CJ%f%QVK-BKX%f%34-77%f%Y8H-CYX%f%MR_Retail________Word2021Retail
 16_0c728382-95fb-4a55-8f12-62e605f91727_BJ%f%G97-NW%f%3GM-8QQ%f%Q7-FH%f%76G-686%f%XM_MAK-AE________Word2021Volume
 16_8fdb1f1e-663f-4f2e-8fdb-7c35aee7d5ea_GN%f%XWX-DF%f%797-B2J%f%T3-82%f%W27-KHP%f%XT_MAK-AE________ProPlus2024Volume-Preview
-16_33b11b14-91fd-4f7b-b704-e64a055cf601_X8%f%6XX-N3%f%QMW-B4W%f%GQ-QC%f%B69-V26%f%KW_MAK-AE________ProjectPro2024Volume-Preview
-16_eb074198-7384-4bdd-8e6c-c3342dac8435_DW%f%99Y-H7%f%NT6-6B2%f%9D-8J%f%Q8F-R3Q%f%T7_MAK-AE________VisioPro2024Volume-Preview
+16_33b11b14-91fd-4f7b-b704-e64a055cf601_X8%f%6XX-N3%f%QMW-B4W%f%GQ-QC%f%B69-V26%f%KW_MAK_AE________ProjectPro2024Volume-Preview
+16_eb074198-7384-4bdd-8e6c-c3342dac8435_DW%f%99Y-H7%f%NT6-6B2%f%9D-8J%f%Q8F-R3Q%f%T7_MAK_AE________VisioPro2024Volume-Preview
 16_6337137e-7c07-4197-8986-bece6a76fc33_2P%f%3C9-BQ%f%NJH-VCV%f%PH-YD%f%Y6M-43J%f%PQ_Subscription__O365BusinessRetail
 16_2f5c71b4-5b7a-4005-bb68-f9fac26f2ea3_W6%f%2NQ-26%f%7QR-RTF%f%74-PF%f%2MH-JQM%f%TH_Subscription__O365EduCloudRetail
 16_537ea5b5-7d50-4876-bd38-a53a77caca32_J2%f%W28-TN%f%9C8-26P%f%WV-F7%f%J4G-72X%f%CB_Subscription1_O365HomePremRetail
@@ -1669,42 +1671,42 @@ exit /b
 
 ::========================================================================================================================================
 
-::  This code is used to modify the timestamp value of sppc dll file in order to change checksums
-::  It's done to lower the potential false positive detection by antivirus's. On each install, it will install a unique sppc dll file
+::  此代码用于修改 sppc dll 文件的时间戳值以更改校验和
+::  这样做是为了降低防病毒软件的潜在误报检测。在每次安装时，它将安装一个唯一的 sppc dll 文件
 
 :oh_extractdll
 
 set b=
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':%_hook%\:.*';$encoded = ($f[1]) -replace '-', 'A' -replace '_', 'a';$bytes = [Con%b%vert]::FromBas%b%e64String($encoded); $PePath='%1'; $offset='%2'; $m=[io.file]::ReadAllText('!_batp!') -split ':hexedit\:.*';iex ($m[1]);" %nul2% | find /i "Error found" %nul1% && set hasherror=1
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':%_hook%\:.*';$bytes = [Con%b%vert]::FromBas%b%e64String($f[1]); $PePath='%1'; $offset='%2'; $m=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':hexedit\:.*';iex ($m[1]);" %nul2% | find /i "Error found" %nul1% && set hasherror=1
 exit /b
 
 :hexedit:
-# Use a MemoryStream to perform operations on the bytes
+# 使用内存流对字节执行操作
 $MemoryStream = New-Object System.IO.MemoryStream
 $Writer = New-Object System.IO.BinaryWriter($MemoryStream)
 $Writer.Write($bytes)
 
-# Define dynamic assembly, module, and type
+# 定义动态程序集、模块和类型
 $AssemblyBuilder = [AppDomain]::CurrentDomain.DefineDynamicAssembly(4, 1)
 $ModuleBuilder = $AssemblyBuilder.DefineDynamicModule(2, $False)
 $TypeBuilder = $ModuleBuilder.DefineType(0)
 
-# Define P/Invoke method
+# 定义 P/调用方法
 [void]$TypeBuilder.DefinePInvokeMethod('MapFileAndCheckSum', 'imagehlp.dll', 'Public, Static', [Reflection.CallingConventions]::Standard, [int], @([string], [int].MakeByRefType(), [int].MakeByRefType()), [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::Auto)
 
-# Create the type
+# 创建类型
 $Imagehlp = $TypeBuilder.CreateType()
 
-# Offset information
+# 偏移信息
 $timestampOffset = 136
 $exportTimestampOffset = $offset
 $checkSumOffset = 216
 
-# Calculate timestamp
+# 计算时间戳
 $currentTimestamp = [DateTime]::UtcNow
 $unixTimestamp = [int]($currentTimestamp - (Get-Date -Year 1970 -Month 1 -Day 1 -Hour 0 -Minute 0 -Second 0)).TotalSeconds
 
-# Change timestamps
+# 更改时间戳
 $Writer.BaseStream.Position = $timestampOffset
 $Writer.Write($unixTimestamp)
 
@@ -1713,36 +1715,36 @@ $Writer.Write($unixTimestamp)
 
 $Writer.Flush()
 
-# Write the current state of the MemoryStream to a temporary file
+# 将内存流的当前状态写入临时文件
 $tempFilePath = [System.IO.Path]::Combine($env:windir, "Temp", [System.IO.Path]::GetRandomFileName())
 [System.IO.File]::WriteAllBytes($tempFilePath, $MemoryStream.ToArray())
 
-# Update hash using the temporary file
+# 使用临时文件更新哈希
 [int]$HeaderSum = 0
 [int]$CheckSum = 0
 [void]$Imagehlp::MapFileAndCheckSum($tempFilePath, [ref]$HeaderSum, [ref]$CheckSum)
 
-# If the checksums don't match, update the checksum in the MemoryStream
+# 如果校验和不匹配，请更新内存流中的校验和
 if ($HeaderSum -ne $CheckSum) {
     $Writer.BaseStream.Position = $checkSumOffset
     $Writer.Write($CheckSum)
     $Writer.Flush()
 } else {
-    Write-host Error found
+    Write-host 发现错误
 }
 
-# Delete the temporary file
+# 删除临时文件
 Remove-Item -Path $tempFilePath -Force
 
-# Get the modified bytes
+# 获取修改后的字节
 $modifiedBytes = $MemoryStream.ToArray()
 
-# Write the modified bytes to the final file
+# 将修改后的字节写入最终文件
 [System.IO.File]::WriteAllBytes($PePath, $modifiedBytes)
 
 [void]$Imagehlp::MapFileAndCheckSum($PePath, [ref]$HeaderSum, [ref]$CheckSum)
 if ($HeaderSum -ne $CheckSum) {
-    Write-host Error found
+    Write-host 发现错误
 }
 
 $MemoryStream.Close()
@@ -1750,8 +1752,8 @@ $MemoryStream.Close()
 
 ::========================================================================================================================================
 ::
-::  This below blocks of text is encoded in base64 format
-::  The blocks in labels "sppc64.dll" and "sppc32.dll" contains below files
+::  下面的文本块以 base64 格式编码
+::  标签“sppc64.dll”和“sppc32.dll”中的块包含以下文件
 ::
 ::  e6ac83560c19ec7eb868c50ea97ea0ed5632a397a9f43c17e24e6de4a694d118 *sppc32.dll
 ::  c6df24deef2e83813dee9c81ddd9793a3d60c117a4e8e231b82e32b3192927e7 *sppc64.dll
@@ -1759,150 +1761,146 @@ $MemoryStream.Close()
 ::  The files are encoded in base64 to make MAS AIO version.
 ::
 ::  mass grave[.]dev/ohook
-::  Here you can find the files source code and info on how to rebuild the identical sppc.dll files
+::  在这里，你可以找到文件源代码以及如何重建相同的 sppc.dll 文件的信息
 ::
 ::  stackoverflow.com/a/35335273
-::  Here you can check how to extract sppc.dll files from base64
+::  在这里，你可以检查如何从 base64 中提取 sppc.dll 文件
 ::
-::  For any further question, feel free to contact us on mass grave[.]dev/contactus
+::  如有任何其他问题，请随时通过以下方式与我们联系 mass grave[.]dev/contactus
 ::
 ::========================================================================================================================================
 
-::  Replace - with A and _ with a before base64 conversion
-
 :sppc32.dll:
-TVqQ--M----E----//8--Lg---------Q-----------------------------------------------g-----4fug4-t-nNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4g_W4gRE9TIG1vZGUuDQ0KJ---------BQRQ--T-EH-MDc0GQ----------O--
-DiML-QIo--I----e---------B-----Q----------C-_g-Q-----g--B-----E----G----------CQ----B---i9M---I-Q-E--C---B------E---E--------B------Q---jR----Bg---Y-Q---H---HgD-------------------------I---BQ---------
-----------------------------------------------------------BsY---H------------------------------------C50ZXh0----c-E----Q-----g----Q------------------C---G-ucmRhdGE--Bg-----I-----I----G----------------
---B---B-LmVoX2ZyYW2------D-----C----C-------------------Q---QC5lZGF0YQ--jR----B-----Eg----o------------------E---E-u_WRhdGE--BgB----Y-----I----c------------------B---D-LnJzcmM---B4-w---H-----E----Hg--
-----------------Q---wC5yZWxvYw--F-----C------g---CI------------------E---EI-----------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------------------------------------LgB----wgw-VYnlVlONRfCD7DDHRf------
-iUQkFI1F9IlEJBCLRQzHRCQM-----IlEJ-SLRQjHRCQI-CC-_okEJMdF9-----Do-gE--Is1eGC-_oPsGIX-icOLRfB0CokEJDHb/9ZR6zKLVfTHRCQECiC-_okEJIlUJ-j/FYBggGqD7-yFwItF8IkEJHQK/9_7-Q---FLr-//WUI1l+InYW15dw1WJ5VdWU4PsPItF
-GIt1HIlEJBCLRRSJdCQUiUQkDItFEIlEJ-iLRQyJRCQEi0UIiQQk6Hw----xyYPsGInHhcB1XItFGDkIdlVr2SiLBgHYg3gQ-HRFiUQkBItFCIlN5IkEJOj7/v//i03khcB1L-Mex0MQ-Q---MdDF-----DHQxg-----x0Mc-----MdDI-----DHQyQ-----QeukjWX0
-ifhbXl9dwhg-kP8lcGC-_pCQ/yVsYIBqkJD/////-----P////8-----------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------TgBh-G0-ZQ---Ec-cgBh-GM-ZQ------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------U----------F6Ug-Bf-gBGwwEBIgB---Q----H----ODf//8I---------CQ----w----
-1N///50-----QQ4IhQJCDQVIhgODB-KPw0HGQcUMB-Qo----W----Eng//+q-----EEOCIUCQg0FRocDhgSDBQKbw0HGQcdBxQwEB---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------D-3NBk-----MZC---B----Qw---EM----oQ---NEE--EBC--DPQg--70I---VD---pQw--XUM--KFD--DpQw--F0Q--DVE--BnR---nUQ--ONE---tRQ--YUU--J9F--DTRQ--DUY--DtG--BxRg--r0Y--M9G--D7Rg--pR---FFH--BvRw--
-n0c--NNH---RS---TUg--G9I--ClS---zUg---VJ--BBSQ--bUk--KdJ--C7SQ--+0k--DlK--BPSg--dUo--J1K--DTSg--B0s--D1L--BpSw--pUs--ONL---NT---OUw--IlM--DRT---EU0--FlN--CjTQ--8U0--BtO--BHTg--h04--LtO--DnTg--K08--FtP
---C1Tw--608--CdQ--BdU---4kI--P1C---_Qw--RkM--IJD--DIQw---0Q--ClE--BRR---hUQ--MNE---LRQ--SkU--INF--C8RQ--80U--CdG--BZRg--k0Y--MJG--DoRg--GUc--DFH--BjRw--ikc--LxH--D1Rw--Mkg--GFI--CNS---vEg--OxI---mSQ--
-Wkk--I1J--C0SQ--3kk--B1K--BHSg--ZUo--IxK--C7Sg--8Eo--CVL--BWSw--iks--MdL--D7Sw--Jkw--GRM--CwT---9Ew--DhN--CBTQ--zU0---lO---0Tg--_k4--KRO--DUTg--DE8--EZP--CLTw--008---xQ--BFU---eF-------Q-C--M-B--F--Y-
-Bw-I--k-Cg-L--w-DQ-O--8-E--R-BI-Ew-U-BU-Fg-X-Bg-GQ-_-Bs-H--d-B4-Hw-g-CE-Ig-j-CQ-JQ-m-Cc-K--p-Co-Kw-s-C0-Lg-v-D--MQ-y-DM-N--1-DY-Nw-4-Dk-Og-7-Dw-PQ-+-D8-Q-BB-EI-c3BwYy5kbGw-U1BQQ1MuU0xDYWxsU2VydmVy-FNM
-Q2FsbFNlcnZlcgBTUFBDUy5TTENsb3Nl-FNMQ2xvc2U-U1BQQ1MuU0xDb25zdW1lUmln_HQ-U0xDb25zdW1lUmln_HQ-U1BQQ1MuU0xEZXBvc2l0TWlncmF0_W9uQmxvYgBTTERlcG9z_XRN_WdyYXRpb25CbG9i-FNQUENTLlNMRGVwb3NpdE9mZmxpbmVDb25m_XJt
-YXRpb25JZ-BTTERlcG9z_XRPZmZs_W5lQ29uZmlybWF0_W9uSWQ-U1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXg-U0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXg-U1BQQ1MuU0xEZXBvc2l0U3RvcmVUb2tlbgBTTERlcG9z_XRTdG9y
-ZVRv_2Vu-FNQUENTLlNMRmlyZUV2ZW50-FNMRmlyZUV2ZW50-FNQUENTLlNMR2F0_GVyTWlncmF0_W9uQmxvYgBTTEdhdGhlck1pZ3JhdGlvbkJsb2I-U1BQQ1MuU0xHYXRoZXJN_WdyYXRpb25CbG9iRXg-U0xHYXRoZXJN_WdyYXRpb25CbG9iRXg-U1BQQ1MuU0xH
-ZW5lcmF0ZU9mZmxpbmVJbnN0YWxsYXRpb25JZ-BTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklk-FNQUENTLlNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWRFe-BTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkRXg-U1BQQ1MuU0xHZXRBY3Rp
-dmVM_WNlbnNlSW5mbwBTTEdldEFjdGl2ZUxpY2Vuc2VJbmZv-FNQUENTLlNMR2V0QXBwbGljYXRpb25JbmZvcm1hdGlvbgBTTEdldEFwcGxpY2F0_W9uSW5mb3JtYXRpb24-U1BQQ1MuU0xHZXRBcHBs_WNhdGlvblBvbGljeQBTTEdldEFwcGxpY2F0_W9uUG9s_WN5
--FNQUENTLlNMR2V0QXV0_GVudGljYXRpb25SZXN1bHQ-U0xHZXRBdXRoZW50_WNhdGlvblJlc3Vsd-BTUFBDUy5TTEdldEVuY3J5cHRlZFBJREV4-FNMR2V0RW5jcnlwdGVkUElERXg-U1BQQ1MuU0xHZXRHZW51_W5lSW5mb3JtYXRpb24-U0xHZXRHZW51_W5lSW5m
-b3JtYXRpb24-U1BQQ1MuU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRz-FNMR2V0SW5zdGFsbGVkUHJvZHVjdEtleUlkcwBTUFBDUy5TTEdldExpY2Vuc2U-U0xHZXRM_WNlbnNl-FNQUENTLlNMR2V0TGljZW5zZUZpbGVJZ-BTTEdldExpY2Vuc2VG_WxlSWQ-U1BQ
-Q1MuU0xHZXRM_WNlbnNlSW5mb3JtYXRpb24-U0xHZXRM_WNlbnNlSW5mb3JtYXRpb24-U0xHZXRM_WNlbnNpbmdTdGF0dXNJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBLZXlJZ-BTTEdldFBLZXlJZ-BTUFBDUy5TTEdldFBLZXlJbmZvcm1hdGlvbgBTTEdldFBLZXlJ
-bmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0_W9u-FNMR2V0UG9s_WN5SW5mb3JtYXRpb24-U1BQQ1MuU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JE-FNMR2V0UG9s_WN5SW5mb3JtYXRpb25EV09SR-BTUFBDUy5TTEdldFByb2R1Y3RT_3VJbmZv
-cm1hdGlvbgBTTEdldFByb2R1Y3RT_3VJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFNMSURM_XN0-FNMR2V0U0xJRExpc3Q-U1BQQ1MuU0xHZXRTZXJ2_WNlSW5mb3JtYXRpb24-U0xHZXRTZXJ2_WNlSW5mb3JtYXRpb24-U1BQQ1MuU0xJbnN0YWxsTGljZW5zZQBTTElu
-c3RhbGxM_WNlbnNl-FNQUENTLlNMSW5zdGFsbFByb29mT2ZQdXJj_GFzZQBTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXg-U0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXg-U1BQQ1MuU0xJc0dlbnVpbmVMb2Nh
-bEV4-FNMSXNHZW51_W5lTG9jYWxFe-BTUFBDUy5TTExvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNMTG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U1BQQ1MuU0xPcGVu-FNMT3BlbgBTUFBDUy5TTFBlcnNpc3RBcHBs_WNhdGlvblBvbGlj_WVz-FNMUGVyc2lzdEFwcGxp
-Y2F0_W9uUG9s_WNpZXM-U1BQQ1MuU0xQZXJz_XN0UlRTUGF5bG9hZE92ZXJy_WRl-FNMUGVyc2lzdFJUU1BheWxvYWRPdmVycmlkZQBTUFBDUy5TTFJlQXJt-FNMUmVBcm0-U1BQQ1MuU0xSZWdpc3RlckV2ZW50-FNMUmVn_XN0ZXJFdmVud-BTUFBDUy5TTFJlZ2lz
-dGVyUGx1Z2lu-FNMUmVn_XN0ZXJQbHVn_W4-U1BQQ1MuU0xTZXRBdXRoZW50_WNhdGlvbkRhdGE-U0xTZXRBdXRoZW50_WNhdGlvbkRhdGE-U1BQQ1MuU0xTZXRDdXJyZW50UHJvZHVjdEtleQBTTFNldEN1cnJlbnRQcm9kdWN0S2V5-FNQUENTLlNMU2V0R2VudWlu
-ZUluZm9ybWF0_W9u-FNMU2V0R2VudWluZUluZm9ybWF0_W9u-FNQUENTLlNMVW5pbnN0YWxsTGljZW5zZQBTTFVu_W5zdGFsbExpY2Vuc2U-U1BQQ1MuU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U1BQQ1MuU0xV
-bmxvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNMVW5sb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFVucmVn_XN0ZXJFdmVud-BTTFVucmVn_XN0ZXJFdmVud-BTUFBDUy5TTFVucmVn_XN0ZXJQbHVn_W4-U0xVbnJlZ2lzdGVyUGx1Z2lu-FNQUENTLlNMcEF1
-dGhlbnRpY2F0ZUdlbnVpbmVU_WNrZXRSZXNwb25zZQBTTHBBdXRoZW50_WNhdGVHZW51_W5lVGlj_2V0UmVzcG9uc2U-U1BQQ1MuU0xwQmVn_W5HZW51_W5lVGlj_2V0VHJhbnNhY3Rpb24-U0xwQmVn_W5HZW51_W5lVGlj_2V0VHJhbnNhY3Rpb24-U1BQQ1MuU0xw
-Q2xlYXJBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNz-FNQUENTLlNMcERlcG9z_XREb3dubGV2ZWxHZW51_W5lVGlj_2V0-FNMcERlcG9z_XREb3dubGV2ZWxHZW51_W5lVGlj_2V0-FNQUENTLlNMcERlcG9z_XRUb2tlbkFj
-dGl2YXRpb25SZXNwb25zZQBTTHBEZXBvc2l0VG9rZW5BY3RpdmF0_W9uUmVzcG9uc2U-U1BQQ1MuU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25D_GFsbGVuZ2U-U0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25D_GFsbGVuZ2U-U1BQQ1MuU0xwR2V0R2VudWluZUJs
-b2I-U0xwR2V0R2VudWluZUJsb2I-U1BQQ1MuU0xwR2V0R2VudWluZUxvY2Fs-FNMcEdldEdlbnVpbmVMb2Nhb-BTUFBDUy5TTHBHZXRM_WNlbnNlQWNxdWlz_XRpb25JbmZv-FNMcEdldExpY2Vuc2VBY3F1_XNpdGlvbkluZm8-U1BQQ1MuU0xwR2V0TVNQ_WRJbmZv
-cm1hdGlvbgBTTHBHZXRNU1BpZEluZm9ybWF0_W9u-FNQUENTLlNMcEdldE1hY2hpbmVVR1VJR-BTTHBHZXRNYWNo_W5lVUdVSUQ-U1BQQ1MuU0xwR2V0VG9rZW5BY3RpdmF0_W9uR3JhbnRJbmZv-FNMcEdldFRv_2VuQWN0_XZhdGlvbkdyYW50SW5mbwBTUFBDUy5T
-THBJQUFjdGl2YXRlUHJvZHVjd-BTTHBJQUFjdGl2YXRlUHJvZHVjd-BTUFBDUy5TTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTUFBDUy5TTHBQcm9jZXNzVk1Q
-_XBlTWVzc2FnZQBTTHBQcm9jZXNzVk1Q_XBlTWVzc2FnZQBTUFBDUy5TTHBTZXRBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTTHBTZXRBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTUFBDUy5TTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBTTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBT
-UFBDUy5TTHBWTEFjdGl2YXRlUHJvZHVjd-BTTHBWTEFjdGl2YXRlUHJvZHVjd-------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------------------------------------------FBg-------------Ohg--BsY---XG--------------
-+G---Hhg--BkY--------------MYQ--gG------------------------------iG---Kpg--------yG--------DUY--------Ihg--CqY--------Mhg--------1G---------C-FNMR2V0TGljZW5z_W5nU3RhdHVzSW5mb3JtYXRpb24--QBTTEdldFByb2R1
-Y3RT_3VJbmZvcm1hdGlvbg--3QNMb2NhbEZyZWU-RwFTdHJTdHJOSVc--G----Bg--BzcHBjcy5kbGw----UY---S0VSTkVMMzIuZGxs-----Chg--BTSExXQVBJLmRsb-----------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------B-B-----Y--C--------------------B--E----w--C--------------------B--kE--BI----WH---BwD-------------BwDN----FY-UwBf-FY-RQBS-FM-SQBP-E4-XwBJ-E4-
-RgBP------C9BO/+---B--M----------w--------------------Q-B--C--------------------f-I---E-UwB0-HI-_QBu-Gc-RgBp-Gw-ZQBJ-G4-ZgBv----W-I---E-M--0-D--OQ-w-DQ-RQ-0----eg-t--E-QwBv-G0-c-Bh-G4-eQBO-GE-bQBl----
---BB-G4-bwBt-GE-b-Bv-HU-cw-g-FM-bwBm-HQ-dwBh-HI-ZQ-g-EQ-ZQB0-GU-cgBp-G8-cgBh-HQ-_QBv-G4-I-BD-G8-cgBw-G8-cgBh-HQ-_QBv-G4------D4-Cw-B-EY-_QBs-GU-R-Bl-HM-YwBy-Gk-c-B0-Gk-bwBu------Bv-Gg-bwBv-Gs-I-BT-F--
-U-BD-------w--g--QBG-Gk-b-Bl-FY-ZQBy-HM-_QBv-G4------D--Lg-z-C4-M--u-D-----q--U--QBJ-G4-d-Bl-HI-bgBh-Gw-TgBh-G0-ZQ---HM-c-Bw-GM------Iw-N--B-Ew-ZQBn-GE-b-BD-G8-c-B5-HI-_QBn-Gg-d----Kk-I--y-D--Mg-z-C--
-QQBu-G8-bQBh-Gw-bwB1-HM-I-BT-G8-ZgB0-Hc-YQBy-GU-I-BE-GU-d-Bl-HI-_QBv-HI-YQB0-Gk-bwBu-C--QwBv-HI-c-Bv-HI-YQB0-Gk-bwBu----Og-J--E-TwBy-Gk-ZwBp-G4-YQBs-EY-_QBs-GU-bgBh-G0-ZQ---HM-c-Bw-GM-LgBk-Gw-b-------
-L--G--E-U-By-G8-Z-B1-GM-d-BO-GE-bQBl------Bv-Gg-bwBv-Gs----0--g--QBQ-HI-bwBk-HU-YwB0-FY-ZQBy-HM-_QBv-G4----w-C4-Mw-u-D--Lg-w----R-----E-VgBh-HI-RgBp-Gw-ZQBJ-G4-ZgBv-------k--Q---BU-HI-YQBu-HM-b-Bh-HQ-
-_QBv-G4-------kE5-Q-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--------Q---U----OzBQMHEwfjBSMVox------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+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
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAF6UgABfAgBGwwEBIgBAAAQAAAAHAAAAODf//8IAAAAAAAAACQAAAAwAAAA
+1N///50AAAAAQQ4IhQJCDQVIhgODBAKPw0HGQcUMBAQoAAAAWAAAAEng//+qAAAAAEEOCIUCQg0FRocDhgSDBQKbw0HGQcdBxQwEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAADA3NBkAAAAAMZCAAABAAAAQwAAAEMAAAAoQAAANEEAAEBCAADPQgAA70IAAAVDAAApQwAAXUMAAKFDAADpQwAAF0QAADVEAABnRAAAnUQAAONEAAAtRQAAYUUAAJ9FAADTRQAADUYAADtGAABxRgAAr0YAAM9GAAD7RgAApRAAAFFHAABvRwAA
+n0cAANNHAAARSAAATUgAAG9IAAClSAAAzUgAAAVJAABBSQAAbUkAAKdJAAC7SQAA+0kAADlKAABPSgAAdUoAAJ1KAADTSgAAB0sAAD1LAABpSwAApUsAAONLAAANTAAAOUwAAIlMAADRTAAAEU0AAFlNAACjTQAA8U0AABtOAABHTgAAh04AALtOAADnTgAAK08AAFtP
+AAC1TwAA608AACdQAABdUAAA4kIAAP1CAAAaQwAARkMAAIJDAADIQwAAA0QAAClEAABRRAAAhUQAAMNEAAALRQAASkUAAINFAAC8RQAA80UAACdGAABZRgAAk0YAAMJGAADoRgAAGUcAADFHAABjRwAAikcAALxHAAD1RwAAMkgAAGFIAACNSAAAvEgAAOxIAAAmSQAA
+WkkAAI1JAAC0SQAA3kkAAB1KAABHSgAAZUoAAIxKAAC7SgAA8EoAACVLAABWSwAAiksAAMdLAAD7SwAAJkwAAGRMAACwTAAA9EwAADhNAACBTQAAzU0AAAlOAAA0TgAAak4AAKROAADUTgAADE8AAEZPAACLTwAA008AAAxQAABFUAAAeFAAAAAAAQACAAMABAAFAAYA
+BwAIAAkACgALAAwADQAOAA8AEAARABIAEwAUABUAFgAXABgAGQAaABsAHAAdAB4AHwAgACEAIgAjACQAJQAmACcAKAApACoAKwAsAC0ALgAvADAAMQAyADMANAA1ADYANwA4ADkAOgA7ADwAPQA+AD8AQABBAEIAc3BwYy5kbGwAU1BQQ1MuU0xDYWxsU2VydmVyAFNM
+Q2FsbFNlcnZlcgBTUFBDUy5TTENsb3NlAFNMQ2xvc2UAU1BQQ1MuU0xDb25zdW1lUmlnaHQAU0xDb25zdW1lUmlnaHQAU1BQQ1MuU0xEZXBvc2l0TWlncmF0aW9uQmxvYgBTTERlcG9zaXRNaWdyYXRpb25CbG9iAFNQUENTLlNMRGVwb3NpdE9mZmxpbmVDb25maXJt
+YXRpb25JZABTTERlcG9zaXRPZmZsaW5lQ29uZmlybWF0aW9uSWQAU1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXgAU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXgAU1BQQ1MuU0xEZXBvc2l0U3RvcmVUb2tlbgBTTERlcG9zaXRTdG9y
+ZVRva2VuAFNQUENTLlNMRmlyZUV2ZW50AFNMRmlyZUV2ZW50AFNQUENTLlNMR2F0aGVyTWlncmF0aW9uQmxvYgBTTEdhdGhlck1pZ3JhdGlvbkJsb2IAU1BQQ1MuU0xHYXRoZXJNaWdyYXRpb25CbG9iRXgAU0xHYXRoZXJNaWdyYXRpb25CbG9iRXgAU1BQQ1MuU0xH
+ZW5lcmF0ZU9mZmxpbmVJbnN0YWxsYXRpb25JZABTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkAFNQUENTLlNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWRFeABTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkRXgAU1BQQ1MuU0xHZXRBY3Rp
+dmVMaWNlbnNlSW5mbwBTTEdldEFjdGl2ZUxpY2Vuc2VJbmZvAFNQUENTLlNMR2V0QXBwbGljYXRpb25JbmZvcm1hdGlvbgBTTEdldEFwcGxpY2F0aW9uSW5mb3JtYXRpb24AU1BQQ1MuU0xHZXRBcHBsaWNhdGlvblBvbGljeQBTTEdldEFwcGxpY2F0aW9uUG9saWN5
+AFNQUENTLlNMR2V0QXV0aGVudGljYXRpb25SZXN1bHQAU0xHZXRBdXRoZW50aWNhdGlvblJlc3VsdABTUFBDUy5TTEdldEVuY3J5cHRlZFBJREV4AFNMR2V0RW5jcnlwdGVkUElERXgAU1BQQ1MuU0xHZXRHZW51aW5lSW5mb3JtYXRpb24AU0xHZXRHZW51aW5lSW5m
+b3JtYXRpb24AU1BQQ1MuU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRzAFNMR2V0SW5zdGFsbGVkUHJvZHVjdEtleUlkcwBTUFBDUy5TTEdldExpY2Vuc2UAU0xHZXRMaWNlbnNlAFNQUENTLlNMR2V0TGljZW5zZUZpbGVJZABTTEdldExpY2Vuc2VGaWxlSWQAU1BQ
+Q1MuU0xHZXRMaWNlbnNlSW5mb3JtYXRpb24AU0xHZXRMaWNlbnNlSW5mb3JtYXRpb24AU0xHZXRMaWNlbnNpbmdTdGF0dXNJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBLZXlJZABTTEdldFBLZXlJZABTUFBDUy5TTEdldFBLZXlJbmZvcm1hdGlvbgBTTEdldFBLZXlJ
+bmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0aW9uAFNMR2V0UG9saWN5SW5mb3JtYXRpb24AU1BQQ1MuU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JEAFNMR2V0UG9saWN5SW5mb3JtYXRpb25EV09SRABTUFBDUy5TTEdldFByb2R1Y3RTa3VJbmZv
+cm1hdGlvbgBTTEdldFByb2R1Y3RTa3VJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFNMSURMaXN0AFNMR2V0U0xJRExpc3QAU1BQQ1MuU0xHZXRTZXJ2aWNlSW5mb3JtYXRpb24AU0xHZXRTZXJ2aWNlSW5mb3JtYXRpb24AU1BQQ1MuU0xJbnN0YWxsTGljZW5zZQBTTElu
+c3RhbGxMaWNlbnNlAFNQUENTLlNMSW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXgAU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXgAU1BQQ1MuU0xJc0dlbnVpbmVMb2Nh
+bEV4AFNMSXNHZW51aW5lTG9jYWxFeABTUFBDUy5TTExvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNMTG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU1BQQ1MuU0xPcGVuAFNMT3BlbgBTUFBDUy5TTFBlcnNpc3RBcHBsaWNhdGlvblBvbGljaWVzAFNMUGVyc2lzdEFwcGxp
+Y2F0aW9uUG9saWNpZXMAU1BQQ1MuU0xQZXJzaXN0UlRTUGF5bG9hZE92ZXJyaWRlAFNMUGVyc2lzdFJUU1BheWxvYWRPdmVycmlkZQBTUFBDUy5TTFJlQXJtAFNMUmVBcm0AU1BQQ1MuU0xSZWdpc3RlckV2ZW50AFNMUmVnaXN0ZXJFdmVudABTUFBDUy5TTFJlZ2lz
+dGVyUGx1Z2luAFNMUmVnaXN0ZXJQbHVnaW4AU1BQQ1MuU0xTZXRBdXRoZW50aWNhdGlvbkRhdGEAU0xTZXRBdXRoZW50aWNhdGlvbkRhdGEAU1BQQ1MuU0xTZXRDdXJyZW50UHJvZHVjdEtleQBTTFNldEN1cnJlbnRQcm9kdWN0S2V5AFNQUENTLlNMU2V0R2VudWlu
+ZUluZm9ybWF0aW9uAFNMU2V0R2VudWluZUluZm9ybWF0aW9uAFNQUENTLlNMVW5pbnN0YWxsTGljZW5zZQBTTFVuaW5zdGFsbExpY2Vuc2UAU1BQQ1MuU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU1BQQ1MuU0xV
+bmxvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNMVW5sb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFVucmVnaXN0ZXJFdmVudABTTFVucmVnaXN0ZXJFdmVudABTUFBDUy5TTFVucmVnaXN0ZXJQbHVnaW4AU0xVbnJlZ2lzdGVyUGx1Z2luAFNQUENTLlNMcEF1
+dGhlbnRpY2F0ZUdlbnVpbmVUaWNrZXRSZXNwb25zZQBTTHBBdXRoZW50aWNhdGVHZW51aW5lVGlja2V0UmVzcG9uc2UAU1BQQ1MuU0xwQmVnaW5HZW51aW5lVGlja2V0VHJhbnNhY3Rpb24AU0xwQmVnaW5HZW51aW5lVGlja2V0VHJhbnNhY3Rpb24AU1BQQ1MuU0xw
+Q2xlYXJBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNzAFNQUENTLlNMcERlcG9zaXREb3dubGV2ZWxHZW51aW5lVGlja2V0AFNMcERlcG9zaXREb3dubGV2ZWxHZW51aW5lVGlja2V0AFNQUENTLlNMcERlcG9zaXRUb2tlbkFj
+dGl2YXRpb25SZXNwb25zZQBTTHBEZXBvc2l0VG9rZW5BY3RpdmF0aW9uUmVzcG9uc2UAU1BQQ1MuU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25DaGFsbGVuZ2UAU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25DaGFsbGVuZ2UAU1BQQ1MuU0xwR2V0R2VudWluZUJs
+b2IAU0xwR2V0R2VudWluZUJsb2IAU1BQQ1MuU0xwR2V0R2VudWluZUxvY2FsAFNMcEdldEdlbnVpbmVMb2NhbABTUFBDUy5TTHBHZXRMaWNlbnNlQWNxdWlzaXRpb25JbmZvAFNMcEdldExpY2Vuc2VBY3F1aXNpdGlvbkluZm8AU1BQQ1MuU0xwR2V0TVNQaWRJbmZv
+cm1hdGlvbgBTTHBHZXRNU1BpZEluZm9ybWF0aW9uAFNQUENTLlNMcEdldE1hY2hpbmVVR1VJRABTTHBHZXRNYWNoaW5lVUdVSUQAU1BQQ1MuU0xwR2V0VG9rZW5BY3RpdmF0aW9uR3JhbnRJbmZvAFNMcEdldFRva2VuQWN0aXZhdGlvbkdyYW50SW5mbwBTUFBDUy5T
+THBJQUFjdGl2YXRlUHJvZHVjdABTTHBJQUFjdGl2YXRlUHJvZHVjdABTUFBDUy5TTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTUFBDUy5TTHBQcm9jZXNzVk1Q
+aXBlTWVzc2FnZQBTTHBQcm9jZXNzVk1QaXBlTWVzc2FnZQBTUFBDUy5TTHBTZXRBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTTHBTZXRBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTUFBDUy5TTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBTTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBT
+UFBDUy5TTHBWTEFjdGl2YXRlUHJvZHVjdABTTHBWTEFjdGl2YXRlUHJvZHVjdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFBgAAAAAAAAAAAAAOhgAABsYAAAXGAAAAAAAAAAAAAA
++GAAAHhgAABkYAAAAAAAAAAAAAAMYQAAgGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiGAAAKpgAAAAAAAAyGAAAAAAAADUYAAAAAAAAIhgAACqYAAAAAAAAMhgAAAAAAAA1GAAAAAAAAACAFNMR2V0TGljZW5zaW5nU3RhdHVzSW5mb3JtYXRpb24AAQBTTEdldFByb2R1
+Y3RTa3VJbmZvcm1hdGlvbgAA3QNMb2NhbEZyZWUARwFTdHJTdHJOSVcAAGAAAABgAABzcHBjcy5kbGwAAAAUYAAAS0VSTkVMMzIuZGxsAAAAAChgAABTSExXQVBJLmRsbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABABAAAAAYAACAAAAAAAAAAAAAAAAAAAABAAEAAAAwAACAAAAAAAAAAAAAAAAAAAABAAkEAABIAAAAWHAAABwDAAAAAAAAAAAAABwDNAAAAFYAUwBfAFYARQBSAFMASQBPAE4AXwBJAE4A
+RgBPAAAAAAC9BO/+AAABAAMAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAQABAACAAAAAAAAAAAAAAAAAAAAfAIAAAEAUwB0AHIAaQBuAGcARgBpAGwAZQBJAG4AZgBvAAAAWAIAAAEAMAA0ADAAOQAwADQARQA0AAAAegAtAAEAQwBvAG0AcABhAG4AeQBOAGEAbQBlAAAA
+AABBAG4AbwBtAGEAbABvAHUAcwAgAFMAbwBmAHQAdwBhAHIAZQAgAEQAZQB0AGUAcgBpAG8AcgBhAHQAaQBvAG4AIABDAG8AcgBwAG8AcgBhAHQAaQBvAG4AAAAAAD4ACwABAEYAaQBsAGUARABlAHMAYwByAGkAcAB0AGkAbwBuAAAAAABvAGgAbwBvAGsAIABTAFAA
+UABDAAAAAAAwAAgAAQBGAGkAbABlAFYAZQByAHMAaQBvAG4AAAAAADAALgAzAC4AMAAuADAAAAAqAAUAAQBJAG4AdABlAHIAbgBhAGwATgBhAG0AZQAAAHMAcABwAGMAAAAAAIwANAABAEwAZQBnAGEAbABDAG8AcAB5AHIAaQBnAGgAdAAAAKkAIAAyADAAMgAzACAA
+QQBuAG8AbQBhAGwAbwB1AHMAIABTAG8AZgB0AHcAYQByAGUAIABEAGUAdABlAHIAaQBvAHIAYQB0AGkAbwBuACAAQwBvAHIAcABvAHIAYQB0AGkAbwBuAAAAOgAJAAEATwByAGkAZwBpAG4AYQBsAEYAaQBsAGUAbgBhAG0AZQAAAHMAcABwAGMALgBkAGwAbAAAAAAA
+LAAGAAEAUAByAG8AZAB1AGMAdABOAGEAbQBlAAAAAABvAGgAbwBvAGsAAAA0AAgAAQBQAHIAbwBkAHUAYwB0AFYAZQByAHMAaQBvAG4AAAAwAC4AMwAuADAALgAwAAAARAAAAAEAVgBhAHIARgBpAGwAZQBJAG4AZgBvAAAAAAAkAAQAAABUAHIAYQBuAHMAbABhAHQA
+aQBvAG4AAAAAAAkE5AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAQAAAUAAAAOzBQMHEwfjBSMVoxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 :sppc32.dll:
 
 :========================================================================================================================================
 
-::  Replace - with A and _ with a before base64 conversion
-
 :sppc64.dll:
-TVqQ--M----E----//8--Lg---------Q-----------------------------------------------g-----4fug4-t-nNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4g_W4gRE9TIG1vZGUuDQ0KJ---------BQRQ--ZIYH-MDc0GQ----------P--
-LiIL-gIo--I----e---------B-----Q-----JIx-g-----Q-----g--B----------G----------CQ----B---39----I-Y-E--C---------Q-----------Q--------E--------------Q-----F---I0Q----c---U-E---C---B4-w---D---CQ---------
---------------------------------------------------------------------------------iH---Dg------------------------------------udGV4d----H-B----E-----I----E-------------------g--BgLnJkYXRh---g-----C-----C
-----Bg------------------Q---QC5wZGF0YQ--J------w-----g----g------------------E---E-ueGRhdGE--CQ-----Q-----I----K------------------B---B-LmVkYXRh--CNE----F-----S----D-------------------Q---QC5pZGF0YQ--
-U-E---Bw-----g---B4------------------E---M-ucnNyYw---HgD----g-----Q----g------------------B---D---------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------------------------------------LgB----w0FUU0iD7EhFMclMjQXpDw--SI1E
-JDjHRCQ0-----EiJRCQoSI1EJDRIiUQkIEjHRCQ4-----Oj/----SItMJDhIix1TY---hcBBicR0B//TRTHk6yhEi0QkNEiNF_MP--D/FUNg--BIi0wkOEiFwHQK/9NBv-E---Dr-v/TRIngSIPESFtBXMNBVUFUVVdWU0iD7Dgx9kyLrCSQ----SIusJJg---BMiWwk
-IEiJz0iJbCQo6Io---BBicSFwHVEQTl1-HY+SGveKEiLVQBI-dqDeh--dChIifnoIv///4X-dRxI-10-SMdDE-E---BIx0MY-----EjHQy------SP/G67xEieBIg8Q4W15fXUFcQV3DkJCQkJCQkP8lel8--JCQDx+E------D/JXpf--CQk-8fh-------/yVKXw--
-kJD/JTpf--CQkP//////////----------D//////////w----------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------TgBh-G0-ZQ---Ec-cgBh-GM-ZQ------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------E---Bh----B----GE---jh----R---COE---GRE--BB-------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------E----BBwM-B4IDM-L----BD-c-DGIIM-dgBn-FU-T--t----------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------MDc0GQ-----xlI---E---BD----Qw---ChQ---0UQ--QFI--M9S--DvUg--BVM--ClT--BdUw--oVM--OlT---XV---NVQ--GdU
---CdV---41Q--C1V--BhVQ--n1U--NNV---NVg--O1Y--HFW--CvVg--z1Y--PtW--COE---UVc--G9X--CfVw--01c--BFY--BNW---b1g--KVY--DNW---BVk--EFZ--BtWQ--p1k--LtZ--D7WQ--OVo--E9_--B1Wg--nVo--NN_---HWw--PVs--Glb--ClWw--
-41s---1c---5X---iVw--NFc---RXQ--WV0--KNd--DxXQ--G14--Ede--CHXg--u14--Ode---rXw--W18--LVf--DrXw--J2---F1g--DiUg--/VI--BpT--BGUw--glM--MhT---DV---KVQ--FFU--CFV---w1Q---tV--BKVQ--g1U--LxV--DzVQ--J1Y--FlW
---CTVg--wlY--OhW---ZVw--MVc--GNX--CKVw--vFc--PVX---yW---YVg--I1Y--C8W---7Fg--CZZ--B_WQ--jVk--LRZ--DeWQ--HVo--Ed_--BlWg--jFo--Lt_--DwWg--JVs--FZb--CKWw--x1s--Ptb---mX---ZFw--LBc--D0X---OF0--IFd--DNXQ--
-CV4--DRe--BqXg--pF4--NRe---MXw--Rl8--Itf--DTXw--DG---EVg--B4Y------B--I--w-E--U-Bg-H--g-CQ-K--s-D--N--4-Dw-Q-BE-Eg-T-BQ-FQ-W-Bc-G--Z-Bo-Gw-c-B0-Hg-f-C--IQ-i-CM-J--l-CY-Jw-o-Ck-Kg-r-Cw-LQ-u-C8-M--x-DI-
-Mw-0-DU-Ng-3-Dg-OQ-6-Ds-P--9-D4-PwB--EE-QgBzcHBjLmRsb-BTUFBDUy5TTENhbGxTZXJ2ZXI-U0xDYWxsU2VydmVy-FNQUENTLlNMQ2xvc2U-U0xDbG9zZQBTUFBDUy5TTENvbnN1bWVS_Wdod-BTTENvbnN1bWVS_Wdod-BTUFBDUy5TTERlcG9z_XRN_Wdy
-YXRpb25CbG9i-FNMRGVwb3NpdE1pZ3JhdGlvbkJsb2I-U1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklk-FNMRGVwb3NpdE9mZmxpbmVDb25m_XJtYXRpb25JZ-BTUFBDUy5TTERlcG9z_XRPZmZs_W5lQ29uZmlybWF0_W9uSWRFe-BTTERlcG9z_XRP
-ZmZs_W5lQ29uZmlybWF0_W9uSWRFe-BTUFBDUy5TTERlcG9z_XRTdG9yZVRv_2Vu-FNMRGVwb3NpdFN0b3JlVG9rZW4-U1BQQ1MuU0xG_XJlRXZlbnQ-U0xG_XJlRXZlbnQ-U1BQQ1MuU0xHYXRoZXJN_WdyYXRpb25CbG9i-FNMR2F0_GVyTWlncmF0_W9uQmxvYgBT
-UFBDUy5TTEdhdGhlck1pZ3JhdGlvbkJsb2JFe-BTTEdhdGhlck1pZ3JhdGlvbkJsb2JFe-BTUFBDUy5TTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklk-FNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWQ-U1BQQ1MuU0xHZW5lcmF0ZU9mZmxpbmVJbnN0
-YWxsYXRpb25JZEV4-FNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWRFe-BTUFBDUy5TTEdldEFjdGl2ZUxpY2Vuc2VJbmZv-FNMR2V0QWN0_XZlTGljZW5zZUluZm8-U1BQQ1MuU0xHZXRBcHBs_WNhdGlvbkluZm9ybWF0_W9u-FNMR2V0QXBwbGljYXRpb25J
-bmZvcm1hdGlvbgBTUFBDUy5TTEdldEFwcGxpY2F0_W9uUG9s_WN5-FNMR2V0QXBwbGljYXRpb25Qb2xpY3k-U1BQQ1MuU0xHZXRBdXRoZW50_WNhdGlvblJlc3Vsd-BTTEdldEF1dGhlbnRpY2F0_W9uUmVzdWx0-FNQUENTLlNMR2V0RW5jcnlwdGVkUElERXg-U0xH
-ZXRFbmNyeXB0ZWRQSURFe-BTUFBDUy5TTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTUFBDUy5TTEdldEluc3RhbGxlZFByb2R1Y3RLZXlJZHM-U0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRz-FNQUENTLlNMR2V0TGljZW5z
-ZQBTTEdldExpY2Vuc2U-U1BQQ1MuU0xHZXRM_WNlbnNlRmlsZUlk-FNMR2V0TGljZW5zZUZpbGVJZ-BTUFBDUy5TTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0_W9u-FNQUENT
-LlNMR2V0UEtleUlk-FNMR2V0UEtleUlk-FNQUENTLlNMR2V0UEtleUluZm9ybWF0_W9u-FNMR2V0UEtleUluZm9ybWF0_W9u-FNQUENTLlNMR2V0UG9s_WN5SW5mb3JtYXRpb24-U0xHZXRQb2xpY3lJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0
-_W9uRFdPUkQ-U0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JE-FNQUENTLlNMR2V0UHJvZHVjdFNrdUluZm9ybWF0_W9u-FNMR2V0UHJvZHVjdFNrdUluZm9ybWF0_W9u-FNQUENTLlNMR2V0U0xJRExpc3Q-U0xHZXRTTElETGlzd-BTUFBDUy5TTEdldFNlcnZpY2VJ
-bmZvcm1hdGlvbgBTTEdldFNlcnZpY2VJbmZvcm1hdGlvbgBTUFBDUy5TTEluc3RhbGxM_WNlbnNl-FNMSW5zdGFsbExpY2Vuc2U-U1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNl-FNMSW5zdGFsbFByb29mT2ZQdXJj_GFzZQBTUFBDUy5TTEluc3RhbGxQcm9v
-Zk9mUHVyY2hhc2VFe-BTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2VFe-BTUFBDUy5TTElzR2VudWluZUxvY2FsRXg-U0xJc0dlbnVpbmVMb2NhbEV4-FNQUENTLlNMTG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xMb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5T
-TE9wZW4-U0xPcGVu-FNQUENTLlNMUGVyc2lzdEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xQZXJz_XN0QXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFBlcnNpc3RSVFNQYXlsb2FkT3ZlcnJpZGU-U0xQZXJz_XN0UlRTUGF5bG9hZE92ZXJy_WRl-FNQUENTLlNMUmVB
-cm0-U0xSZUFybQBTUFBDUy5TTFJlZ2lzdGVyRXZlbnQ-U0xSZWdpc3RlckV2ZW50-FNQUENTLlNMUmVn_XN0ZXJQbHVn_W4-U0xSZWdpc3RlclBsdWdpbgBTUFBDUy5TTFNldEF1dGhlbnRpY2F0_W9uRGF0YQBTTFNldEF1dGhlbnRpY2F0_W9uRGF0YQBTUFBDUy5T
-TFNldEN1cnJlbnRQcm9kdWN0S2V5-FNMU2V0Q3VycmVudFByb2R1Y3RLZXk-U1BQQ1MuU0xTZXRHZW51_W5lSW5mb3JtYXRpb24-U0xTZXRHZW51_W5lSW5mb3JtYXRpb24-U1BQQ1MuU0xVbmluc3RhbGxM_WNlbnNl-FNMVW5pbnN0YWxsTGljZW5zZQBTUFBDUy5T
-TFVu_W5zdGFsbFByb29mT2ZQdXJj_GFzZQBTTFVu_W5zdGFsbFByb29mT2ZQdXJj_GFzZQBTUFBDUy5TTFVubG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xVbmxvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNQUENTLlNMVW5yZWdpc3RlckV2ZW50-FNMVW5yZWdpc3Rl
-ckV2ZW50-FNQUENTLlNMVW5yZWdpc3RlclBsdWdpbgBTTFVucmVn_XN0ZXJQbHVn_W4-U1BQQ1MuU0xwQXV0_GVudGljYXRlR2VudWluZVRpY2tldFJlc3BvbnNl-FNMcEF1dGhlbnRpY2F0ZUdlbnVpbmVU_WNrZXRSZXNwb25zZQBTUFBDUy5TTHBCZWdpbkdlbnVp
-bmVU_WNrZXRUcmFuc2FjdGlvbgBTTHBCZWdpbkdlbnVpbmVU_WNrZXRUcmFuc2FjdGlvbgBTUFBDUy5TTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNz-FNMcENsZWFyQWN0_XZhdGlvbkluUHJvZ3Jlc3M-U1BQQ1MuU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU
-_WNrZXQ-U0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU_WNrZXQ-U1BQQ1MuU0xwRGVwb3NpdFRv_2VuQWN0_XZhdGlvblJlc3BvbnNl-FNMcERlcG9z_XRUb2tlbkFjdGl2YXRpb25SZXNwb25zZQBTUFBDUy5TTHBHZW5lcmF0ZVRv_2VuQWN0_XZhdGlvbkNoYWxs
-ZW5nZQBTTHBHZW5lcmF0ZVRv_2VuQWN0_XZhdGlvbkNoYWxsZW5nZQBTUFBDUy5TTHBHZXRHZW51_W5lQmxvYgBTTHBHZXRHZW51_W5lQmxvYgBTUFBDUy5TTHBHZXRHZW51_W5lTG9jYWw-U0xwR2V0R2VudWluZUxvY2Fs-FNQUENTLlNMcEdldExpY2Vuc2VBY3F1
-_XNpdGlvbkluZm8-U0xwR2V0TGljZW5zZUFjcXVpc2l0_W9uSW5mbwBTUFBDUy5TTHBHZXRNU1BpZEluZm9ybWF0_W9u-FNMcEdldE1TUGlkSW5mb3JtYXRpb24-U1BQQ1MuU0xwR2V0TWFj_GluZVVHVUlE-FNMcEdldE1hY2hpbmVVR1VJR-BTUFBDUy5TTHBHZXRU
-b2tlbkFjdGl2YXRpb25HcmFudEluZm8-U0xwR2V0VG9rZW5BY3RpdmF0_W9uR3JhbnRJbmZv-FNQUENTLlNMcElBQWN0_XZhdGVQcm9kdWN0-FNMcElBQWN0_XZhdGVQcm9kdWN0-FNQUENTLlNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5
--FNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5-FNQUENTLlNMcFByb2Nlc3NWTVBpcGVNZXNzYWdl-FNMcFByb2Nlc3NWTVBpcGVNZXNzYWdl-FNQUENTLlNMcFNldEFjdGl2YXRpb25JblByb2dyZXNz-FNMcFNldEFjdGl2YXRpb25JblBy
-b2dyZXNz-FNQUENTLlNMcFRy_WdnZXJTZXJ2_WNlV29y_2Vy-FNMcFRy_WdnZXJTZXJ2_WNlV29y_2Vy-FNQUENTLlNMcFZMQWN0_XZhdGVQcm9kdWN0-FNMcFZMQWN0_XZhdGVQcm9kdWN0--------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------UH--------------IHE--Ihw--Boc--------------wcQ--oH---Hhw-------------ERx--Cwc-----------------------------D-c--------OJw--------------------cQ------------------
-DHE------------------MBw--------4n--------------------Bx-------------------McQ-------------------gBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0_W9u--E-U0xHZXRQcm9kdWN0U2t1SW5mb3JtYXRpb24--OgDTG9jYWxGcmVl-FEB
-U3RyU3RyTklX--Bw----c---c3BwY3MuZGxs----FH---EtFUk5FTDMyLmRsb------oc---U0hMV0FQSS5kbGw-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------------------------------------E-E----Bg--I--------------------E--Q---D---I--------------
-------E-CQQ--Eg---BYg---H-M-------------H-M0----VgBT-F8-VgBF-FI-UwBJ-E8-TgBf-Ek-TgBG-E8------L0E7/4---E--w---------D--------------------B--E--I-------------------B8-g---QBT-HQ-cgBp-G4-ZwBG-Gk-b-Bl-Ek-
-bgBm-G8---BY-g---Q-w-DQ-M--5-D--N-BF-DQ---B6-C0--QBD-G8-bQBw-GE-bgB5-E4-YQBt-GU------EE-bgBv-G0-YQBs-G8-dQBz-C--UwBv-GY-d-B3-GE-cgBl-C--R-Bl-HQ-ZQBy-Gk-bwBy-GE-d-Bp-G8-bg-g-EM-bwBy-H--bwBy-GE-d-Bp-G8-
-bg------Pg-L--E-RgBp-Gw-ZQBE-GU-cwBj-HI-_QBw-HQ-_QBv-G4------G8-_-Bv-G8-_w-g-FM-U-BQ-EM------D--C--B-EY-_QBs-GU-VgBl-HI-cwBp-G8-bg------M--u-DM-Lg-w-C4-M----Co-BQ-B-Ek-bgB0-GU-cgBu-GE-b-BO-GE-bQBl----
-cwBw-H--Yw------j--0--E-T-Bl-Gc-YQBs-EM-bwBw-Hk-cgBp-Gc-_-B0----qQ-g-DI-M--y-DM-I-BB-G4-bwBt-GE-b-Bv-HU-cw-g-FM-bwBm-HQ-dwBh-HI-ZQ-g-EQ-ZQB0-GU-cgBp-G8-cgBh-HQ-_QBv-G4-I-BD-G8-cgBw-G8-cgBh-HQ-_QBv-G4-
----6--k--QBP-HI-_QBn-Gk-bgBh-Gw-RgBp-Gw-ZQBu-GE-bQBl----cwBw-H--Yw-u-GQ-b-Bs-------s--Y--QBQ-HI-bwBk-HU-YwB0-E4-YQBt-GU------G8-_-Bv-G8-_w---DQ-C--B-F--cgBv-GQ-dQBj-HQ-VgBl-HI-cwBp-G8-bg---D--Lg-z-C4-
-M--u-D----BE-----QBW-GE-cgBG-Gk-b-Bl-Ek-bgBm-G8------CQ-B----FQ-cgBh-G4-cwBs-GE-d-Bp-G8-bg------CQTkB---------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+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
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABhAAAABAAAAGEAAAjhAAAARAAACOEAAAGREAABBAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAEAAAABBwMAB4IDMALAAAABDAcADGIIMAdgBnAFUATAAtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDc0GQAAAAAxlIAAAEAAABDAAAAQwAAAChQAAA0UQAAQFIAAM9SAADvUgAABVMAAClTAABdUwAAoVMAAOlTAAAXVAAANVQAAGdU
+AACdVAAA41QAAC1VAABhVQAAn1UAANNVAAANVgAAO1YAAHFWAACvVgAAz1YAAPtWAACOEAAAUVcAAG9XAACfVwAA01cAABFYAABNWAAAb1gAAKVYAADNWAAABVkAAEFZAABtWQAAp1kAALtZAAD7WQAAOVoAAE9aAAB1WgAAnVoAANNaAAAHWwAAPVsAAGlbAAClWwAA
+41sAAA1cAAA5XAAAiVwAANFcAAARXQAAWV0AAKNdAADxXQAAG14AAEdeAACHXgAAu14AAOdeAAArXwAAW18AALVfAADrXwAAJ2AAAF1gAADiUgAA/VIAABpTAABGUwAAglMAAMhTAAADVAAAKVQAAFFUAACFVAAAw1QAAAtVAABKVQAAg1UAALxVAADzVQAAJ1YAAFlW
+AACTVgAAwlYAAOhWAAAZVwAAMVcAAGNXAACKVwAAvFcAAPVXAAAyWAAAYVgAAI1YAAC8WAAA7FgAACZZAABaWQAAjVkAALRZAADeWQAAHVoAAEdaAABlWgAAjFoAALtaAADwWgAAJVsAAFZbAACKWwAAx1sAAPtbAAAmXAAAZFwAALBcAAD0XAAAOF0AAIFdAADNXQAA
+CV4AADReAABqXgAApF4AANReAAAMXwAARl8AAItfAADTXwAADGAAAEVgAAB4YAAAAAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIA
+MwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBzcHBjLmRsbABTUFBDUy5TTENhbGxTZXJ2ZXIAU0xDYWxsU2VydmVyAFNQUENTLlNMQ2xvc2UAU0xDbG9zZQBTUFBDUy5TTENvbnN1bWVSaWdodABTTENvbnN1bWVSaWdodABTUFBDUy5TTERlcG9zaXRNaWdy
+YXRpb25CbG9iAFNMRGVwb3NpdE1pZ3JhdGlvbkJsb2IAU1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkAFNMRGVwb3NpdE9mZmxpbmVDb25maXJtYXRpb25JZABTUFBDUy5TTERlcG9zaXRPZmZsaW5lQ29uZmlybWF0aW9uSWRFeABTTERlcG9zaXRP
+ZmZsaW5lQ29uZmlybWF0aW9uSWRFeABTUFBDUy5TTERlcG9zaXRTdG9yZVRva2VuAFNMRGVwb3NpdFN0b3JlVG9rZW4AU1BQQ1MuU0xGaXJlRXZlbnQAU0xGaXJlRXZlbnQAU1BQQ1MuU0xHYXRoZXJNaWdyYXRpb25CbG9iAFNMR2F0aGVyTWlncmF0aW9uQmxvYgBT
+UFBDUy5TTEdhdGhlck1pZ3JhdGlvbkJsb2JFeABTTEdhdGhlck1pZ3JhdGlvbkJsb2JFeABTUFBDUy5TTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkAFNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWQAU1BQQ1MuU0xHZW5lcmF0ZU9mZmxpbmVJbnN0
+YWxsYXRpb25JZEV4AFNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWRFeABTUFBDUy5TTEdldEFjdGl2ZUxpY2Vuc2VJbmZvAFNMR2V0QWN0aXZlTGljZW5zZUluZm8AU1BQQ1MuU0xHZXRBcHBsaWNhdGlvbkluZm9ybWF0aW9uAFNMR2V0QXBwbGljYXRpb25J
+bmZvcm1hdGlvbgBTUFBDUy5TTEdldEFwcGxpY2F0aW9uUG9saWN5AFNMR2V0QXBwbGljYXRpb25Qb2xpY3kAU1BQQ1MuU0xHZXRBdXRoZW50aWNhdGlvblJlc3VsdABTTEdldEF1dGhlbnRpY2F0aW9uUmVzdWx0AFNQUENTLlNMR2V0RW5jcnlwdGVkUElERXgAU0xH
+ZXRFbmNyeXB0ZWRQSURFeABTUFBDUy5TTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTUFBDUy5TTEdldEluc3RhbGxlZFByb2R1Y3RLZXlJZHMAU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRzAFNQUENTLlNMR2V0TGljZW5z
+ZQBTTEdldExpY2Vuc2UAU1BQQ1MuU0xHZXRMaWNlbnNlRmlsZUlkAFNMR2V0TGljZW5zZUZpbGVJZABTUFBDUy5TTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0aW9uAFNQUENT
+LlNMR2V0UEtleUlkAFNMR2V0UEtleUlkAFNQUENTLlNMR2V0UEtleUluZm9ybWF0aW9uAFNMR2V0UEtleUluZm9ybWF0aW9uAFNQUENTLlNMR2V0UG9saWN5SW5mb3JtYXRpb24AU0xHZXRQb2xpY3lJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0
+aW9uRFdPUkQAU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JEAFNQUENTLlNMR2V0UHJvZHVjdFNrdUluZm9ybWF0aW9uAFNMR2V0UHJvZHVjdFNrdUluZm9ybWF0aW9uAFNQUENTLlNMR2V0U0xJRExpc3QAU0xHZXRTTElETGlzdABTUFBDUy5TTEdldFNlcnZpY2VJ
+bmZvcm1hdGlvbgBTTEdldFNlcnZpY2VJbmZvcm1hdGlvbgBTUFBDUy5TTEluc3RhbGxMaWNlbnNlAFNMSW5zdGFsbExpY2Vuc2UAU1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlAFNMSW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTUFBDUy5TTEluc3RhbGxQcm9v
+Zk9mUHVyY2hhc2VFeABTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2VFeABTUFBDUy5TTElzR2VudWluZUxvY2FsRXgAU0xJc0dlbnVpbmVMb2NhbEV4AFNQUENTLlNMTG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU0xMb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5T
+TE9wZW4AU0xPcGVuAFNQUENTLlNMUGVyc2lzdEFwcGxpY2F0aW9uUG9saWNpZXMAU0xQZXJzaXN0QXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFBlcnNpc3RSVFNQYXlsb2FkT3ZlcnJpZGUAU0xQZXJzaXN0UlRTUGF5bG9hZE92ZXJyaWRlAFNQUENTLlNMUmVB
+cm0AU0xSZUFybQBTUFBDUy5TTFJlZ2lzdGVyRXZlbnQAU0xSZWdpc3RlckV2ZW50AFNQUENTLlNMUmVnaXN0ZXJQbHVnaW4AU0xSZWdpc3RlclBsdWdpbgBTUFBDUy5TTFNldEF1dGhlbnRpY2F0aW9uRGF0YQBTTFNldEF1dGhlbnRpY2F0aW9uRGF0YQBTUFBDUy5T
+TFNldEN1cnJlbnRQcm9kdWN0S2V5AFNMU2V0Q3VycmVudFByb2R1Y3RLZXkAU1BQQ1MuU0xTZXRHZW51aW5lSW5mb3JtYXRpb24AU0xTZXRHZW51aW5lSW5mb3JtYXRpb24AU1BQQ1MuU0xVbmluc3RhbGxMaWNlbnNlAFNMVW5pbnN0YWxsTGljZW5zZQBTUFBDUy5T
+TFVuaW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTTFVuaW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTUFBDUy5TTFVubG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU0xVbmxvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNQUENTLlNMVW5yZWdpc3RlckV2ZW50AFNMVW5yZWdpc3Rl
+ckV2ZW50AFNQUENTLlNMVW5yZWdpc3RlclBsdWdpbgBTTFVucmVnaXN0ZXJQbHVnaW4AU1BQQ1MuU0xwQXV0aGVudGljYXRlR2VudWluZVRpY2tldFJlc3BvbnNlAFNMcEF1dGhlbnRpY2F0ZUdlbnVpbmVUaWNrZXRSZXNwb25zZQBTUFBDUy5TTHBCZWdpbkdlbnVp
+bmVUaWNrZXRUcmFuc2FjdGlvbgBTTHBCZWdpbkdlbnVpbmVUaWNrZXRUcmFuc2FjdGlvbgBTUFBDUy5TTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNzAFNMcENsZWFyQWN0aXZhdGlvbkluUHJvZ3Jlc3MAU1BQQ1MuU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU
+aWNrZXQAU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVUaWNrZXQAU1BQQ1MuU0xwRGVwb3NpdFRva2VuQWN0aXZhdGlvblJlc3BvbnNlAFNMcERlcG9zaXRUb2tlbkFjdGl2YXRpb25SZXNwb25zZQBTUFBDUy5TTHBHZW5lcmF0ZVRva2VuQWN0aXZhdGlvbkNoYWxs
+ZW5nZQBTTHBHZW5lcmF0ZVRva2VuQWN0aXZhdGlvbkNoYWxsZW5nZQBTUFBDUy5TTHBHZXRHZW51aW5lQmxvYgBTTHBHZXRHZW51aW5lQmxvYgBTUFBDUy5TTHBHZXRHZW51aW5lTG9jYWwAU0xwR2V0R2VudWluZUxvY2FsAFNQUENTLlNMcEdldExpY2Vuc2VBY3F1
+aXNpdGlvbkluZm8AU0xwR2V0TGljZW5zZUFjcXVpc2l0aW9uSW5mbwBTUFBDUy5TTHBHZXRNU1BpZEluZm9ybWF0aW9uAFNMcEdldE1TUGlkSW5mb3JtYXRpb24AU1BQQ1MuU0xwR2V0TWFjaGluZVVHVUlEAFNMcEdldE1hY2hpbmVVR1VJRABTUFBDUy5TTHBHZXRU
+b2tlbkFjdGl2YXRpb25HcmFudEluZm8AU0xwR2V0VG9rZW5BY3RpdmF0aW9uR3JhbnRJbmZvAFNQUENTLlNMcElBQWN0aXZhdGVQcm9kdWN0AFNMcElBQWN0aXZhdGVQcm9kdWN0AFNQUENTLlNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5
+AFNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5AFNQUENTLlNMcFByb2Nlc3NWTVBpcGVNZXNzYWdlAFNMcFByb2Nlc3NWTVBpcGVNZXNzYWdlAFNQUENTLlNMcFNldEFjdGl2YXRpb25JblByb2dyZXNzAFNMcFNldEFjdGl2YXRpb25JblBy
+b2dyZXNzAFNQUENTLlNMcFRyaWdnZXJTZXJ2aWNlV29ya2VyAFNMcFRyaWdnZXJTZXJ2aWNlV29ya2VyAFNQUENTLlNMcFZMQWN0aXZhdGVQcm9kdWN0AFNMcFZMQWN0aXZhdGVQcm9kdWN0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUHAAAAAAAAAAAAAAIHEAAIhwAABocAAAAAAAAAAAAAAwcQAAoHAAAHhwAAAAAAAAAAAAAERxAACwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAcAAAAAAAAOJwAAAAAAAAAAAAAAAAAAAAcQAAAAAAAAAAAAAAAAAA
+DHEAAAAAAAAAAAAAAAAAAMBwAAAAAAAA4nAAAAAAAAAAAAAAAAAAAABxAAAAAAAAAAAAAAAAAAAMcQAAAAAAAAAAAAAAAAAAAgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0aW9uAAEAU0xHZXRQcm9kdWN0U2t1SW5mb3JtYXRpb24AAOgDTG9jYWxGcmVlAFEB
+U3RyU3RyTklXAABwAAAAcAAAc3BwY3MuZGxsAAAAFHAAAEtFUk5FTDMyLmRsbAAAAAAocAAAU0hMV0FQSS5kbGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAEAAAABgAAIAAAAAAAAAAAAAAAAAAAAEAAQAAADAAAIAAAAAAAAAAAAAA
+AAAAAAEACQQAAEgAAABYgAAAHAMAAAAAAAAAAAAAHAM0AAAAVgBTAF8AVgBFAFIAUwBJAE8ATgBfAEkATgBGAE8AAAAAAL0E7/4AAAEAAwAAAAAAAAADAAAAAAAAAAAAAAAAAAAABAAEAAIAAAAAAAAAAAAAAAAAAAB8AgAAAQBTAHQAcgBpAG4AZwBGAGkAbABlAEkA
+bgBmAG8AAABYAgAAAQAwADQAMAA5ADAANABFADQAAAB6AC0AAQBDAG8AbQBwAGEAbgB5AE4AYQBtAGUAAAAAAEEAbgBvAG0AYQBsAG8AdQBzACAAUwBvAGYAdAB3AGEAcgBlACAARABlAHQAZQByAGkAbwByAGEAdABpAG8AbgAgAEMAbwByAHAAbwByAGEAdABpAG8A
+bgAAAAAAPgALAAEARgBpAGwAZQBEAGUAcwBjAHIAaQBwAHQAaQBvAG4AAAAAAG8AaABvAG8AawAgAFMAUABQAEMAAAAAADAACAABAEYAaQBsAGUAVgBlAHIAcwBpAG8AbgAAAAAAMAAuADMALgAwAC4AMAAAACoABQABAEkAbgB0AGUAcgBuAGEAbABOAGEAbQBlAAAA
+cwBwAHAAYwAAAAAAjAA0AAEATABlAGcAYQBsAEMAbwBwAHkAcgBpAGcAaAB0AAAAqQAgADIAMAAyADMAIABBAG4AbwBtAGEAbABvAHUAcwAgAFMAbwBmAHQAdwBhAHIAZQAgAEQAZQB0AGUAcgBpAG8AcgBhAHQAaQBvAG4AIABDAG8AcgBwAG8AcgBhAHQAaQBvAG4A
+AAA6AAkAAQBPAHIAaQBnAGkAbgBhAGwARgBpAGwAZQBuAGEAbQBlAAAAcwBwAHAAYwAuAGQAbABsAAAAAAAsAAYAAQBQAHIAbwBkAHUAYwB0AE4AYQBtAGUAAAAAAG8AaABvAG8AawAAADQACAABAFAAcgBvAGQAdQBjAHQAVgBlAHIAcwBpAG8AbgAAADAALgAzAC4A
+MAAuADAAAABEAAAAAQBWAGEAcgBGAGkAbABlAEkAbgBmAG8AAAAAACQABAAAAFQAcgBhAG4AcwBsAGEAdABpAG8AbgAAAAAACQTkBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 :sppc64.dll:
 
 ::========================================================================================================================================
-:: Leave empty line below
+::  下方保留空行

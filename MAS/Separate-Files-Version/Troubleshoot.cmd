@@ -4,28 +4,28 @@
 
 
 
-::============================================================================
+::=================================================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
-::============================================================================
+::=================================================================================================
 
 
 
 ::========================================================================================================================================
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
-:: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
-:: or with ARM64 process if it was initiated by x86/ARM32 process on ARM64 Windows
+::  如果脚本是由 x64 位 Windows 上的 x86 进程启动的，则将使用 x64 进程重新启动脚本
+::  或者如果它是由 ARM64 Windows 上的 x86/ARM32 进程启动的，则将使用 ARM64 进程
 
 set "_cmdf=%~f0"
 for %%# in (%*) do (
@@ -33,22 +33,22 @@ if /i "%%#"=="r1" set r1=1
 if /i "%%#"=="r2" set r2=1
 if /i "%%#"=="-qedit" (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "1" /f %nul1%
-rem check the code below admin elevation to understand why it's here
+rem 查看下方的管理员提升代码了解它为什么在这里
 )
 )
 
 if exist %SystemRoot%\Sysnative\cmd.exe if not defined r1 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
+start wt.exe new-tab %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
 )
 
-:: Re-launch the script with ARM32 process if it was initiated by x64 process on ARM64 Windows
+::  使用 ARM32 进程重新启动脚本（如果此脚本是由 ARM64 Windows 上的 x64 进程启动的）
 
 if exist %SystemRoot%\SysArm32\cmd.exe if %PROCESSOR_ARCHITECTURE%==AMD64 if not defined r2 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
+start wt.exe new-tab %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
 )
 
 ::========================================================================================================================================
@@ -56,27 +56,27 @@ exit /b
 set "blank="
 set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
 
-::  Check if Null service is working, it's important for the batch script
+::  检查 Null 服务是否正常工作，这对批处理脚本很重要
 
 sc query Null | find /i "RUNNING"
 if %errorlevel% NEQ 0 (
 echo:
-echo Null service is not running, script may crash...
+echo Null 服务未运行，脚本可能会崩溃……
 echo:
 echo:
-echo Help - %mas%troubleshoot.html
+echo 帮助 - %mas%troubleshoot.html
 echo:
 echo:
 ping 127.0.0.1 -n 10
 )
 cls
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -88,7 +88,7 @@ popd
 
 cls
 color 07
-title  Troubleshoot %masver%
+title 疑难解答 %masver%
 
 set _args=
 set _elev=
@@ -116,29 +116,29 @@ if %winbuild% GEQ 10586 reg query "HKCU\Console" /v ForceV2 %nul2% | find /i "0x
 
 call :_colorprep
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :_color %Red% "==== 错误 ====" &echo:"
 set "line=_________________________________________________________________________________________________"
-if %~z0 GEQ 200000 (set "_exitmsg=Go back") else (set "_exitmsg=Exit")
+if %~z0 GEQ 200000 (set "_exitmsg=返回") else (set "_exitmsg=退出")
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 7600 (
 %nceline%
-echo Unsupported OS version detected [%winbuild%].
-echo Project is supported only for Windows 7/8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo 此项目仅支持 Windows 7/8/8.1/10/11 和它们对应的服务器版本。
 goto at_done
 )
 
 for %%# in (powershell.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find powershell.exe in the system.
+echo 在系统中未找到 powershell.exe。
 goto at_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -157,43 +157,45 @@ setlocal EnableDelayedExpansion
 echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %nceline%
-echo Script is launched from the temp folder,
-echo Most likely you are running the script directly from the archive file.
+echo 脚本是从 temp 文件夹启动的，
+echo 最有可能的原因是，你是直接从压缩文件运行脚本。
 echo:
-echo Extract the archive file and launch the script from the extracted folder.
+echo 请解压压缩文件并从解压文件夹中启动脚本。
 goto at_done
 )
 )
 
 ::========================================================================================================================================
 
-::  Elevate script as admin and pass arguments and preventing loop
+::  将脚本提升为管理员权限及传递参数并防止循环
 
 %nul1% fltmc || (
-if not defined _elev %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev for %%# in (wt.exe) do @if "%%~$PATH:#"=="" %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev %psc% "start wt.exe -arg 'new-tab cmd.exe /c \"!_PSarg:'=''!\"' -verb runas" && exit /b
 %nceline%
-echo This script needs admin rights.
-echo To do so, right click on this script and select 'Run as administrator'.
+echo 此脚本需要管理员权限。
+echo 为此，右键单击此脚本并选择“以管理员身份运行”。
 goto at_done
 )
 
 ::========================================================================================================================================
 
-::  This code disables QuickEdit for this cmd.exe session only without making permanent changes to the registry
-::  It is added because clicking on the script window pauses the operation and leads to the confusion that script stopped due to an error
+::  此代码仅禁用此 cmd.exe 会话的快速编辑，而不对注册表进行永久更改
+::  添加它的原因是单击脚本窗口会暂停操作并导致脚本因错误而停止的混乱
 
 for %%# in (%_args%) do (if /i "%%#"=="-qedit" set quedit=1)
 
 reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% || if not defined quedit (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "0" /f %nul1%
-start cmd.exe /c ""!_batf!" %_args% -qedit"
-rem quickedit reset code is added at the starting of the script instead of here because it takes time to reflect in some cases
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+start wt.exe new-tab cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+rem 快速编辑重置代码应添加在脚本的开头而不是此处，因为在某些情况下需要时间来反映
 exit /b
 )
 
 ::========================================================================================================================================
 
-::  Check for updates
+::  检查更新
 
 set -=
 set old=
@@ -205,13 +207,13 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version MAS %masver%
+echo echo 你正在运行旧版本的 MAS 版本 %masver%
 echo ________________________________________________
 echo:
-echo [1] Get Latest MAS
-echo [0] Continue Anyway
+echo [1] 下载最新版本 MAS
+echo [0] 仍然继续
 echo:
-call :_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
+call :_color %_Green% "请输入一个菜单选项 [1,0] ："
 choice /C:10 /N
 if !errorlevel!==2 rem
 if !errorlevel!==1 (start ht%-%tps://github.com/mass%-%gravel/Microsoft-Acti%-%vation-Scripts & start %mas% & exit /b)
@@ -222,7 +224,7 @@ cls
 
 setlocal DisableDelayedExpansion
 
-::  Check desktop location
+::  检测桌面位置
 
 set desktop=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop') do call set "desktop=%%b"
@@ -230,7 +232,7 @@ if not defined desktop for /f "delims=" %%a in ('%psc% "& {write-host $([Environ
 
 if not defined desktop (
 %eline%
-echo Desktop location was not detected, aborting...
+echo 桌面位置未被检测到，正在中止……
 goto at_done
 )
 
@@ -242,7 +244,7 @@ setlocal EnableDelayedExpansion
 
 cls
 color 07
-title  Troubleshoot %masver%
+title 疑难解答 %masver%
 mode con cols=77 lines=30
 
 echo:
@@ -251,21 +253,21 @@ echo:
 echo:
 echo:       _______________________________________________________________
 echo:                                                   
-call :_color2 %_White% "             [1] " %_Green% "Help"
+call :_color2 %_White% "             [1] " %_Green% "帮助"
 echo:             ___________________________________________________
 echo:                                                                      
 echo:             [2] Dism RestoreHealth
 echo:             [3] SFC Scannow
 echo:                                                                      
-echo:             [4] Fix WMI
-echo:             [5] Fix Licensing
-echo:             [6] Fix WPA Registry
+echo:             [4] 修复 WMI
+echo:             [5] 修复许可
+echo:             [6] 修复 WPA 注册表
 echo:             ___________________________________________________
 echo:
 echo:             [0] %_exitmsg%
 echo:       _______________________________________________________________
 echo:          
-call :_color2 %_White% "            " %_Green% "Enter a menu option in the Keyboard :"
+call :_color2 %_White% "            " %_Green% "请输入一个菜单选项 ："
 choice /C:1234560 /N
 set _erl=%errorlevel%
 
@@ -284,12 +286,12 @@ goto :at_menu
 
 cls
 mode 98, 30
-title  Dism /English /Online /Cleanup-Image /RestoreHealth
+title Dism /Online /Cleanup-Image /RestoreHealth
 
 if %winbuild% LSS 9200 (
 %eline%
-echo Unsupported OS version Detected.
-echo This command is supported only for Windows 8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本。
+echo 仅限 Windows 8/8.1/10/11 及其对应的 Server 支持此命令。
 goto :at_back
 )
 
@@ -300,25 +302,25 @@ for /f "delims=[] tokens=2" %%# in ('ping -n 1 %%a') do (if not [%%#]==[] set _i
 
 echo:
 if defined _int (
-echo      Checking Internet Connection  [Connected]
+echo      正在检查 Internet 连接        [已连接]
 ) else (
-call :_color2 %_White% "     " %Red% "Checking Internet Connection  [Not connected]"
+call :_color2 %_White% "     " %Red% "正在检查 Internet 连接        [未连接]"
 )
 
 echo %line%
 echo:
-echo      Dism uses Windows Update to provide the files required to fix corruption.
-echo      This will take 5-15 minutes or more..
+echo      Dism 使用 Windows 更新来提供修复损坏所需的文件。
+echo      这将需要 5-15 分钟或更长时间……
 echo %line%
 echo:
-echo      Notes:
+echo      注：
 echo:
-call :_color2 %_White% "     - " %Gray% "Make sure the Internet is connected."
-call :_color2 %_White% "     - " %Gray% "Make sure the Windows update is properly working."
+call :_color2 %_White% "     - " %Gray% "请确保 Internet 已连接。"
+call :_color2 %_White% "     - " %Gray% "请确保 Windows 更新正常工作。"
 echo:
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 cls
@@ -328,9 +330,9 @@ mode 110, 30
 set _time=
 for /f %%a in ('%psc% "Get-Date -format HH_mm_ss"') do set _time=%%a
 echo:
-echo Applying the command,
-echo dism /english /online /cleanup-image /restorehealth
-dism /english /online /cleanup-image /restorehealth
+echo 正在应用命令，
+echo Dism /Online /Cleanup-Image /RestoreHealth
+Dism /Online /Cleanup-Image /RestoreHealth
 
 %psc% Stop-Service TrustedInstaller -force %nul%
 
@@ -348,7 +350,7 @@ copy /y /b "%SystemRoot%\logs\DISM\dism.log" "!desktop!\AT_Logs\RHealth_DISM_%_t
 )
 
 echo:
-call :_color %Gray% "CBS and DISM logs are copied to the AT_Logs folder on the dekstop."
+call :_color %Gray% "CBS 和 DISM 日志已被复制到桌面上的 AT_Logs 文件夹中。"
 goto :at_back
 
 ::========================================================================================================================================
@@ -357,21 +359,21 @@ goto :at_back
 
 cls
 mode 98, 30
-title  sfc /scannow
+title sfc /scannow
 
 echo:
 echo %line%
 echo:    
-echo      System File Checker will repair missing or corrupted system files.
-echo      This will take 10-15 minutes or more..
+echo      系统文件检查器（System File Checker）将修复丢失或损坏的系统文件。
+echo      这将需要 10-15 分钟或更长时间……
 echo:
-echo      If SFC could not fix something, then run the command again to see if it may be able 
-echo      to the next time. Sometimes it may take running the sfc /scannow command 3 times
-echo      restarting the PC after each time to completely fix everything that it's able to.
+echo      如果 SFC 无法修复某些问题，则再次运行该命令以查看下一次是否能够修复。有时可能需
+echo      要运行 sfc /scannow 命令 3 次，每次之后重新启动 PC 才能完全修复它能够修复的所有
+echo      问题。
 echo:   
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 cls
@@ -380,7 +382,7 @@ cls
 set _time=
 for /f %%a in ('%psc% "Get-Date -format HH_mm_ss"') do set _time=%%a
 echo:
-echo Applying the command,
+echo 正在应用命令，
 echo sfc /scannow
 sfc /scannow
 
@@ -395,7 +397,7 @@ copy /y /b "%SystemRoot%\logs\cbs\cbs.log" "!desktop!\AT_Logs\SFC_CBS_%_time%.lo
 )
 
 echo:
-call :_color %Gray% "CBS log is copied to the AT_Logs folder on the dekstop."
+call :_color %Gray% "CBS 和主要提取的日志被复制到桌面上的 AT_Logs 文件夹中。"
 goto :at_back
 
 ::========================================================================================================================================
@@ -405,33 +407,33 @@ goto :at_back
 cls
 mode con cols=125 lines=32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=200;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
-title  Fix Licensing ^(ClipSVC ^+ Office vNext ^+ SPP ^+ OSPP^)
+title 修复许可（ClipSVC ^+ Office vNext ^+ SPP ^+ OSPP）
 
 echo:
 echo %line%
 echo:   
-echo      Notes:
+echo      注：
 echo:
-echo       - It helps in troubleshooting activation issues.
+echo       - 它有助于解决激活问题。
 echo:
-echo       - This option will,
-echo            - Deactivate Windows and Office, you may need to reactivate
-echo              If Windows is activated with motherboard / OEM / Digital license then don't worry
+echo       - 此选项将会，
+echo            - 反激活 Windows 和 Office，你可能需要重新激活
+echo              如果 Windows 是使用主板 / OEM / 数字许可证激活的，请不要担心
 echo:
-echo            - Clear ClipSVC, Office vNext, SPP and OSPP licenses
-echo            - Fix SPP permissions of tokens folder and registries
-echo            - Trigger the repair option for Office.
+echo            - 清理 ClipSVC、Office vNext、SPP 和 OSPP 许可
+echo            - 修复令牌文件夹和注册表的 SPP 权限
+echo            - 触发 Office 的修复选项。
 echo:
-call :_color2 %_White% "      - " %Red% "Apply it only when it is necessary."
+call :_color2 %_White% "      - " %Red% "仅在必要时应用。"
 echo:
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 ::========================================================================================================================================
 
-::  Rebuild ClipSVC Licences
+::  重建 ClipSVC 许可证
 
 cls
 :cleanlicensing
@@ -439,43 +441,43 @@ cls
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding ClipSVC Licences"
+call :_color %Blue% "正在重建 ClipSVC 许可证"
 echo:
 
 if %winbuild% LSS 10240 (
-echo ClipSVC Licence rebuilding is supported only on Win 10/11 and Server equivalent.
-echo Skipping...
+echo ClipSVC 许可证重建仅在 Win 10/11 和服务器对应版本上受支持。
+echo 正在跳过……
 goto :cleanvnext
 )
 
 %psc% "(([WMISEARCHER]'SELECT Name FROM SoftwareLicensingProduct WHERE LicenseStatus=1 AND GracePeriodRemaining=0 AND PartialProductKey IS NOT NULL').Get()).Name" %nul2% | findstr /i "Windows" %nul1% && (
-echo Windows is permanently activated.
-echo Skipping rebuilding ClipSVC licences...
+echo Windows 已永久激活。
+echo 正在跳过重建 ClipSVC 许可证……
 goto :cleanvnext
 )
 
-echo Stopping ClipSVC service...
+echo 正在停止 ClipSVC 服务……
 %psc% Stop-Service ClipSVC -force %nul%
 timeout /t 2 %nul%
 
 echo:
-echo Applying the command to Clean ClipSVC Licences...
+echo 正在将命令应用于清理 ClipSVC 许可证……
 echo rundll32 clipc.dll,ClipCleanUpState
 
 rundll32 clipc.dll,ClipCleanUpState
 
 if %winbuild% LEQ 10240 (
-echo [Successful]
+echo [成功]
 ) else (
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\tokens.dat" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 )
 
-::  Below registry key (Volatile & Protected) gets created after the ClipSVC License cleanup command, and gets automatically deleted after 
-::  system restart. It needs to be deleted to activate the system without restart.
+::  下方的注册表项（易失性和受保护）在 ClipSVC 许可证清理命令之后创建，并将在系统重新启动后自动删除。
+::  需要删除它才能激活系统，无需重新启动。
 
 set "RegKey=HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState"
 set "_ident=HKU\S-1-5-19\SOFTWARE\Microsoft\IdentityCRL"
@@ -484,40 +486,40 @@ reg query "%RegKey%" %nul% && %nul% call :regownstart
 reg delete "%RegKey%" /f %nul% 
 
 echo:
-echo Deleting a Volatile ^& Protected Registry Key...
+echo 正在删除易失性和受保护的注册表项……
 echo [%RegKey%]
 reg query "%RegKey%" %nul% && (
-call :_color %Red% "[Failed]"
-echo Restart the system, that will delete this registry key automatically.
+call :_color %Red% "[失败]"
+echo 重新启动系统，这将会自动删除此注册表项。
 ) || (
-echo [Successful]
+echo [成功]
 )
 
-::   Clear HWID token related registry to fix activation incase if there is any corruption
+::   清除 HWID 令牌相关注册表以修复激活，以防出现任何损坏
 
 echo:
-echo Deleting a IdentityCRL Registry Key...
+echo 正在删除 IdentityCRL 注册表项……
 echo [%_ident%]
 reg delete "%_ident%" /f %nul%
 reg query "%_ident%" %nul% && (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) || (
-echo [Successful]
+echo [成功]
 )
 
 %psc% Stop-Service ClipSVC -force %nul%
 
-::  Rebuild ClipSVC folder to fix permission issues
+::  重建 ClipSVC 文件夹以修复权限问题
 
 echo:
 if %winbuild% GTR 10240 (
-echo Deleting Folder %ProgramData%\Microsoft\Windows\ClipSVC\
+echo 正在删除文件夹 %ProgramData%\Microsoft\Windows\ClipSVC\
 rmdir /s /q "C:\ProgramData\Microsoft\Windows\ClipSvc" %nul%
 
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 
 echo:
@@ -526,19 +528,19 @@ echo Rebuilding Folder %ProgramData%\Microsoft\Windows\ClipSVC\
 timeout /t 3 %nul%
 if not exist "%ProgramData%\Microsoft\Windows\ClipSVC\" timeout /t 5 %nul%
 if not exist "%ProgramData%\Microsoft\Windows\ClipSVC\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 )
 
 echo:
-echo Restarting [wlidsvc LicenseManager] services...
+echo 正在重启 [wlidsvc LicenseManager] 服务……
 for %%# in (wlidsvc LicenseManager) do (%psc% Restart-Service %%# %nul%)
 
 ::========================================================================================================================================
 
-::  Find remnants of Office vNext license block and remove it because it stops non vNext licenses from appearing
+::  查找 Office vNext 许可证块的残余并将其删除，因为它会阻止非 vNext 许可证的显示
 ::  https://learn.microsoft.com/en-us/office/troubleshoot/activation/reset-office-365-proplus-activation-state
 
 :cleanvnext
@@ -546,7 +548,7 @@ for %%# in (wlidsvc LicenseManager) do (%psc% Restart-Service %%# %nul%)
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Clearing Office vNext License"
+call :_color %Blue% "正在清理 Office vNext 许可证"
 echo:
 
 setlocal DisableDelayedExpansion
@@ -559,23 +561,23 @@ attrib -R "!_Local!\Microsoft\Office\Licenses" %nul%
 if exist "!ProgramData!\Microsoft\Office\Licenses\" (
 rd /s /q "!ProgramData!\Microsoft\Office\Licenses\" %nul%
 if exist "!ProgramData!\Microsoft\Office\Licenses\" (
-echo Failed To Delete - !ProgramData!\Microsoft\Office\Licenses\
+echo 删除失败 - !ProgramData!\Microsoft\Office\Licenses\
 ) else (
-echo Deleted Folder - !ProgramData!\Microsoft\Office\Licenses\
+echo 已删除文件夹 - !ProgramData!\Microsoft\Office\Licenses\
 )
 ) else (
-echo Not Found - !ProgramData!\Microsoft\Office\Licenses\
+echo 未找到 - !ProgramData!\Microsoft\Office\Licenses\
 )
 
 if exist "!_Local!\Microsoft\Office\Licenses\" (
 rd /s /q "!_Local!\Microsoft\Office\Licenses\" %nul%
 if exist "!_Local!\Microsoft\Office\Licenses\" (
-echo Failed To Delete - !_Local!\Microsoft\Office\Licenses\
+echo 删除失败 - !_Local!\Microsoft\Office\Licenses\
 ) else (
-echo Deleted Folder - !_Local!\Microsoft\Office\Licenses\
+echo 已删除文件夹 - !_Local!\Microsoft\Office\Licenses\
 )
 ) else (
-echo Not Found - !_Local!\Microsoft\Office\Licenses\
+echo 未找到 - !_Local!\Microsoft\Office\Licenses\
 )
 
 
@@ -592,51 +594,51 @@ for %%A in (
 reg query %%A %nul% && (
 set regfound=1
 reg delete %%A /f %nul% && (
-echo Deleted Registry - %%A
+echo 已删除注册表 - %%A
 ) || (
-echo Failed to Delete - %%A
+echo 删除失败 - %%A
 )
 )
 )
 )
-if not defined regfound echo Not Found - Office vNext Registry Keys
+if not defined regfound echo 未找到 - Office vNext 注册表
 
 ::========================================================================================================================================
 
-::  Rebuild SPP Tokens
+::  重建 SPP 许可令牌
 
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding SPP Licensing Tokens"
+call :_color %Blue% "正在重建 SPP 许可令牌"
 echo:
 
 call :scandat check
 
 if not defined token (
-call :_color %Red% "tokens.dat file not found."
+call :_color %Red% "未找到 tokens.dat 文件。"
 ) else (
-echo tokens.dat file: [%token%]
+echo tokens.dat 文件：[%token%]
 )
 
 echo:
 set wpainfo=
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
 echo "%wpainfo%" | find /i "Error Found" %nul% && (
-call :_color %Red% "WPA Registry Error: %wpainfo%"
+call :_color %Red% "WPA 注册错误：%wpainfo%"
 ) || (
-echo WPA Registry Count: %wpainfo%
+echo WPA 注册表数：%wpainfo%
 )
 
 set tokenstore=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v TokenStore %nul6%') do call set "tokenstore=%%b"
 
-::  Check sppsvc permissions and apply fixes
+::  检查 sppsvc 权限并应用修补程序
 
 if %winbuild% GEQ 10240 (
 
 echo:
-echo Checking SPP permission related issues...
+echo 正在检查 SPP 权限相关问题……
 call :checkperms
 
 if defined permerror (
@@ -662,17 +664,17 @@ set "d=!d! Set-Acl -Path '%%A' -AclObject $acl"
 
 call :checkperms
 if defined permerror (
-call :_color %Red% "[Failed To Fix]"
+call :_color %Red% "[修复失败]"
 ) else (
-echo [Successfully Fixed]
+echo [修复成功]
 )
 ) else (
-echo [No Error Found]
+echo [未发现错误]
 )
 )
 
 echo:
-echo Stopping sppsvc service...
+echo 正在停止 sppsvc 服务   ...
 %psc% Stop-Service sppsvc -force %nul%
 
 echo:
@@ -681,55 +683,55 @@ call :scandat check
 
 if defined token (
 echo:
-call :_color %Red% "Failed to delete .dat files."
+call :_color %Red% "删除 .dat 文件失败。"
 echo:
 )
 
 echo:
-echo Reinstalling System Licenses [slmgr /rilc]...
+echo 正在重新安装系统许可 [slmgr /rilc]……
 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 if %errorlevel% NEQ 0 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 )
 
 call :scandat check
 
 echo:
 if not defined token (
-call :_color %Red% "Failed to rebuilt tokens.dat file."
+call :_color %Red% "重建 tokens.dat 文件失败。"
 ) else (
-echo tokens.dat file was rebuilt successfully.
+echo tokens.dat 文件已成功重建。
 )
 
 ::========================================================================================================================================
 
-::  Rebuild OSPP Tokens
+::  重建 OSPP 令牌
 
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding OSPP Licensing Tokens"
+call :_color %Blue% "正在重建 OSPP 许可令牌"
 echo:
 
 sc qc osppsvc %nul% || (
-echo OSPP based Office is not installed
-echo Skipping rebuilding OSPP tokens...
+echo 未安装基于 OSPP 的 Office
+echo 正在跳过重建 OSPP 令牌……
 goto :repairoffice
 )
 
 call :scandatospp check
 
 if not defined token (
-call :_color %Red% "tokens.dat file not found."
+call :_color %Red% "未找到 tokens.dat 文件。"
 ) else (
-echo tokens.dat file: [%token%]
+echo tokens.dat 文件：[%token%]
 )
 
 echo:
-echo Stopping osppsvc service...
+echo 正在停止 osppsvc 服务……
 %psc% Stop-Service osppsvc -force %nul%
 
 echo:
@@ -738,12 +740,12 @@ call :scandatospp check
 
 if defined token (
 echo:
-call :_color %Red% "Failed to delete .dat files."
+call :_color %Red% "删除 .dat 文件失败。"
 echo:
 )
 
 echo:
-echo Starting osppsvc service to generate tokens.dat
+echo 正在启动 osppsvc 服务以生成 tokens.dat
 %psc% Start-Service osppsvc %nul%
 call :scandatospp check
 if not defined token (
@@ -756,9 +758,9 @@ call :scandatospp check
 
 echo:
 if not defined token (
-call :_color %Red% "Failed to rebuilt tokens.dat file."
+call :_color %Red% "重建 tokens.dat 文件失败。"
 ) else (
-echo tokens.dat file was rebuilt successfully.
+echo tokens.dat 文件已成功重建。
 )
 
 ::========================================================================================================================================
@@ -768,15 +770,15 @@ echo tokens.dat file was rebuilt successfully.
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Repairing Office Licenses"
+call :_color %Blue% "正在修复 Office 许可证"
 echo:
 
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
 
 if /i "%arch%"=="ARM64" (
 echo:
-echo ARM64 Windows Found.
-echo You need to use repair option in Windows settings for Office.
+echo 已发现 ARM64 Windows。
+echo 你需要在 Office 的 Windows 设置中使用修复选项。
 echo:
 start ms-settings:appsfeatures
 goto :repairend
@@ -816,7 +818,7 @@ if %winbuild% GEQ 10240 (
 )
 
 set /a counter=0
-echo Checking installed Office versions...
+echo 正在检查已安装的 Office 版本……
 echo:
 
 for %%# in (
@@ -844,29 +846,29 @@ set /a counter+=1
 
 if %counter% GTR 1 (
 %eline%
-echo Multiple office versions found.
-echo It's recommended to install only one version of office.
+echo 已找到多个 office 版本。
+echo 建议只安装 office 的一个版本。
 echo ________________________________________________________________
 echo:
 )
 
 if %counter% EQU 0 (
 echo:
-echo Installed Office is not found.
+echo 没有找到已安装的 Office。
 goto :repairend
 echo:
 ) else (
 echo:
-call :_color %_Yellow% "A Window will popup, in that Window you need to select [Quick] Repair Option..."
-call :_color %_Yellow% "Press any key to continue..."
+call :_color %_Yellow% "将弹出一个窗口，在此窗口中你需要选择 [快速] 修复选项……"
+call :_color %_Yellow% "请按任意键继续执行……"
 echo:
 pause %nul1%
 )
 
 if defined uwp16 (
 echo:
-echo Note: Skipping repair for Office 16.0 UWP. 
-echo       You need to use reset option in Windows settings for it.
+echo 注：正在跳过针对 Office 16.0 UWP 的修复。
+echo     你需要在 Windows 设置中使用重置选项。
 echo ________________________________________________________________
 echo:
 start ms-settings:appsfeatures
@@ -878,23 +880,23 @@ if defined c2r14_86 set c2r14=1
 
 if defined c2r14 (
 echo:
-echo Note: Skipping repair for Office 14.0 C2R 
-echo       You need to use Repair option in Windows settings for it.
+echo 注：正在跳过 Office 14.0 C2R 的修复
+echo     你需要在 Windows 设置中使用修复选项。
 echo ________________________________________________________________
 echo:
 start appwiz.cpl
 )
 
-if defined msi14_68 if exist "%msi14repair68%" echo Running - "%msi14repair68%"                    & "%msi14repair68%"
-if defined msi14_86 if exist "%msi14repair86%" echo Running - "%msi14repair86%"                    & "%msi14repair86%"
-if defined msi15_68 if exist "%msi15repair68%" echo Running - "%msi15repair68%"                    & "%msi15repair68%"
-if defined msi15_86 if exist "%msi15repair86%" echo Running - "%msi15repair86%"                    & "%msi15repair86%"
-if defined msi16_68 if exist "%msi16repair68%" echo Running - "%msi16repair68%"                    & "%msi16repair68%"
-if defined msi16_86 if exist "%msi16repair86%" echo Running - "%msi16repair86%"                    & "%msi16repair86%"
-if defined c2r15_68 if exist "%c2r15repair68%" echo Running - "%c2r15repair68%" REPAIRUI RERUNMODE & "%c2r15repair68%" REPAIRUI RERUNMODE
-if defined c2r15_86 if exist "%c2r15repair86%" echo Running - "%c2r15repair86%" REPAIRUI RERUNMODE & "%c2r15repair86%" REPAIRUI RERUNMODE
-if defined c2r16_68 if exist "%c2r16repair68%" echo Running - "%c2r16repair68%" scenario=Repair    & "%c2r16repair68%" scenario=Repair
-if defined c2r16_86 if exist "%c2r16repair86%" echo Running - "%c2r16repair86%" scenario=Repair    & "%c2r16repair86%" scenario=Repair
+if defined msi14_68 if exist "%msi14repair68%" echo 正在运行 - "%msi14repair68%"                    & "%msi14repair68%"
+if defined msi14_86 if exist "%msi14repair86%" echo 正在运行 - "%msi14repair86%"                    & "%msi14repair86%"
+if defined msi15_68 if exist "%msi15repair68%" echo 正在运行 - "%msi15repair68%"                    & "%msi15repair68%"
+if defined msi15_86 if exist "%msi15repair86%" echo 正在运行 - "%msi15repair86%"                    & "%msi15repair86%"
+if defined msi16_68 if exist "%msi16repair68%" echo 正在运行 - "%msi16repair68%"                    & "%msi16repair68%"
+if defined msi16_86 if exist "%msi16repair86%" echo 正在运行 - "%msi16repair86%"                    & "%msi16repair86%"
+if defined c2r15_68 if exist "%c2r15repair68%" echo 正在运行 - "%c2r15repair68%" REPAIRUI RERUNMODE & "%c2r15repair68%" REPAIRUI RERUNMODE
+if defined c2r15_86 if exist "%c2r15repair86%" echo 正在运行 - "%c2r15repair86%" REPAIRUI RERUNMODE & "%c2r15repair86%" REPAIRUI RERUNMODE
+if defined c2r16_68 if exist "%c2r16repair68%" echo 正在运行 - "%c2r16repair68%" scenario=Repair    & "%c2r16repair68%" scenario=Repair
+if defined c2r16_86 if exist "%c2r16repair86%" echo 正在运行 - "%c2r16repair86%" scenario=Repair    & "%c2r16repair86%" scenario=Repair
 
 :repairend
 
@@ -902,7 +904,7 @@ echo:
 echo %line%
 echo:
 echo:
-call :_color %Green% "Finished"
+call :_color %Green% "已完成"
 goto :at_back
 
 ::========================================================================================================================================
@@ -911,27 +913,27 @@ goto :at_back
 
 cls
 mode 98, 34
-title  Fix WMI
+title 修复 WMI
 
 ::  https://techcommunity.microsoft.com/t5/ask-the-performance-team/wmi-repository-corruption-or-not/ba-p/375484
 
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" (
 %eline%
-echo WMI rebuild is not recommended on Windows Server. Aborting...
+echo 不建议在 Windows Server 上重建 WMI。正在中止……
 goto :at_back
 )
 
 for %%# in (wmic.exe) do @if "%%~$PATH:#"=="" (
 %eline%
-echo wmic.exe file is not found in the system. Aborting...
+echo 在系统中找不到 WMIC.exe 文件。正在中止……
 goto :at_back
 )
 
 echo:
-echo Checking WMI
+echo 正在检查 WMI
 call :checkwmi
 
-::  Apply basic fix first and check
+::  首先应用基本修复并检查
 
 if defined error (
 %psc% Stop-Service Winmgmt -force %nul%
@@ -940,12 +942,12 @@ call :checkwmi
 )
 
 if not defined error (
-echo [Working]
-echo No need to apply this option. Aborting...
+echo [正在工作]
+echo 无需应用此选项。正在中止……
 goto :at_back
 )
 
-call :_color %Red% "[Not Responding]"
+call :_color %Red% "[未响应]"
 
 set _corrupt=
 sc start Winmgmt %nul%
@@ -956,80 +958,80 @@ for %%G in (DependOnService Description DisplayName ErrorControl ImagePath Objec
 echo:
 if defined _corrupt (
 %eline%
-echo Winmgmt service is corrupted. Aborting...
+echo Winmgmt 服务未安装。正在中止……
 goto :at_back
 )
 
-echo Disabling Winmgmt service
+echo 正在停止 Winmgmt 服务
 sc config Winmgmt start= disabled %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed] Aborting..."
+call :_color %Red% "[失败] 正在中止……"
 sc config Winmgmt start= auto %nul%
 goto :at_back
 )
 
 echo:
-echo Stopping Winmgmt service
+echo 正在停止 Winmgmt 服务
 %psc% Stop-Service Winmgmt -force %nul%
 %psc% Stop-Service Winmgmt -force %nul%
 %psc% Stop-Service Winmgmt -force %nul%
 sc query Winmgmt | find /i "STOPPED" %nul% && (
-echo [Successful]
+echo [成功]
 ) || (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 echo:
-call :_color %Blue% "Its recommended to select [Restart] option and then apply Fix WMI option again."
+call :_color %Blue% "建议选择 [重新启动] 选项，然后再次应用修复 WMI 选项。"
 echo %line%
 echo:
-choice /C:21 /N /M "> [1] Restart  [2] Revert Back Changes :"
+choice /C:21 /N /M "> [1] 重新启动  [2] 恢复更改 ："
 if !errorlevel!==1 (sc config Winmgmt start= auto %nul%&goto :at_back)
 echo:
-echo Restarting...
+echo 正在重启……
 shutdown -t 5 -r
 exit
 )
 
 echo:
-echo Deleting WMI repository
+echo 正在删除 WMI 存储库
 rmdir /s /q "%windir%\System32\wbem\repository\" %nul%
 if exist "%windir%\System32\wbem\repository\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 
 echo:
-echo Enabling Winmgmt service
+echo 正在启用 Winmgmt 服务
 sc config Winmgmt start= auto %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 )
 
 call :checkwmi
 if not defined error (
 echo:
-echo Checking WMI
-call :_color %Green% "[Working]"
+echo 正在检查 WMI
+call :_color %Green% "[正在工作]"
 goto :at_back
 )
 
 echo:
-echo Registering .dll's and Compiling .mof's, .mfl's
+echo 正在注册 .dll 并编译 .mof 和 .mfl
 call :registerobj %nul%
 
 echo:
-echo Checking WMI
+echo 正在检查 WMI
 call :checkwmi
 if defined error (
-call :_color %Red% "[Not Responding]"
+call :_color %Red% "[未响应]"
 echo:
-echo Run [Dism RestoreHealth] and [SFC Scannow] options and make sure there are no errors.
+echo 运行 [Dism RestoreHealth] 和 [SFC Scannow] 选项，并确保没有错误。
 ) else (
-call :_color %Green% "[Working]"
+call :_color %Green% "[正在工作]"
 )
 
 goto :at_back
@@ -1077,7 +1079,7 @@ exit /b
 echo:
 echo %line%
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause %nul1%
 goto :at_menu
 
@@ -1086,7 +1088,7 @@ goto :at_menu
 :at_done
 
 echo:
-echo Press any key to %_exitmsg%...
+echo 请按任意键%_exitmsg%脚本……
 pause %nul1%
 exit /b
 
@@ -1124,7 +1126,7 @@ exit /b
 
 ::========================================================================================================================================
 
-::  This code checks for invalid registry keys in HKLM\SYSTEM\WPA. This issue may appear even on healthy systems
+::  此代码检查 HKLM\SYSTEM\WPA 中是否存在无效的注册表项。即使在正常运行的系统上也可能会出现此问题。
 
 :wpatest:
 $wpaKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', 'Registry64').OpenSubKey("SYSTEM\\WPA")
@@ -1230,10 +1232,10 @@ exit /b
 
 :regownstart
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regown\:.*';iex ($f[1]);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':regown\:.*';iex ($f[1]);"
 exit /b
 
-::  Below code takes ownership of a volatile registry key and deletes it
+::  以下是获取易失性注册表项的所有权并将其删除的代码
 ::  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState
 
 :regown:
@@ -1282,9 +1284,9 @@ exit /b
 
 ::=======================================
 
-:: Colored text with pure batch method
-:: Thanks to @dbenham and @jeb
-:: stackoverflow.com/a/10407642
+::  纯批处理方法的彩色文本
+::  感谢 @dbenham 和 @jeb
+::  stackoverflow.com/a/10407642
 
 :batcol
 
@@ -1365,4 +1367,4 @@ set "_Yellow="0E""
 exit /b
 
 ::========================================================================================================================================
-:: Leave empty line below
+::  下方保留空行

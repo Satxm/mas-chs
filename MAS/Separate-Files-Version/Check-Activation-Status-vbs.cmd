@@ -4,8 +4,8 @@
 
 
 
-::  Check-Activation-Status
-::  Written by @abbodi1406
+::  Check-Activation-Status-vbs.cmd
+::  由 @abbodi1406 编写
 ::  forums.mydigitallife.net/posts/838808
 
 
@@ -28,20 +28,20 @@ start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" -arm"
 exit /b
 )
 color 07
-title Check Activation Status [vbs]
+title 检查激活状态 [vbs]
 set "SysPath=%SystemRoot%\System32"
-set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
 set "SysPath=%SystemRoot%\Sysnative"
-set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%Path%"
+set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%Path%"
 )
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -81,12 +81,12 @@ if exist "%ProgramFiles%\Microsoft Office\Office15\ospp.vbs" (
 )
 setlocal EnableDelayedExpansion
 echo %line2%
-echo ***                   Windows Status                     ***
+echo ***                  Windows 激活状态                    ***
 echo %line2%
 pushd "!_utemp!"
 copy /y %SystemRoot%\System32\slmgr.vbs . >nul 2>&1
 net start sppsvc /y >nul 2>&1
-cscript //nologo slmgr.vbs /dli || (echo Error executing slmgr.vbs&del /f /q slmgr.vbs&popd&goto :casVend)
+cscript //nologo slmgr.vbs /dli || (echo 执行 slmgr.vbs 出错&del /f /q slmgr.vbs&popd&goto :casVend)
 cscript //nologo slmgr.vbs /xpr
 del /f /q slmgr.vbs >nul 2>&1
 popd
@@ -96,10 +96,10 @@ if defined ohook (
 echo.
 echo.
 echo %line2%
-echo ***            Office Ohook Activation Status            ***
+echo ***                Office Ohook 激活状态                 ***
 echo %line2%
 echo.
-powershell "write-host -back 'Black' -fore 'Yellow' 'Ohook for permanent Office activation is installed.'; write-host -back 'Black' -fore 'Yellow' 'You can ignore below Office activation status.'"
+powershell "write-host -back 'Black' -fore 'Yellow' '已使用 Ohook 永久激活 Office。'; write-host -back 'Black' -fore 'Yellow' '你可以忽略以下的 Office 激活状态。'"
 echo.
 )
 
@@ -111,9 +111,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016 %_bit%-bit Status               ***
+echo ***              Office 2016 %_bit%-位激活状态               ***
 ) else (
-echo ***               Office 2013/2016 Status                ***
+echo ***              Office 2013/2016 激活状态               ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -126,9 +126,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016 32-bit Status               ***
+echo ***              Office 2016 32-位激活状态               ***
 ) else (
-echo ***               Office 2013/2016 Status                ***
+echo ***              Office 2013/2016 激活状态               ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -141,7 +141,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\15.
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2013 %_bit%-bit Status               ***
+echo ***              Office 2013 %_bit%-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -151,7 +151,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Wow6432Node\Microsof
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2013 32-bit Status               ***
+echo ***              Office 2013 32-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -162,7 +162,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\14.
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2010 %_bit%-bit Status               ***
+echo ***              Office 2010 %_bit%-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -172,7 +172,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Wow6432Node\Microsof
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2010 32-bit Status               ***
+echo ***              Office 2010 32-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -188,9 +188,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016-2021 C2R Status             ***
+echo ***             Office 2016-2021 C2R 激活状态            ***
 ) else (
-echo ***                Office 2013-2021 Status               ***
+echo ***               Office 2013-2021 激活状态              ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -203,9 +203,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016-2021 C2R Status             ***
+echo ***             Office 2016-2021 C2R 激活状态            ***
 ) else (
-echo ***                Office 2013-2021 Status               ***
+echo ***               Office 2013-2021 激活状态              ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -227,7 +227,7 @@ if exist "%ProgramFiles%\Microsoft Office\Office15\ospp.vbs" (
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***                Office 2013 C2R Status                ***
+echo ***               Office 2013 C2R 激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -246,14 +246,14 @@ if exist "%ProgramFiles%\Microsoft Office\Office14\ospp.vbs" (
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***                Office 2010 C2R Status                ***
+echo ***               Office 2010 C2R 激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
 
 :casVend
 echo.
-echo Press any key to exit.
+echo 请按任意键退出脚本。
 pause >nul
 exit /b
-:: Leave empty line below
+::  下方保留空行

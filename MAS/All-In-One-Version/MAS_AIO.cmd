@@ -2,34 +2,34 @@
 @setlocal DisableDelayedExpansion
 @echo off
 
-::::
-::  For command line switches, check mass grave[.]dev/command_line_switches.html
-::  If you want to better understand script, read from MAS separate files version. 
+
+::  对于命令行开关，请查看 mass grave[.]dev/command_line_switches.html
+::  如果你想更好地理解脚本，请从 MAS 独立文件版本读取。
 
 
-::============================================================================
+::=================================================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
-::============================================================================
+::=================================================================================================
 
 
 
 
 ::========================================================================================================================================
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
-:: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
-:: or with ARM64 process if it was initiated by x86/ARM32 process on ARM64 Windows
+::  如果脚本是由 x64 位 Windows 上的 x86 进程启动的，则将使用 x64 进程重新启动脚本
+::  或者如果它是由 ARM64 Windows 上的 x86/ARM32 进程启动的，则将使用 ARM64 进程
 
 set "_cmdf=%~f0"
 for %%# in (%*) do (
@@ -37,22 +37,22 @@ if /i "%%#"=="r1" set r1=1
 if /i "%%#"=="r2" set r2=1
 if /i "%%#"=="-qedit" (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "1" /f 1>nul
-rem check the code below admin elevation to understand why it's here
+rem 查看下方的管理员提升代码了解它为什么在这里
 )
 )
 
 if exist %SystemRoot%\Sysnative\cmd.exe if not defined r1 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
+start wt.exe new-tab %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
 )
 
-:: Re-launch the script with ARM32 process if it was initiated by x64 process on ARM64 Windows
+::  使用 ARM32 进程重新启动脚本（如果此脚本是由 ARM64 Windows 上的 x64 进程启动的）
 
 if exist %SystemRoot%\SysArm32\cmd.exe if %PROCESSOR_ARCHITECTURE%==AMD64 if not defined r2 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
+start wt.exe new-tab %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
 )
 
 ::========================================================================================================================================
@@ -60,27 +60,27 @@ exit /b
 set "blank="
 set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
 
-::  Check if Null service is working, it's important for the batch script
+::  检查 Null 服务是否正常工作，这对批处理脚本很重要
 
 sc query Null | find /i "RUNNING"
 if %errorlevel% NEQ 0 (
 echo:
-echo Null service is not running, script may crash...
+echo Null 服务未运行，脚本可能会崩溃……
 echo:
 echo:
-echo Help - %mas%troubleshoot.html
+echo 帮助 - %mas%troubleshoot.html
 echo:
 echo:
 ping 127.0.0.1 -n 10
 )
 cls
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -92,7 +92,7 @@ popd
 
 cls
 color 07
-title  Microsoft_Activation_Scripts %masver%
+title 微软激活脚本 %masver%
 
 set _args=
 set _elev=
@@ -125,28 +125,28 @@ if %winbuild% GEQ 10586 reg query "HKCU\Console" /v ForceV2 %nul2% | find /i "0x
 
 call :_colorprep
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :_color %Red% "==== 错误 ====" &echo:"
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 7600 (
 %nceline%
-echo Unsupported OS version detected [%winbuild%].
-echo Project is supported only for Windows 7/8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo 此项目仅支持 Windows 7/8/8.1/10/11 和它们对应的服务器版本。
 goto MASend
 )
 
 for %%# in (powershell.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find powershell.exe in the system.
-echo Aborting...
+echo 在系统中未找到 powershell.exe。
+echo 正在中止……
 goto MASend
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -157,6 +157,7 @@ set "_batp=%_batf:'=''%"
 set _PSarg="""%~f0""" -el %_args%
 
 set "_ttemp=%userprofile%\AppData\Local\Temp"
+set "_Local=%LocalAppData%"
 
 setlocal EnableDelayedExpansion
 
@@ -165,23 +166,24 @@ setlocal EnableDelayedExpansion
 echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %nceline%
-echo Script is launched from the temp folder,
-echo Most likely you are running the script directly from the archive file.
+echo 脚本是从 temp 文件夹启动的，
+echo 最有可能的原因是，你是直接从压缩文件运行脚本。
 echo:
-echo Extract the archive file and launch the script from the extracted folder.
+echo 请解压压缩文件并从解压文件夹中启动脚本。
 goto MASend
 )
 )
 
 ::========================================================================================================================================
 
-::  Elevate script as admin and pass arguments and preventing loop
+::  将脚本提升为管理员权限及传递参数并防止循环
 
 %nul1% fltmc || (
-if not defined _elev %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev for %%# in (wt.exe) do @if "%%~$PATH:#"=="" %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev %psc% "start wt.exe -arg 'new-tab cmd.exe /c \"!_PSarg:'=''!\"' -verb runas" && exit /b
 %nceline%
-echo This script needs admin rights.
-echo To do so, right click on this script and select 'Run as administrator'.
+echo 此脚本需要管理员权限。
+echo 为此，右键单击此脚本并选择“以管理员身份运行”。
 goto MASend
 )
 
@@ -189,22 +191,22 @@ if not exist "%SystemRoot%\Temp\" mkdir "%SystemRoot%\Temp" %nul%
 
 ::========================================================================================================================================
 
-::  This code disables QuickEdit for this cmd.exe session only without making permanent changes to the registry
-::  It is added because clicking on the script window pauses the operation and leads to the confusion that script stopped due to an error
+::  此代码仅禁用此 cmd.exe 会话的快速编辑，而不对注册表进行永久更改
+::  添加它的原因是单击脚本窗口会暂停操作并导致脚本因错误而停止的混乱
 
 if defined _MASunattended set quedit=1
 for %%# in (%_args%) do (if /i "%%#"=="-qedit" set quedit=1)
 
 reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% || if not defined quedit (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "0" /f %nul1%
-start cmd.exe /c ""!_batf!" %_args% -qedit"
-rem quickedit reset code is added at the starting of the script instead of here because it takes time to reflect in some cases
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+start wt.exe new-tab cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+rem 快速编辑重置代码应添加在脚本的开头而不是此处，因为在某些情况下需要时间来反映
 )
 
 ::========================================================================================================================================
 
-::  Check for updates
+::  检查更新
 
 set -=
 set old=
@@ -216,14 +218,14 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version MAS %masver%
+echo echo 你正在运行旧版本的 MAS 版本 %masver%
 echo ________________________________________________
 echo:
 if not defined _MASunattended (
-echo [1] Get Latest MAS
-echo [0] Continue Anyway
+echo [1] 下载最新版本 MAS
+echo [0] 仍然继续
 echo:
-call :_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
+call :_color %_Green% "请输入一个菜单选项 [1,0] ："
 choice /C:10 /N
 if !errorlevel!==2 rem
 if !errorlevel!==1 (start ht%-%tps://github.com/mass%-%gravel/Microsoft-Acti%-%vation-Scripts & start %mas% & exit /b)
@@ -233,7 +235,7 @@ cls
 
 ::========================================================================================================================================
 
-::  Run script with parameters in unattended mode
+::  在无人参与模式下运行使用参数的脚本
 
 set _elev=
 if defined _args echo "%_args%" | find /i "/S" %nul% && (set "_silent=%nul%") || (set _silent=)
@@ -249,7 +251,7 @@ exit /b
 
 setlocal DisableDelayedExpansion
 
-::  Check desktop location
+::  检测桌面位置
 
 set _desktop_=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop') do call set "_desktop_=%%b"
@@ -263,7 +265,7 @@ setlocal EnableDelayedExpansion
 
 cls
 color 07
-title  Microsoft_Activation_Scripts %masver%
+title 微软激活脚本 %masver%
 mode 76, 30
 
 echo:
@@ -272,22 +274,22 @@ echo:
 echo:
 echo:       ______________________________________________________________
 echo:
-echo:                 Activation Methods:
+echo:                 激 活 方 式：
 echo:
-echo:             [1] HWID        ^|  Windows           ^|   Permanent
-echo:             [2] Ohook       ^|  Office            ^|   Permanent
-echo:             [3] KMS38       ^|  Windows           ^|   Year 2038
-echo:             [4] Online KMS  ^|  Windows / Office  ^|    180 Days
+echo:             [1] HWID        ^|  Windows           ^|      永久
+echo:             [2] Ohook       ^|  Office            ^|      永久
+echo:             [3] KMS38       ^|  Windows           ^|   2038 年
+echo:             [4] 在线 KMS    ^|  Windows / Office  ^|    180 天
 echo:             __________________________________________________      
 echo:
-echo:             [5] Activation Status
-echo:             [6] Troubleshoot
-echo:             [7] Extras
-echo:             [8] Help
-echo:             [0] Exit
+echo:             [5] 激活状态
+echo:             [6] 疑难解答
+echo:             [7] 附加选项
+echo:             [8] 帮助
+echo:             [0] 退出
 echo:       ______________________________________________________________
 echo:
-call :_color2 %_White% "          " %_Green% "Enter a menu option in the Keyboard [1,2,3,4,5,6,7,8,0] :"
+call :_color2 %_White% "          " %_Green% "请输入一个菜单选项 [1,2,3,4,5,6,7,8,0] ："
 choice /C:123456780 /N
 set _erl=%errorlevel%
 
@@ -307,7 +309,7 @@ goto :MainMenu
 :Extras
 
 cls
-title  Extras
+title 附加选项
 mode 76, 30
 echo:
 echo:
@@ -316,19 +318,19 @@ echo:
 echo:
 echo:       ______________________________________________________________
 echo:
-echo:             [1] Change Windows Edition
+echo:             [1] 更改 Windows 版本
 echo:
-echo:             [2] Extract $OEM$ Folder
+echo:             [2] 解压 $OEM$ 文件夹
 echo:
-echo:             [3] Activation Status [vbs]
+echo:             [3] 激活状态 [vbs]
 echo:
-echo:             [4] Download Genuine Windows / Office
+echo:             [4] 下载正版 Windows / Office
 echo:             __________________________________________________      
 echo:                                                                     
-echo:             [0] Go to Main Menu
+echo:             [0] 返回到主菜单
 echo:       ______________________________________________________________
 echo:
-call :_color2 %_White% "           " %_Green% "Enter a menu option in the Keyboard [1,2,3,4,0] :"
+call :_color2 %_White% "           " %_Green% "请输入一个菜单选项 [1,2,3,4,0] ："
 choice /C:12340 /N
 set _erl=%errorlevel%
 
@@ -344,25 +346,25 @@ goto :Extras
 :Extract$OEM$
 
 cls
-title  Extract $OEM$ Folder
+title 解压 $OEM$ 文件夹
 mode 76, 30
 
 if not exist "!_desktop_!\" (
 %eline%
-echo Desktop location was not detected, aborting...
+echo 桌面位置未被检测到，正在中止……
 echo _____________________________________________________
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 goto Extras
 )
 
 if exist "!_desktop_!\$OEM$\" (
 %eline%
-echo $OEM$ folder already exists on the Desktop.
+echo $OEM$ 文件夹已经存在于桌面上。
 echo _____________________________________________________
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 goto Extras
 )
@@ -370,42 +372,42 @@ goto Extras
 :Extract$OEM$2
 
 cls
-title  Extract $OEM$ Folder
+title 解压 $OEM$ 文件夹
 mode 78, 30
 echo:
 echo:
 echo:
 echo:
-echo:                     Extract $OEM$ folder on the desktop           
+echo:                        将 $OEM$ 文件夹解压缩到桌面上
 echo:           ________________________________________________________
 echo:
-echo:              [1] HWID
-echo:              [2] Ohook
-echo:              [3] KMS38
-echo:              [4] Online KMS
+echo:             [1] HWID
+echo:             [2] Ohook
+echo:             [3] KMS38
+echo:             [4] 在线 KMS
 echo:
-echo:              [5] HWID       ^(Windows^) ^+ Ohook      ^(Office^)
-echo:              [6] HWID       ^(Windows^) ^+ Online KMS ^(Office^)
-echo:              [7] KMS38      ^(Windows^) ^+ Ohook      ^(Office^)
-echo:              [8] KMS38      ^(Windows^) ^+ Online KMS ^(Office^)
-echo:              [9] Online KMS ^(Windows^) ^+ Ohook      ^(Office^)
+echo:             [5] HWID       （Windows） ^+ Ohook      （Office）
+echo:             [6] HWID       （Windows） ^+ 在线 KMS   （Office）
+echo:             [7] KMS38      （Windows） ^+ Ohook      （Office）
+echo:             [8] KMS38      （Windows） ^+ 在线 KMS   （Office）
+echo:             [9] 在线 KMS   （Windows） ^+ Ohook      （Office）
 echo:
-call :_color2 %_White% "              [R] " %_Green% "ReadMe"
-echo:              [0] Go Back
+call :_color2 %_White% "              [R] " %_Green% "自述文件"
+echo:             [0] 返回
 echo:           ________________________________________________________
 echo:  
-call :_color2 %_White% "           " %_Green% "Enter a menu option in the Keyboard:"
+call :_color2 %_White% "           " %_Green% "请输入一个菜单选项："
 choice /C:123456789R0 /N
 set _erl=%errorlevel%
 
 if %_erl%==11 goto:Extras
 if %_erl%==10 start %mas%oem-folder.html &goto:Extract$OEM$2
-if %_erl%==9 (set "_oem=Online KMS [Windows] + Ohook [Office]" & set "para=/KMS-ActAndRenewalTask /KMS-Windows /Ohook" &goto:Extract$OEM$3)
-if %_erl%==8 (set "_oem=KMS38 [Windows] + Online KMS [Office]" & set "para=/KMS38 /KMS-ActAndRenewalTask /KMS-Office" &goto:Extract$OEM$3)
+if %_erl%==9 (set "_oem=在线 KMS [Windows] + Ohook [Office]" & set "para=/KMS-ActAndRenewalTask /KMS-Windows /Ohook" &goto:Extract$OEM$3)
+if %_erl%==8 (set "_oem=KMS38 [Windows] + 在线 KMS [Office]" & set "para=/KMS38 /KMS-ActAndRenewalTask /KMS-Office" &goto:Extract$OEM$3)
 if %_erl%==7 (set "_oem=KMS38 [Windows] + Ohook [Office]" & set "para=/KMS38 /Ohook" &goto:Extract$OEM$3)
-if %_erl%==6 (set "_oem=HWID [Windows] + Online KMS [Office]" & set "para=/HWID /KMS-ActAndRenewalTask /KMS-Office" &goto:Extract$OEM$3)
+if %_erl%==6 (set "_oem=HWID [Windows] + 在线 KMS [Office]" & set "para=/HWID /KMS-ActAndRenewalTask /KMS-Office" &goto:Extract$OEM$3)
 if %_erl%==5 (set "_oem=HWID [Windows] + Ohook [Office]" & set "para=/HWID /Ohook" &goto:Extract$OEM$3)
-if %_erl%==4 (set "_oem=Online KMS" & set "para=/KMS-ActAndRenewalTask /KMS-WindowsOffice" &goto:Extract$OEM$3)
+if %_erl%==4 (set "_oem=在线 KMS" & set "para=/KMS-ActAndRenewalTask /KMS-WindowsOffice" &goto:Extract$OEM$3)
 if %_erl%==3 (set "_oem=KMS38" & set "para=/KMS38" &goto:Extract$OEM$3)
 if %_erl%==2 (set "_oem=Ohook" & set "para=/Ohook" &goto:Extract$OEM$3)
 if %_erl%==1 (set "_oem=HWID" & set "para=/HWID" &goto:Extract$OEM$3)
@@ -434,20 +436,20 @@ if not exist "!_dir!\SetupComplete.cmd" set _error=1
 
 if defined _error (
 %eline%
-echo Failed to extract $OEM$ folder on the Desktop.
+echo 解压 $OEM$ 文件夹到桌面上失败。
 ) else (
 echo:
 call :_color %Blue% "%_oem%"
-call :_color %Green% "$OEM$ folder is successfully created on the Desktop."
+call :_color %Green% "$OEM$ 文件夹已在桌面上成功创建。"
 )
 echo "%_oem%" | find /i "KMS38" 1>nul && (
 echo:
-echo To KMS38 activate Server Cor/Acor editions ^(No GUI Versions^),
-echo Check this page %mas%oem-folder
+echo 对于 KMS38 激活服务器 Cor/Acor 版本（无 GUI 版本），
+echo 查看此页面 %mas%oem-folder
 )
 echo ___________________________________________________________________
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 goto Extras
 
@@ -457,19 +459,19 @@ goto Extras
 @setlocal DisableDelayedExpansion
 @echo off
 
-::  To activate, run the script with "/HWID" parameter or change 0 to 1 in below line
+::  若要激活，请使用“/HWID”参数运行脚本，或在以下行中将参数 0 更改为 1
 set _act=0
 
-::  To disable changing edition if current edition doesn't support HWID activation, change the value to 1 from 0 or run the script with "/HWID-NoEditionChange" parameter
+::  要在当前版本不支持 HWID 激活时禁用更改版本，请将参数从 0 更改为 1，或使用“/HWID-NoEditionChange”参数运行脚本
 set _NoEditionChange=0
 
-::  If value is changed in above lines or parameter is used then script will run in unattended mode
+::  如果在上面几行中更改了值或使用参数，脚本将会在无人值守模式下运行
 
 ::========================================================================================================================================
 
 cls
 color 07
-title  HWID Activation %masver%
+title HWID 激活 %masver%
 
 set _args=
 set _elev=
@@ -521,36 +523,36 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 if %~z0 GEQ 200000 (
-set "_exitmsg=Go back"
-set "_fixmsg=Go back to Main Menu, select Troubleshoot and run Fix Licensing option."
+set "_exitmsg=返回"
+set "_fixmsg=请返回主菜单，选择疑难解答并运行修复许可选项。"
 ) else (
-set "_exitmsg=Exit"
-set "_fixmsg=In MAS folder, run Troubleshoot script and select Fix Licensing option."
+set "_exitmsg=退出"
+set "_fixmsg=在 MAS 文件夹中，请运行疑难解答脚本并选择修复许可选项。"
 )
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 10240 (
 %eline%
-echo Unsupported OS version detected [%winbuild%].
-echo HWID Activation is supported only for Windows 10/11.
-echo Use Online KMS Activation option.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo HWID 激活仅支持 Windows 10/11。
+echo 请使用在线 KMS 激活选项。
 goto dk_done
 )
 
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" (
 %eline%
-echo HWID Activation is not supported for Windows Server.
-echo Use KMS38 or Online KMS Activation option.
+echo HWID 激活不支持 Windows Server。
+echo 请使用 KMS38 或在线 KMS 选项。
 goto dk_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -569,21 +571,21 @@ setlocal EnableDelayedExpansion
 cls
 mode 110, 34
 if exist "%Systemdrive%\Windows\System32\spp\store_test\" mode 134, 34
-title  HWID Activation %masver%
+title HWID 激活 %masver%
 
 echo:
-echo Initializing...
+echo 正在初始化……
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto dk_done
 )
 
@@ -592,48 +594,48 @@ goto dk_done
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
 ::========================================================================================================================================
 
-::  Check if system is permanently activated or not
+::  检查系统是否已永久激活
 
 call :dk_checkperm
 if defined _perm (
 cls
 echo ___________________________________________________________________________________________
 echo:
-call :dk_color2 %_White% "     " %Green% "Checking: %winos% is Permanently Activated."
-call :dk_color2 %_White% "     " %Gray% "Activation is not required."
+call :dk_color2 %_White% "     " %Green% "正在检查：%winos% 已永久激活。"
+call :dk_color2 %_White% "     " %Gray% "不需要执行激活。"
 echo ___________________________________________________________________________________________
 if %_unattended%==1 goto dk_done
 echo:
-choice /C:10 /N /M ">    [1] Activate [0] %_exitmsg% : "
+choice /C:10 /N /M ">    [1] 激活 [0] %_exitmsg% ："
 if errorlevel 2 exit /b
 )
 cls
 
 ::========================================================================================================================================
 
-::  Check Evaluation version
+::  检查评估版本
 
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*EvalEdition~*.mum" (
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul2% | find /i "Eval" %nul1% && (
 %eline%
 echo [%winos% ^| %winbuild%]
 echo:
-echo Evaluation Editions cannot be activated. 
-echo You need to install full version of %winos%
+echo 评估版本无法激活。 
+echo 你需要安装 %winos% 的完整版本。
 echo:
-echo Download it from here,
+echo 请从此处下载，
 echo %mas%genuine-installation-media.html
 goto dk_done
 )
@@ -645,7 +647,7 @@ call :dk_checksku
 
 if not defined osSKU (
 %eline%
-echo SKU value was not detected properly. Aborting...
+echo 未正确检测到 SKU 值。正在中止……
 goto dk_done
 )
 
@@ -657,9 +659,9 @@ cls
 echo:
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
 for /f "tokens=6-7 delims=[]. " %%i in ('ver') do if "%%j"=="" (set fullbuild=%%i) else (set fullbuild=%%i.%%j)
-echo Checking OS Info                        [%winos% ^| %fullbuild% ^| %arch%]
+echo 正在检查操作系统信息                    [%winos% ^| %fullbuild% ^| %arch%]
 
-::  Check Internet connection
+::  检查 Internet 连接
 
 set _int=
 for %%a in (l.root-servers.net resolver1.opendns.com download.windowsupdate.com google.com) do if not defined _int (
@@ -668,19 +670,19 @@ for /f "delims=[] tokens=2" %%# in ('ping -n 1 %%a') do (if not [%%#]==[] set _i
 
 if not defined _int (
 %psc% "If([Activator]::CreateInstance([Type]::GetTypeFromCLSID([Guid]'{DCB00C01-570F-4A9B-8D69-199FDBA5723B}')).IsConnectedToInternet){Exit 0}Else{Exit 1}"
-if !errorlevel!==0 (set _int=1&set ping_f= But Ping Failed)
+if !errorlevel!==0 (set _int=1&set ping_f= 但是Ping失败)
 )
 
 if defined _int (
-echo Checking Internet Connection            [Connected%ping_f%]
+echo 正在检查 Internet 连接                  [已连接%ping_f%]
 ) else (
 set error=1
-call :dk_color %Red% "Checking Internet Connection            [Not Connected]"
+call :dk_color %Red% "正在检查 Internet 连接                  [未连接]"
 )
 
 ::========================================================================================================================================
 
-::  Check Windows Script Host
+::  检查 Windows Script Host
 
 set _WSH=1
 reg query "HKCU\SOFTWARE\Microsoft\Windows Script Host\Settings" /v Enabled %nul2% | find /i "0x0" %nul1% && (set _WSH=0)
@@ -690,12 +692,12 @@ if %_WSH% EQU 0 (
 reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 reg add "HKCU\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 if not "%arch%"=="x86" reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f /reg:32 %nul%
-echo Enabling Windows Script Host            [Successful]
+echo 正在启用 Windows Script Host            [成功]
 )
 
 ::========================================================================================================================================
 
-echo Initiating Diagnostic Tests...
+echo 正在初始化诊断测试……
 
 set "_serv=ClipSVC wlidsvc sppsvc KeyIso LicenseManager Winmgmt DoSvc UsoSvc CryptSvc BITS TrustedInstaller wuauserv"
 if %winbuild% GEQ 17134 set "_serv=%_serv% WaaSMedicSvc"
@@ -716,27 +718,27 @@ if %winbuild% GEQ 17134 set "_serv=%_serv% WaaSMedicSvc"
 
 call :dk_errorcheck
 
-::  Check Windows updates and store app blockers
+::  检查 Windows 更新商店应用阻止程序
 
 set updatesblock=
 reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer /v SettingsPageVisibility %nul2% | find /i "windowsupdate" %nul% && set updatesblock=1
 reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdateSysprepInProgress %nul% && set updatesblock=1
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate /s %nul2% | findstr /i "NoAutoUpdate DisableWindowsUpdateAccess" %nul% && set updatesblock=1
 
-if defined updatesblock call :dk_color %Gray% "Checking Update Blocker In Registry     [Found]"
+if defined updatesblock call :dk_color %Gray% "正在检查 Windows 更新 Blocker           [已找到]"
 
 if defined applist echo: %serv_e% | find /i "wuauserv" %nul% && (
-call :dk_color %Blue% "Windows Update is not working. Enable it incase if you have disabled it."
-reg query HKLM\SYSTEM\CurrentControlSet\Services\wuauserv /v WubLock %nul% && call :dk_color %Blue% "Sordum Windows Update Blocker tool has been used to block updates."
+call :dk_color %Blue% "Windows 更新不起作用。如果你已禁用它，请启用它。"
+reg query HKLM\SYSTEM\CurrentControlSet\Services\wuauserv /v WubLock %nul% && call :dk_color %Blue% "已使用Sordum Windows Update Blocker 工具阻止更新。"
 )
 
 reg query "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore" /v DisableStoreApps %nul2% | find /i "0x1" %nul% && (
-call :dk_color %Gray% "Checking Store Blocker In Registry      [Found]"
+call :dk_color %Gray% "正在检查商店应用 Blocker                [已找到]"
 )
 
 ::========================================================================================================================================
 
-::  Detect Key
+::  检查密钥
 
 set key=
 set altkey=
@@ -748,7 +750,7 @@ set notworking=
 
 if defined applist call :hwiddata key
 if not defined key (
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':getactivationid\:.*';iex ($f[1]);"') do (set altapplist=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':getactivationid\:.*';iex ($f[1]);"') do (set altapplist=%%a)
 if defined altapplist call :hwiddata key
 )
 
@@ -758,18 +760,18 @@ if not defined key call :hwidfallback
 if defined altkey (set key=%altkey%&set changekey=1&set notworking=)
 
 if defined notworking if defined notfoundaltactID (
-call :dk_color %Red% "Checking Alternate Edition For HWID     [%altedition% Activation ID Not Found]"
+call :dk_color %Red% "正在检查 HWID 的备用版本                [未找到 %altedition% 的激活 ID]"
 )
 
 if not defined key (
 %eline%
-echo [%winos% ^| %winbuild% ^| SKU:%osSKU%]
+echo [%winos% ^| %winbuild% ^| SKU：%osSKU%]
 if not defined skufound (
-echo Unable to find this product in the supported product list.
+echo 在支持的产品列表中找不到此产品。
 ) else (
-echo Required License files not found in %SystemRoot%\System32\spp\tokens\skus\
+echo %SystemRoot%\System32\spp\tokens\skus\ 中找不到所需的许可证文件
 )
-echo Make sure you are using updated version of the script.
+echo 请确保你使用的是此脚本的更新版本。
 echo %mas%
 echo:
 goto dk_done
@@ -779,11 +781,11 @@ if defined notworking set error=1
 
 ::========================================================================================================================================
 
-::  Install key
+::  安装密钥
 
 echo:
 if defined changekey (
-call :dk_color %Blue% "[%altedition%] Edition product key will be used to enable HWID activation."
+call :dk_color %Blue% "[%altedition%] 版本的产品密钥将会被用于启用 HWID 激活。"
 echo:
 )
 
@@ -796,11 +798,11 @@ if %errorcode% NEQ 0 set "errorcode=[0x%=ExitCode%]"
 
 if %errorcode% EQU 0 (
 call :dk_refresh
-echo Installing Generic Product Key          [%key%] [Successful]
+echo 正在安装通用产品密钥                    [%key%] [成功]
 ) else (
-call :dk_color %Red% "Installing Generic Product Key          [%key%] [Failed] %errorcode%"
+call :dk_color %Red% "正在安装通用产品密钥                    [%key%] [失败] %errorcode%"
 if not defined error (
-if defined altapplist call :dk_color %Red% "Activation ID not found for this key."
+if defined altapplist call :dk_color %Red% "无法找到此密钥的激活 ID。"
 call :dk_color %Blue% "%_fixmsg%"
 set showfix=1
 )
@@ -809,7 +811,7 @@ set error=1
 
 ::========================================================================================================================================
 
-::  Change Windows region to USA to avoid activation issues as Windows store license is not available in many countries 
+::  将 Windows 区域更改为美国避免激活问题，因为 Windows 应用商店许可证在许多国家/地区不可用
 
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Control Panel\International\Geo" /v Name %nul6%') do set "name=%%b"
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Control Panel\International\Geo" /v Nation %nul6%') do set "nation=%%b"
@@ -819,21 +821,21 @@ if not "%name%"=="US" (
 set regionchange=1
 %psc% "Set-WinHomeLocation -GeoId 244" %nul%
 if !errorlevel! EQU 0 (
-echo Changing Windows Region To USA          [Successful]
+echo 正在更改 Windows 区域为 USA             [成功]
 ) else (
-call :dk_color %Red% "Changing Windows Region To USA          [Failed]"
+call :dk_color %Red% "正在更改 Windows 区域为 USA             [失败]"
 )
 )
 
-::==========================================================================================================================================
+::========================================================================================================================================
 
-::  Generate GenuineTicket.xml and apply
-::  In some cases clipup -v -o method fails and in some cases service restart method fails as well
-::  To maximize success rate and get better error details, script will install tickets two times (service restart + clipup -v -o)
+::  生成 GenuineTicket.xml 并应用
+::  应用票证的最正确方法是重新启动 ClipSVC 服务，但我们无法以此方式检查日志详细信息
+::  为了获取日志详细信息并正确应用票证，脚本将安装票证 2 次（重新启动服务 + clipup -v -o）
 
 if not exist %SystemRoot%\system32\ClipUp.exe (
-call :dk_color %Red% "Checking ClipUp.exe File                [Not found, aborting the process]"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color %Red% "正在检查 ClipUp.exe 文件                [未找到，中止进程]"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 goto :dl_final
 )
 
@@ -849,12 +851,12 @@ call :hwiddata ticket
 copy /y /b "%tdir%\GenuineTicket" "%tdir%\GenuineTicket.xml" %nul%
 
 if not exist "%tdir%\GenuineTicket.xml" (
-call :dk_color %Red% "Generating GenuineTicket.xml            [Failed, aborting the process]"
+call :dk_color %Red% "正在生成 GenuineTicket.xml              [失败，中止进程]"
 echo [%encoded%]
 if exist "%tdir%\Genuine*" del /f /q "%tdir%\Genuine*" %nul%
 goto :dl_final
 ) else (
-echo Generating GenuineTicket.xml            [Successful]
+echo 正在生成 GenuineTicket.xml              [成功]
 )
 
 set "_xmlexist=if exist "%tdir%\GenuineTicket.xml""
@@ -867,7 +869,7 @@ set "_xmlexist=if exist "%tdir%\GenuineTicket.xml""
 %_xmlexist% (
 set error=1
 if exist "%tdir%\*.xml" del /f /q "%tdir%\*.xml" %nul%
-call :dk_color %Red% "Installing GenuineTicket.xml            [Failed With ClipSVC Service Restart, Wait...]"
+call :dk_color %Red% "正在安装 GenuineTicket.xml              [重新启动 ClipSVC 服务失败，正在等待……]"
 )
 )
 
@@ -879,19 +881,19 @@ set rebuildinfo=
 if not exist %ProgramData%\Microsoft\Windows\ClipSVC\tokens.dat (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Checking ClipSVC tokens.dat             [Not Found]"
+call :dk_color %Red% "正在检查 ClipSVC tokens.dat             [未找到]"
 )
 
 %_xmlexist% (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Installing GenuineTicket.xml            [Failed With clipup -v -o]"
+call :dk_color %Red% "正在安装 GenuineTicket.xml              [使用 clipup -v -o 失败]"
 )
 
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\Install\Migration\*.xml" (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Checking Ticket Migration               [Failed]"
+call :dk_color %Red% "检查票证迁移                            [失败]"
 )
 
 if defined applist if not defined showfix if defined rebuildinfo (
@@ -906,19 +908,19 @@ if exist "%tdir%\Genuine*" del /f /q "%tdir%\Genuine*" %nul%
 call :dk_product
 
 echo:
-echo Activating...
+echo 正在激活……
 
 call :dk_act
 call :dk_checkperm
 if defined _perm (
 echo:
-call :dk_color %Green% "%winos% is permanently activated with a digital license."
+call :dk_color %Green% "%winos% 已使用数字权利永久激活。"
 goto :dl_final
 )
 
 ::==========================================================================================================================================
 
-::  Extended licensing servers tests incase error not found and activation failed
+::  扩展许可服务器测试，防止未找到的错误和激活失败
 
 set resfail=
 if not defined error (
@@ -944,26 +946,26 @@ if not defined resfail (
 if defined resfail (
 set error=1
 echo:
-call :dk_color %Red% "Checking Licensing Servers              [Failed To Connect]"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%licensing-servers-issue"
+call :dk_color %Red% "正在检查许可服务器                      [连接失败]"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%licensing-servers-issue"
 )
 )
 
 ::==========================================================================================================================================
 
-::  Clear store ID related registry to fix activation incase error not found
+::  清除与商店 ID 相关的注册表以修复激活，防止出现任何损坏
 
 if not defined error (
 echo:
 set "_ident=HKU\S-1-5-19\SOFTWARE\Microsoft\IdentityCRL"
 reg delete "!_ident!" /f %nul%
 reg query "!_ident!" %nul% && (
-call :dk_color %Red% "Deleting a Registry                     [Failed] [!_ident!]"
+call :dk_color %Red% "正在删除注册表                          [失败] [!_ident!]"
 ) || (
-echo Deleting a Registry                     [Successful] [!_ident!]
+echo 正在删除注册表                          [成功] [!_ident!]
 )
 
-REM Refresh some services and license status
+REM 刷新某些服务和许可证状态
 
 for %%# in (wlidsvc LicenseManager sppsvc) do (%psc% Restart-Service %%# %nul%)
 call :dk_refresh
@@ -971,14 +973,14 @@ call :dk_act
 call :dk_checkperm
 )
 
-REM Check Internet related error codes
+REM 检查与 Internet 相关的错误代码
 
 if not defined error if not defined _perm (
 echo "%error_code%" | findstr /i "0x80072e 0x80072f 0x800704cf" %nul% && (
 set error=1
 echo:
-call :dk_color %Red% "Checking Internet Issues                [Found] %error_code%"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%licensing-servers-issue"
+call :dk_color %Red% "正在检查 Internet 问题                  [已找到] %error_code%"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%licensing-servers-issue"
 )
 )
 
@@ -986,15 +988,15 @@ call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%licensing-ser
 
 echo:
 if defined _perm (
-call :dk_color %Green% "%winos% is permanently activated with a digital license."
+call :dk_color %Green% "%winos% 已使用数字权利永久激活。"
 ) else (
-call :dk_color %Red% "Activation Failed %error_code%"
+call :dk_color %Red% "激活失败 %error_code%"
 if defined notworking (
-call :dk_color %Blue% "At the time of writing this, HWID Activation was not supported for this product."
-call :dk_color %Blue% "Use KMS38 Activation option."
+call :dk_color %Blue% "在编写此内容时，此产品不支持 HWID 激活。"
+call :dk_color %Blue% "使用 KMS38 激活选项。"
 ) else (
 if not defined error call :dk_color %Blue% "%_fixmsg%"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 )
 )
 
@@ -1007,19 +1009,19 @@ echo:
 if defined regionchange (
 %psc% "Set-WinHomeLocation -GeoId %nation%" %nul%
 if !errorlevel! EQU 0 (
-echo Restoring Windows Region                [Successful]
+echo 正在恢复 Windows 区域                   [成功]
 ) else (
-call :dk_color %Red% "Restoring Windows Region                [Failed] [%name% - %nation%]"
+call :dk_color %Red% "正在恢复 Windows 区域                   [失败] [%name% - %nation%]"
 )
 )
 
-if %osSKU%==175 call :dk_color %Red% "%winos% does not support activation on non-azure platforms."
+if %osSKU%==175 call :dk_color %Red% "%winos% 版本不支持在非 Azure 平台上激活。"
 
 goto :dk_done
 
 ::========================================================================================================================================
 
-::  Check SKU value
+::  检查 SKU 值
 
 :dk_checksku
 
@@ -1044,7 +1046,7 @@ if not defined osSKU set osSKU=%wmiSKU%
 if not defined osSKU set osSKU=%regSKU%
 exit /b
 
-::  Get Windows permanent activation status
+::  检查 Windows 永久激活状态
 
 :dk_checkperm
 
@@ -1052,7 +1054,7 @@ if %_wmic% EQU 1 wmic path SoftwareLicensingProduct where (LicenseStatus='1' and
 if %_wmic% EQU 0 %psc% "(([WMISEARCHER]'SELECT Name FROM SoftwareLicensingProduct WHERE LicenseStatus=1 AND GracePeriodRemaining=0 AND PartialProductKey IS NOT NULL').Get()).Name | %% {echo ('Name='+$_)}" %nul2% | findstr /i "Windows" %nul1% && set _perm=1||set _perm=
 exit /b
 
-::  Refresh license status
+::  刷新许可证状态
 
 :dk_refresh
 
@@ -1060,7 +1062,7 @@ if %_wmic% EQU 1 wmic path SoftwareLicensingService where __CLASS='SoftwareLicen
 if %_wmic% EQU 0 %psc% "$null=(([WMICLASS]'SoftwareLicensingService').GetInstances()).RefreshLicenseStatus()" %nul%
 exit /b
 
-::  Activation command
+::  激活命令
 
 :dk_act
 
@@ -1070,10 +1072,10 @@ if %_wmic% EQU 0 %psc% "(([WMISEARCHER]'SELECT ID FROM SoftwareLicensingProduct 
 if not %errorlevel%==0 cscript //nologo %windir%\system32\slmgr.vbs /ato %nul%
 set error_code=%errorlevel%
 cmd /c exit /b %error_code%
-if %error_code% NEQ 0 (set "error_code=[Error Code: 0x%=ExitCode%]") else (set error_code=)
+if %error_code% NEQ 0 (set "error_code=[错误代码：0x%=ExitCode%]") else (set error_code=)
 exit /b
 
-::  Get Windows Activation IDs
+::  获取 Windows 激活 ID
 
 :dk_actids
 
@@ -1083,7 +1085,7 @@ if %_wmic% EQU 0 set "chkapp=for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISE
 %chkapp% do (if defined applist (call set "applist=!applist! %%a") else (call set "applist=%%a"))
 exit /b
 
-::  Get Activation IDs from licensing files if not found through WMI
+::  从许可文件中获取激活 ID（如果未通过 WMI 找到）
 
 :getactivationid:
 $folderPath = "$env:windir\System32\spp\tokens\skus"
@@ -1101,7 +1103,7 @@ $guidsString = $guids -join " "
 $guidsString
 :getactivationid:
 
-::  Check wmic.exe
+::  检查 wmic.exe
 
 :dk_ckeckwmic
 
@@ -1111,7 +1113,7 @@ wmic path Win32_ComputerSystem get CreationClassName /value %nul2% | find /i "co
 )
 exit /b
 
-::  Get Product name (WMI/REG methods are not reliable in all conditions, hence winbrand.dll method is used)
+::  获取产品名称（WMI/REG 方法并非在所有条件下都可靠，因此使用 winbrand.dll 方法）
 
 :dk_product
 
@@ -1130,7 +1132,7 @@ set winos=!winos:Windows 10=Windows 11!
 )
 exit /b
 
-::  Common lines used in PowerShell reflection code
+::  PowerShell 中使用反射代码的常见行
 
 :dk_reflection
 
@@ -1145,7 +1147,7 @@ exit /b
 
 set showfix=
 
-::  Check corrupt services
+::  检查损坏的服务
 
 set serv_cor=
 for %%# in (%_serv%) do (
@@ -1163,12 +1165,12 @@ if defined _corrupt (if defined serv_cor (set "serv_cor=!serv_cor! %%#") else (s
 
 if defined serv_cor (
 set error=1
-call :dk_color %Red% "Checking Corrupt Services               [%serv_cor%]"
+call :dk_color %Red% "正在检查损坏的服务                      [%serv_cor%]"
 )
 
 ::========================================================================================================================================
 
-::  Check disabled services
+::  检查禁用的服务
 
 set serv_ste=
 for %%# in (%_serv%) do (
@@ -1176,7 +1178,7 @@ sc start %%# %nul%
 if !errorlevel! EQU 1058 (if defined serv_ste (set "serv_ste=!serv_ste! %%#") else (set "serv_ste=%%#"))
 )
 
-::  Change disabled services startup type to default
+::  将禁用的服务启动类型更改为默认值
 
 set serv_csts=
 set serv_cste=
@@ -1203,17 +1205,17 @@ if defined serv_cste (set "serv_cste=!serv_cste! %%#") else (set "serv_cste=%%#"
 )
 )
 
-if defined serv_csts call :dk_color %Gray% "Enabling Disabled Services              [Successful] [%serv_csts%]"
+if defined serv_csts call :dk_color %Gray% "正在启用禁用的服务                      [成功] [%serv_csts%]"
 
 if defined serv_cste (
 set error=1
-call :dk_color %Red% "Enabling Disabled Services              [Failed] [%serv_cste%]"
+call :dk_color %Red% "正在启用禁用的服务                      [失败] [%serv_cste%]"
 )
 
 ::========================================================================================================================================
 
-::  Check if the services are able to run or not
-::  Workarounds are added to get correct status and error code because sc query doesn't output correct results in some conditions
+::  检查服务是否能够运行
+::  添加获取正确状态和错误代码的解决方法，因为 sc 查询在某些情况下不会输出正确的结果
 
 set serv_e=
 for %%# in (%_serv%) do (
@@ -1233,31 +1235,31 @@ if defined checkerror if defined serv_e (set "serv_e=!serv_e!, %%#-!errorcode!")
 
 if defined serv_e (
 set error=1
-call :dk_color %Red% "Starting Services                       [Failed] [%serv_e%]"
+call :dk_color %Red% "正在启动服务                            [失败] [%serv_e%]"
 echo %serv_e% | findstr /i "ClipSVC-1058 sppsvc-1058" %nul% && (
-call :dk_color %Blue% "Restart the system to fix this error."
+call :dk_color %Blue% "请重新启动系统修复已禁用服务错误 1058。"
 set showfix=1
 )
 )
 
 ::========================================================================================================================================
 
-::  Various error checks
+::  各类错误检查
 
 if defined safeboot_option (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking Boot Mode                      [%safeboot_option%] " %Blue% "[Safe mode found. Run in normal mode.]"
+call :dk_color2 %Red% "正在检查引导模式                        [%safeboot_option%] " %Blue% "[系统正在安全模式下运行。将以正常模式运行。]"
 )
 
 
 for /f "skip=2 tokens=2*" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\State" /v ImageState') do (set imagestate=%%B)
 if /i not "%imagestate%"=="IMAGE_STATE_COMPLETE" (
 set error=1
-call :dk_color %Red% "Checking Windows Setup State            [%imagestate%]"
+call :dk_color %Red% "检查 Windows 安装状态                   [%imagestate%]"
 echo "%imagestate%" | find /i "RESEAL" %nul% && (
 set showfix=1
-call :dk_color %Blue% "You need to run it in normal mode in case you are running it in Audit Mode."
+call :dk_color %Blue% "你需要它在正常模式下运行,以防你在审计模式运行。"
 )
 )
 
@@ -1265,19 +1267,19 @@ call :dk_color %Blue% "You need to run it in normal mode in case you are running
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinPE" /v InstRoot %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking WinPE                          " %Blue% "[WinPE mode found. Run in normal mode.]"
+call :dk_color2 %Red% "正在检查 WinPE                          " %Blue% "[系统正在 WinPE 模式下运行。将以正常模式运行。]"
 )
 
 
 set wpainfo=
 set wpaerror=
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
 echo "%wpainfo%" | find /i "Error Found" %nul% && (
 set error=1
 set wpaerror=1
-call :dk_color %Red% "Checking WPA Registry Error             [%wpainfo%]"
+call :dk_color %Red% "正在检查WPA注册表错误                   [%wpainfo%]"
 ) || (
-echo Checking WPA Registry Count             [%wpainfo%]
+echo 正在检查WPA注册表总数                   [%wpainfo%]
 )
 
 
@@ -1286,41 +1288,41 @@ set dism_error=%errorlevel%
 cmd /c exit /b %dism_error%
 if %dism_error% NEQ 0 set "dism_error=0x%=ExitCode%"
 if %dism_error% NEQ 0 (
-call :dk_color %Red% "Checking DISM                           [Not Responding] [%dism_error%]"
+call :dk_color %Red% "正在检查 DISM                           [未响应] [%dism_error%]"
 )
 
 
 if not defined officeact if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*EvalEdition~*.mum" (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking Eval Packages                  [Non-Eval Licenses are installed in Eval Windows]"
-call :dk_color %Blue% "Evaluation Windows can not be activated and different License install may lead to errors."
-call :dk_color %Blue% "It is recommended to install full version of %winos%."
-call :dk_color %Blue% "You can download it from %mas%genuine-installation-media.html"
+call :dk_color %Red% "正在检查评估程序包                      [非评估许可证被安装在 Windows 评估版本中]"
+call :dk_color %Blue% "无法激活 Windows 评估版本，不同的许可证安装可能会导致错误。"
+call :dk_color %Blue% "推荐安装 %winos% 的完整版本。"
+call :dk_color %Blue% "你可以从 %mas%genuine-installation-media.html 下载"
 )
 
 
 set osedition=
 for /f "skip=2 tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul6%') do set "osedition=%%a"
 
-::  Workaround for an issue in builds between 1607 and 1709 where ProfessionalEducation is shown as Professional
+::  解决了在1607至1709版本中将专业教育版显示为专业版的问题。
 
 if "%osSKU%"=="164" set osedition=ProfessionalEducation
 if "%osSKU%"=="165" set osedition=ProfessionalEducationN
 
 if not defined officeact (
 if not defined osedition (
-call :dk_color %Red% "Checking Edition Name                   [Not Found In Registry]"
+call :dk_color %Red% "检查 Windows 版本名称                   [注册表中未找到]"
 ) else (
 
 if not exist "%SystemRoot%\System32\spp\tokens\skus\%osedition%\%osedition%*.xrm-ms" (
 set error=1
-call :dk_color %Red% "Checking License Files                  [Not Found] [%osedition%]"
+call :dk_color %Red% "检查许可证文件                          [未找到] [%osedition%]"
 )
 
 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*-%osedition%-*.mum" (
 set error=1
-call :dk_color %Red% "Checking Package File                   [Not Found] [%osedition%]"
+call :dk_color %Red% "检查包文件                              [未找到] [%osedition%]"
 )
 )
 )
@@ -1332,12 +1334,12 @@ cmd /c exit /b %error_code%
 if %error_code% NEQ 0 set "error_code=0x%=ExitCode%"
 if %error_code% NEQ 0 (
 set error=1
-call :dk_color %Red% "Checking slmgr /dlv                     [Not Responding] %error_code%"
+call :dk_color %Red% "正在检查 slmgr /dlv                     [未响应] %error_code%"
 )
 
 
 for %%# in (wmic.exe) do @if "%%~$PATH:#"=="" (
-call :dk_color %Gray% "Checking WMIC.exe                       [Not Found]"
+call :dk_color %Gray% "正在检查 WMIC.exe                       [未找到]"
 )
 
 
@@ -1349,8 +1351,8 @@ if %errorlevel% NEQ 0 set wmifailed=1
 echo "%error_code%" | findstr /i "0x800410 0x800440" %nul1% && set wmifailed=1& ::  https://learn.microsoft.com/en-us/windows/win32/wmisdk/wmi-error-constants
 if defined wmifailed (
 set error=1
-call :dk_color %Red% "Checking WMI                            [Not Responding]"
-call :dk_color %Blue% "In MAS, Goto Troubleshoot and run Fix WMI option."
+call :dk_color %Red% "正在检查 WMI                            [未响应]"
+call :dk_color %Blue% "在 MAS 中，请转到疑难解答并运行修复 WMI 选项。"
 set showfix=1
 )
 
@@ -1358,35 +1360,35 @@ set showfix=1
 %nul% set /a "sum=%slcSKU%+%regSKU%+%wmiSKU%"
 set /a "sum/=3"
 if not defined officeact if not "%sum%"=="%slcSKU%" (
-call :dk_color %Red% "Checking SLC/WMI/REG SKU                [Difference Found - SLC:%slcSKU% WMI:%wmiSKU% Reg:%regSKU%]"
+call :dk_color %Red% 正在检查 SLC/WMI/REG SKU                [发现差异 - SLC:%slcSKU% WMI:%wmiSKU% Reg:%regSKU%]"
 )
 
 
 reg query "HKU\S-1-5-20\Software\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\PersistedTSReArmed" %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking Rearm                          " %Blue% "[System Restart Is Required]"
+call :dk_color2 %Red% "正在检查 Rearm                          " %Blue% "[需要重新启动系统]"
 )
 
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState" %nul% && (
 set error=1
 set showfix=1
-call :dk_color2 %Red% "Checking ClipSVC                        " %Blue% "[System Restart Is Required]"
+call :dk_color2 %Red% "正在检查 ClipSVC                        " %Blue% "[需要重新启动系统]"
 )
 
 
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v "SkipRearm" %nul6%') do if /i %%b NEQ 0x0 (
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v "SkipRearm" /t REG_DWORD /d "0" /f %nul%
-call :dk_color %Red% "Checking SkipRearm                      [Default 0 Value Not Found. Changing To 0]"
+call :dk_color %Red% "正在检查 SkipRearm                      [默认值 0 未找到，更改为 0]"
 %psc% Restart-Service sppsvc %nul%
 set error=1
 )
 
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Plugins\Objects\msft:rm/algorithm/hwid/4.0" /f ba02fed39662 /d %nul% || (
-call :dk_color %Red% "Checking SPP Registry Key               [Incorrect ModuleId Found]"
-call :dk_color %Blue% "Possibly Caused By Gaming Spoofers. Help: %mas%troubleshoot"
+call :dk_color %Red% "正在检查 SPP 注册表键值                 [已找到不正确的模块 ID]"
+call :dk_color %Blue% "可能是由 Gaming Spoofer 引起的。帮助：%mas%troubleshoot"
 set error=1
 set showfix=1
 )
@@ -1396,14 +1398,14 @@ set tokenstore=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v TokenStore %nul6%') do call set "tokenstore=%%b"
 if not exist "%tokenstore%\" (
 set error=1
-REM This code creates token folder only if it's missing and sets default permission for it
+REM 此代码仅在缺少令牌文件夹时创建令牌文件夹，并为其设置默认权限
 mkdir "%tokenstore%" %nul%
 set "d=$sddl = 'O:BAG:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICIIO;GR;;;BU)(A;;FR;;;BU)(A;OICI;FA;;;S-1-5-80-123231216-2592883651-3715271367-3753151631-4175906628)';"
 set "d=!d! $AclObject = New-Object System.Security.AccessControl.DirectorySecurity;"
 set "d=!d! $AclObject.SetSecurityDescriptorSddlForm($sddl);"
 set "d=!d! Set-Acl -Path %tokenstore% -AclObject $AclObject;"
 %psc% "!d!" %nul%
-call :dk_color %Gray% "Checking SPP Token Folder               [Not Found. Creating Now] [%tokenstore%\]"
+call :dk_color %Gray% "正在检查 SPP Token 文件夹               [未找到。立即创建] [%tokenstore%\]"
 )
 
 
@@ -1416,25 +1418,25 @@ call :dk_refresh
 call :dk_actids
 if not defined applist (
 set error=1
-call :dk_color %Red% "Checking Activation IDs                 [Not Found]"
+call :dk_color %Red% "正在检查激活 ID                         [未找到]"
 )
 )
 
 
 if exist "%tokenstore%\" if not exist "%tokenstore%\tokens.dat" (
 set error=1
-call :dk_color %Red% "Checking SPP tokens.dat                 [Not Found] [%tokenstore%\]"
+call :dk_color %Red% "正在检查 SPP tokens.dat                 [未找到] [%tokenstore%\]"
 )
 
 
 if not exist %SystemRoot%\system32\sppsvc.exe (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking sppsvc.exe File                [Not Found]"
+call :dk_color %Red% "正在检查 sppsvc.exe 文件                [未找到]"
 )
 
 
-::  This code checks if NT SERVICE\sppsvc has permission access to tokens folder and required registry keys. It's often caused by gaming spoofers. 
+::  这段代码检查NT SERVICE\sppsvc 是否有权限访问令牌文件夹和所需的注册表项。这通常是由 Gaming Spoofer 引起的。
 
 set permerror=
 if not exist "%tokenstore%\" set permerror=1
@@ -1450,27 +1452,26 @@ if !errorlevel!==2 set permerror=1
 if defined permerror (
 set error=1
 set showfix=1
-call :dk_color %Red% "Checking SPP Permissions                [Error Found]"
+call :dk_color %Red% "正在检查 SPP 权限                       [发现错误]"
 call :dk_color %Blue% "%_fixmsg%"
 )
 
-
-::  If required services are not disabled or corrupted + if there is any error + slmgr /dlv errorlevel is not Zero + no fix was shown before
+::  如果所需的服务未被禁用或损坏 + 是否有任何错误 + slmgr /dlv 错误级别不为零 + 之前未显示修复程序，则执行以下检查
 
 if not defined serv_cor if not defined serv_cste if defined error if /i not %error_code%==0 if not defined showfix (
 set showfix=1
 call :dk_color %Blue% "%_fixmsg%"
-if not defined permerror call :dk_color %Blue% "If activation still fails then run Fix WPA Registry option."
+if not defined permerror call :dk_color %Blue% "如果激活仍然失败，之后运行修复 WPA 注册表选项。"
 )
 
 if not defined showfix if defined wpaerror (
 set showfix=1
-call :dk_color %Blue% "If activation fails then go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
+call :dk_color %Blue% "如果激活失败，请返回主菜单，选择“故障排除”并运行“修复WPA注册表”选项。"
 )
 
 exit /b
 
-::  This code checks for invalid registry keys in HKLM\SYSTEM\WPA. This issue may appear even on healthy systems
+::  此代码检查 HKLM\SYSTEM\WPA 中是否存在无效的注册表项。即使在正常运行的系统上也可能会出现此问题。
 
 :wpatest:
 $wpaKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', 'Registry64').OpenSubKey("SYSTEM\\WPA")
@@ -1532,22 +1533,22 @@ exit /b
 
 echo:
 if %_unattended%==1 timeout /t 2 & exit /b
-call :dk_color %_Yellow% "Press any key to %_exitmsg%..."
+call :dk_color %_Yellow% "请按任意键%_exitmsg%脚本……"
 pause %nul1%
 exit /b
 
 ::========================================================================================================================================
 
-::  1st column = Activation ID
-::  2nd column = Generic Retail/OEM/MAK Key
-::  3rd column = SKU ID
-::  4th column = Key part number
-::  5th column = Ticket signature value. It's as it is, it's not encoded. (Check mass grave[.]dev/hwid.html#Manual_Activation to see how it's generated)
-::  6th column = 1 = activation is not working (at the time of writing this), 0 = activation is working
-::  7th column = Key Type
-::  8th column = WMI Edition ID (For reference only)
-::  9th column = Version name incase same Edition ID is used in different OS versions with different key
-::  Separator  = _
+::  第 1 列 = 激活 ID
+::  第 2 列 = 通用零售/OEM/MAK 密钥
+::  第 3 列 = SKU ID
+::  第 4 列 = 密钥部分编号
+::  第 5 列 = 票证签名值。它就是这样，它没有被编码。（请查阅 mass grave[.]dev/hwid.html#Manual_Activation 了解它是如何生成的）
+::  第 6 列 = 1 = 激活无效（在撰写本文时）、0 = 激活有效
+::  第 7 列 = 密钥类型
+::  第 8 列 = WMI 版本 ID（仅供参考）
+::  第 9 列 = 版本名称，以防止相同的版本 ID 用于具有不同密钥的不同操作系统版本
+::  分隔符  = _
 
 
 :hwiddata
@@ -1593,7 +1594,7 @@ d4bdc678-0a4b-4a32-a5b3-aaa24c3b0f24_K9%f%VKN-3BG%f%WV-Y6%f%24W-MCR%f%MQ-BH%f%DC
 ) do (
 for /f "tokens=1-9 delims=_" %%A in ("%%#") do (
 
-REM Detect key
+REM 检测密钥
 
 if %1==key if %osSKU%==%%C if not defined key (
 set skufound=1
@@ -1603,7 +1604,7 @@ set key=%%B
 )
 )
 
-REM Generate ticket
+REM 生成票证
 
 if %1==ticket if "%key%"=="%%B" (
 set "string=OSMajorVersion=5;OSMinorVersion=1;OSPlatformId=2;PP=0;Pfn=Microsoft.Windows.%%C.%%D_8wekyb3d8bbwe;PKeyIID=465145217131314304264339481117862266242033457260311819664735280;$([char]0)"
@@ -1619,15 +1620,15 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Below code is used to get alternate edition name and key if current edition doesn't support HWID activation
+::  如果当前版本不支持 HWID 激活，以下代码用于获取备用版本名称和密钥
 
-::  1st column = Current SKU ID
-::  2nd column = Current Edition Name
-::  3rd column = Current Edition Activation ID
-::  4th column = Alternate Edition Activation ID
-::  5th column = Alternate Edition HWID Key
-::  6th column = Alternate Edition Name
-::  Separator  = _
+::  第 1 列 = 当前 SKU ID
+::  第 2 列 = 当前版本名称
+::  第 3 列 = 当前版本激活 ID
+::  第 4 列 = 备用版本激活 ID
+::  第 5 列 = 备用版本 HWID 密钥
+::  第 6 列 = 备用版本名称
+::  分隔符  = _
 
 
 :hwidfallback
@@ -1662,19 +1663,19 @@ exit /b
 @setlocal DisableDelayedExpansion
 @echo off
 
-::  To activate Office with Ohook activation, run the script with "/Ohook" parameter or change 0 to 1 in below line
+::  若要使用 Ohook 激活激活 Office，请使用“/Ohook”参数运行脚本，或在以下行中将 0 更改为 1
 set _act=0
 
-::  To remove Ohook activation, run the script with /Ohook-Uninstall parameter or change 0 to 1 in below line
+::  若要移除 Ohook 激活，请使用 /Ohook-Uninstall 参数运行脚本，或在以下行中将 0 更改为 1
 set _rem=0
 
-::  If value is changed in above lines or parameter is used then script will run in unattended mode
+::  如果在上面几行中更改了值或使用参数，脚本将会在无人值守模式下运行
 
 ::========================================================================================================================================
 
 cls
 color 07
-title  Ohook Activation %masver%
+title Ohook 激活 %masver%
 
 set _args=
 set _elev=
@@ -1726,28 +1727,28 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 if %~z0 GEQ 200000 (
-set "_exitmsg=Go back"
-set "_fixmsg=Go back to Main Menu, select Troubleshoot and run Fix Licensing option."
+set "_exitmsg=返回"
+set "_fixmsg=请返回主菜单，选择疑难解答并运行修复许可选项。"
 ) else (
-set "_exitmsg=Exit"
-set "_fixmsg=In MAS folder, run Troubleshoot script and select Fix Licensing option."
+set "_exitmsg=退出"
+set "_fixmsg=在 MAS 文件夹中，请运行疑难解答脚本并选择修复许可选项。"
 )
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 9200 (
 %eline%
-echo Unsupported OS version detected [%winbuild%].
-echo Ohook Activation is supported on Windows 8 and later and their server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo Ohook 激活在 Windows 8 及更高版本及其服务器对应方上受支持。
 goto dk_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -1770,7 +1771,7 @@ if %_rem%==1 goto :oh_uninstall
 if %_unattended%==0 (
 cls
 mode 76, 25
-title  Ohook Activation %masver%
+title Ohook 激活 %masver%
 
 echo:
 echo:
@@ -1778,17 +1779,17 @@ echo:
 echo:
 echo         ____________________________________________________________
 echo:
-echo                 [1] Install Ohook Office Activation
+echo                 [1] 安装 Ohook Office 激活
 echo:
-echo                 [2] Uninstall
+echo                 [2] 卸载
 echo                 ____________________________________________
 echo:
-echo                 [3] Download Office
+echo                 [3] 下载 Office
 echo:
 echo                 [0] %_exitmsg%
 echo         ____________________________________________________________
 echo: 
-call :dk_color2 %_White% "              " %_Green% "Enter a menu option in the Keyboard [1,2,3,0]"
+call :dk_color2 %_White% "              " %_Green% "请输入一个菜单选项 [1,2,3,0]"
 choice /C:1230 /N
 set _el=!errorlevel!
 if !_el!==4  exit /b
@@ -1806,21 +1807,21 @@ cls
 mode 130, 32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=32;$B.Height=300;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 
-title  Ohook Activation %masver%
+title Ohook 激活 %masver%
 
 echo:
-echo Initializing...
+echo 正在初始化……
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto dk_done
 )
 
@@ -1829,13 +1830,13 @@ goto dk_done
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
@@ -1847,11 +1848,11 @@ cls
 echo:
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set osarch=%%b
 for /f "tokens=6-7 delims=[]. " %%i in ('ver') do if "%%j"=="" (set fullbuild=%%i) else (set fullbuild=%%i.%%j)
-echo Checking OS Info                        [%winos% ^| %fullbuild% ^| %osarch%]
+echo 正在检查操作系统信息                    [%winos% ^| %fullbuild% ^| %osarch%]
 
 ::========================================================================================================================================
 
-::  Check Windows Script Host
+::  检查 Windows Script Host
 
 set _WSH=1
 reg query "HKCU\SOFTWARE\Microsoft\Windows Script Host\Settings" /v Enabled %nul2% | find /i "0x0" %nul1% && (set _WSH=0)
@@ -1861,18 +1862,18 @@ if %_WSH% EQU 0 (
 reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 reg add "HKCU\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 if not "%arch%"=="x86" reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f /reg:32 %nul%
-echo Enabling Windows Script Host            [Successful]
+echo 正在启用 Windows Script Host            [成功]
 )
 
 ::========================================================================================================================================
 
-echo Initiating Diagnostic Tests...
+echo 正在初始化诊断测试……
 
 set "_serv=sppsvc Winmgmt"
 set officeact=1
 call :dk_errorcheck
 
-::  Check unsupported office versions
+::  检查不支持的 office 版本
 
 set o14msi=
 set o14c2r=
@@ -1889,12 +1890,12 @@ if %winbuild% GEQ 10240 %psc% "Get-AppxPackage -name "Microsoft.Office.Desktop""
 
 if not "%o14msi%%o14c2r%%o16uwp%"=="" (
 echo:
-call :dk_color %Red% "Checking Unsupported Office Install     [ %o14msi%%o14c2r%%o16uwp%]"
+call :dk_color %Red% "正在检查不受支持的 Office 安装          [ %o14msi%%o14c2r%%o16uwp%]"
 )
 
 ::========================================================================================================================================
 
-::  Check supported office versions
+::  检查受支持的 office 版本
 
 call :oh_getpath
 
@@ -1902,7 +1903,7 @@ sc query ClickToRunSvc %nul%
 set error1=%errorlevel%
 
 if defined o16c2r if %error1% EQU 1060 (
-call :dk_color %Red% "Checking ClickToRun Service             [Not found, Office 16.0 files found]"
+call :dk_color %Red% "正在检查 ClickToRun 服务                [未找到，已找到 Office 16.0 文件]"
 set o16c2r=
 set error=1
 )
@@ -1911,7 +1912,7 @@ sc query OfficeSvc %nul%
 set error2=%errorlevel%
 
 if defined o15c2r if %error1% EQU 1060 if %error2% EQU 1060 (
-call :dk_color %Red% "Checking ClickToRun Service             [Not found, Office 15.0 files found]"
+call :dk_color %Red% "正在检查 ClickToRun 服务                [未找到，已找到 Office 15.0 文件]"
 set o15c2r=
 set error=1
 )
@@ -1920,17 +1921,17 @@ if "%o16c2r%%o15c2r%%o16msi%%o15msi%"=="" (
 set error=1
 echo:
 if not "%o14msi%%o14c2r%%o16uwp%"=="" (
-call :dk_color %Red% "Checking Supported Office Install       [Not Found]"
+call :dk_color %Red% "正在检查受支持的 Office 安装            [未找到]"
 ) else (
-call :dk_color %Red% "Checking Installed Office               [Not Found]"
+call :dk_color %Red% "正在检查已安装的 Office                 [未找到]"
 )
 
 if %winbuild% GEQ 10240 %psc% "Get-AppxPackage -name "Microsoft.MicrosoftOfficeHub"" | find /i "Office" %nul1% && (
 echo:
-echo You have only Office dashboard app installed, you need to install full Office version.
+echo 你只安装了 Office 仪表板应用，你需要安装完整的 Office 版本。
 )
 echo:
-call :dk_color %Blue% "Download and install Office from below URL and try again."
+call :dk_color %Blue% "请从以下 URL 下载并安装 Office，然后重试。"
 echo:
 echo %mas%genuine-installation-media.html
 goto dk_done
@@ -1941,12 +1942,12 @@ if not "%o16c2r%%o15c2r%%o16msi%%o15msi%"=="1" set multioffice=1
 if not "%o14msi%%o14c2r%%o16uwp%"=="" set multioffice=1
 
 if defined multioffice (
-call :dk_color %Gray% "Checking Multiple Office Install        [Found. Its best to install only one version]"
+call :dk_color %Gray% "正在检查是否有多个 Office 安装          [已找到。最好只安装一个版本]"
 )
 
 ::========================================================================================================================================
 
-::  Process Office 15.0 C2R
+::  处理 Office 15.0 C2R
 
 if not defined o15c2r goto :starto16c2r
 
@@ -1976,10 +1977,10 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 )
 
 echo:
-echo Activating Office 15.0 %_oArch% C2R...
+echo 正在激活 Office 15.0 %_oArch% C2R……
 
 if not defined _oIds (
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 set error=1
 goto :starto16c2r
 )
@@ -1991,7 +1992,7 @@ call :oh_hookinstall
 
 :starto16c2r
 
-::  Process Office 16.0 C2R
+::  处理 Office 16.0 C2R
 
 if not defined o16c2r goto :startmsi
 
@@ -2021,10 +2022,10 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 )
 
 echo:
-echo Activating Office 16.0 %_oArch% C2R...
+echo 正在激活 Office 16.0 %_oArch% C2R……
 
 if not defined _oIds (
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 set error=1
 goto :startmsi
 )
@@ -2034,7 +2035,7 @@ call :oh_hookinstall
 
 ::========================================================================================================================================
 
-::  Find remnants of Office vNext license block and remove it because it stops non vNext licenses from appearing
+::  查找 Office vNext 许可证块的残余并将其删除，因为它会阻止非 vNext 许可证的显示
 ::  https://learn.microsoft.com/en-us/office/troubleshoot/activation/reset-office-365-proplus-activation-state
 
 set _sid=
@@ -2043,7 +2044,7 @@ set sub_next=
 for /f "tokens=* delims=" %%a in ('%psc% "Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList' | ForEach-Object { Split-Path -Path $_.PSPath -Leaf }" %nul6%') do (if defined _sid (set "_sid=!_sid! HKU\%%a") else (set "_sid=HKU\%%a"))
 
 if not defined _sid (
-call :dk_color %Red% "Checking User Accounts SID              [Not Found]"
+call :dk_color %Red% "检查用户账号 SID                        [未找到]"
 )
 
 dir /b /s /a:-d "!_Local!\Microsoft\Office\Licenses\*" %nul% && set sub_next=1
@@ -2067,12 +2068,12 @@ reg delete %%#\Software\Microsoft\Office\16.0\Registration /f %nul%
 )
 )
 
-if defined sub_next echo Removing Office vNext Block             [Successful]
+if defined sub_next echo 正在移除 Office vNext 许可              [成功]
 
 ::========================================================================================================================================
 
-::  Subscription products attempt to validate the license and may show a banner "There was a problem checking this device's license status."
-::  Resiliency registry entry can skip this check
+::  订阅产品会尝试验证许可证，并可能显示横幅“检查此设备的许可证状态时出现问题”。
+::  复原注册表项可以跳过此检查
 
 if defined o16c2r (
 for %%# in (!_sid! HKCU) do (reg delete %%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f %nul%)
@@ -2081,14 +2082,14 @@ reg query "%%#\Volatile Environment" %nul% && (
 reg add %%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /v "TimeOfLastHeartbeatFailure" /t REG_SZ /d "2040-01-01T00:00:00Z" /f %nul%
 )
 )
-echo Adding Reg Keys To Skip License Check   [Successful]
+echo 添加注册表以跳过许可证检查              [成功]
 )
 
 ::========================================================================================================================================
 
 ::  mass grave[.]dev/office-license-is-not-genuine.html
-::  Add registry keys for volume products so that 'non-genuine' banner won't appear 
-::  Script already is using MAK instead of GVLK so it won't appear anyway, but registry keys are added incase Office installs default GVLK grace key for volume products
+::  为批量产品添加注册表项，以便不会显示“非正版”横幅
+::  脚本已使用 MAK 而不是 GVLK，因此无论如何都不会显示，但如果 Office 为批量产品安装默认 GVLK 宽限密钥，则会添加注册表项
 
 echo "%_oIds%" | find /i "Volume" %nul1% && (
 if %winbuild% GEQ 9200 (
@@ -2098,7 +2099,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPla
 )
 reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f %nul%
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f /v KeyManagementServiceName /t REG_SZ /d "10.0.0.10" %nul%
-echo Adding a Reg To Prevent Banner          [Successful]
+echo 添加注册表以防止显示“非正版”横幅        [成功]
 )
 )
 
@@ -2111,7 +2112,7 @@ if defined o16msi call :oh_processmsi 16 %o16msi_reg%
 
 ::========================================================================================================================================
 
-::  Uninstall other / grace Keys
+::  卸载其他 / 宽限期密钥
 
 set upk_result=0
 set allapplist=
@@ -2132,13 +2133,13 @@ set upk_result=2
 )
 
 if not %upk_result%==0 echo:
-if %upk_result%==1 echo Uninstalling Other/Grace Keys           [Successful]
-if %upk_result%==2 call :dk_color %Red% "Uninstalling Other/Grace Keys           [Failed]"
+if %upk_result%==1 echo 正在卸载其他/宽限期密钥                 [成功]
+if %upk_result%==2 call :dk_color %Red% "正在卸载其他/宽限期密钥                 [失败]"
 
 ::========================================================================================================================================
 
-::  Refresh Windows Insider Preview Licenses
-::  It required in Insider versions otherwise office may not activate
+::  刷新 Windows Insider Preview 许可证
+::  在 Insider 版本中需要它，否则 office 可能无法激活
 
 if exist "%windir%\system32\spp\store_test\2.0\tokens.dat" (
 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
@@ -2149,13 +2150,13 @@ if !errorlevel! NEQ 0 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 
 echo:
 if not defined error (
-call :dk_color %Green% "Office is permanently activated."
-echo Help: %mas%troubleshoot
+call :dk_color %Green% "Office 已永久激活。"
+echo 帮助：%mas%troubleshoot
 ) else (
-call :dk_color %Red% "Some errors were detected."
+call :dk_color %Red% "检测到一些错误。"
 if not defined ierror if not defined showfix if not defined serv_cor if not defined serv_cste call :dk_color %Blue% "%_fixmsg%"
 echo:
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 )
 
 goto :dk_done
@@ -2166,7 +2167,7 @@ goto :dk_done
 
 cls
 mode 99, 28
-title  Uninstall Ohook Activation %masver%
+title 卸载 Ohook 激活 %masver%
 
 set _present=
 set _unerror=
@@ -2174,7 +2175,7 @@ call :oh_reset
 call :oh_getpath
 
 echo:
-echo Uninstalling Ohook Activation...
+echo 正在卸载 Ohook 激活……
 echo:
 
 if defined o16c2r_reg (for /f "skip=2 tokens=2*" %%a in ('"reg query %o16c2r_reg% /v InstallPath" %nul6%') do (set "_16CHook=%%b\root\vfs"))
@@ -2205,7 +2206,7 @@ if exist "%%~A\Microsoft %%~G\root\vfs\%%#\sppc*dll" (set _present=1& del /s /f 
 
 reg query HKCU\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency %nul% && (
 echo:
-echo Deleting - Registry keys to skip license check
+echo 正在删除 - 用于跳过许可证检查的注册表项
 reg delete HKCU\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f
 
 for /f "tokens=* delims=" %%a in ('%psc% "Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList' | ForEach-Object { Split-Path -Path $_.PSPath -Leaf }" %nul6%') do (if defined _sid (set "_sid=!_sid! %%a") else (set "_sid=%%a"))
@@ -2217,7 +2218,7 @@ reg delete HKU\%%#\Software\Microsoft\Office\16.0\Common\Licensing\Resiliency /f
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" %nul% && (
 echo:
-echo Deleting - Registry keys to prevent non-genuine banner
+echo 正在删除 - 防止“非正版”横幅的注册表项
 reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\0ff1ce15-a989-479d-af46-f275c6370663" /f
 )
 
@@ -2229,13 +2230,13 @@ echo ___________________________________________________________________________
 echo:
 
 if not defined _present (
-echo Ohook Activation is not installed.
+echo Ohook 激活未安装。
 ) else (
 if defined _unerror (
-call :dk_color %Red% "Failed to uninstall Ohook activation."
-call :dk_color %Blue% "Close Office apps if they are running and try again."
+call :dk_color %Red% "卸载 Ohook 激活失败。"
+call :dk_color %Blue% "如果 Office 应用正在运行，请关闭它们，然后重试。"
 ) else (
-call :dk_color %Green% "Successfully uninstalled Ohook activation."
+call :dk_color %Green% "卸载 Ohook 激活成功。"
 )
 )
 echo __________________________________________________________________________________________
@@ -2297,9 +2298,9 @@ if %errorcode% NEQ 0 set "errorcode=[0x%=ExitCode%]"
 
 if %errorcode% EQU 0 (
 call :dk_refresh
-echo Installing Generic Product Key          [%_key%] [%_prod%] [%_lic%] [Successful]
+echo 正在安装通用产品密钥                    [%_key%] [%_prod%] [%_lic%] [成功]
 ) else (
-call :dk_color %Red% "Installing Generic Product Key          [%_key%] [%_prod%] [Failed] %errorcode%"
+call :dk_color %Red% "正在安装通用产品密钥                    [%_key%] [%_prod%] [失败] %errorcode%"
 if not defined error (
 call :dk_color %Blue% "%_fixmsg%"
 set showfix=1
@@ -2323,11 +2324,11 @@ if %oVer%==16 (
 
 call :oh_actids
 echo "!oapplist!" | find /i "!_actid!" %nul1% && (
-call :dk_color %Gray% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Successful]"
+call :dk_color %Gray% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [成功]"
 exit /b
 )
 
-::  Fallback to /ilc method to install licenses incase integrator.exe is not working
+::  回退到 /ilc 方法以安装许可证，以防 integrator.exe 不可用
 
 set _License=%_License:XVolume=XC2RVL_%
 
@@ -2354,10 +2355,10 @@ cscript //nologo %windir%\system32\slmgr.vbs /ilc "!_oLPath!\%%~nx#" %nul%
 
 call :oh_actids
 echo "!oapplist!" | find /i "!_actid!" %nul1% && (
-call :dk_color %Gray% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Successful with /ilc Method]"
+call :dk_color %Gray% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [使用 /ilc 方法成功]"
 ) || (
 set error=1
-call :dk_color %Red% "Installing Missing License Files        [Office %oVer%.0 %_prod%] [Failed]"
+call :dk_color %Red% "正在安装缺失的许可证文件                [Office %oVer%.0 %_prod%] [失败]"
 )
 
 exit /b
@@ -2386,25 +2387,25 @@ if not exist "%_hookPath%\sppc.dll" set ierror=1
 
 echo:
 if not defined ierror (
-echo Symlinking System's sppc.dll To         ["%_hookPath%\sppcs.dll"] [Successful]
-echo Extracting Custom %_hook% To         ["%_hookPath%\sppc.dll"] [Successful]
+echo 正在用符号链接系统 sppc.dll 至          ["%_hookPath%\sppcs.dll"] [成功]
+echo 正在解压自定义 %_hook% 到            ["%_hookPath%\sppc.dll"] [成功]
 ) else (
 set error=1
-call :dk_color %Red% "Symlinking Systems sppc.dll             [Failed]"
-call :dk_color %Red% "Extracting Custom %_hook%            [Failed]"
+call :dk_color %Red% "正在用符号链接系统 sppc.dll             [失败]"
+call :dk_color %Red% "正在解压自定义 %_hook%               [失败]"
 echo ["%_hookPath%\sppc.dll"]
 echo:
-call :dk_color %Blue% "Close ALL Office apps including Outlook and try again."
-call :dk_color %Blue% "If its still not resolved then restart system and try again."
+call :dk_color %Blue% "请关闭所有 Office 应用（包括 Outlook），然后重试。"
+call :dk_color %Blue% "如果仍未解决，请重新启动系统并再试一次。"
 )
 
 if not defined ierror (
 if defined hasherror (
 set error=1
 set ierror=1
-call :dk_color %Red% "Modifying Hash of Custom %_hook%     [Failed]"
+call :dk_color %Red% "正在修改自定义 %_hook% 的哈希值      [失败]"
 ) else (
-echo Modifying Hash of Custom %_hook%     [Successful]
+echo 正在修改自定义 %_hook% 的哈希值      [成功]
 )
 )
 
@@ -2433,8 +2434,8 @@ echo "!oapplist!" | find /i "!_actid!" %nul1% || call :oh_installlic
 call :oh_installkey
 ) else (
 set error=1
-call :dk_color %Red% "Checking Product In Script              [Office %oVer%.0 !_prod! not found in script]"
-call :dk_color %Blue% "Make sure you are using Latest MAS script."
+call :dk_color %Red% "检查脚本中产品列表              [Office %oVer%.0 %%# 未在脚本中找到]"
+call :dk_color %Blue% 请确保你使用的是 MAS 脚本的最新版本。
 )
 )
 
@@ -2461,7 +2462,7 @@ exit /b
 
 :oh_processmsi
 
-::  Process Office MSI Version
+::  处理 Office MSI 版本
 
 call :oh_reset
 call :oh_actids
@@ -2486,11 +2487,11 @@ set "_sppcPath=%SystemRoot%\System32\sppc.dll"
 call :oh_msiproducts
 
 echo:
-echo Activating Office %1.0 %_oArch% MSI...
+echo 正在激活 Office %1.0 %_oArch% MSI 版本……
 
 if not defined _oIds (
 set error=1
-call :dk_color %Red% "Checking Installed Products             [Product IDs not found. Aborting activation...]"
+call :dk_color %Red% "正在检查已安装产品                      [产品 ID 未找到。正在中止激活……]"
 exit /b
 )
 
@@ -2501,7 +2502,7 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Get Office Activation IDs
+::  获取 Office 激活 ID
 
 :oh_actids
 
@@ -2513,12 +2514,12 @@ exit /b
 
 ::========================================================================================================================================
 
-::  1st column = Office version number
-::  2nd column = Activation ID
-::  3rd column = Generic key. Preference is given in this order, Retail:TB:Sub > Retail > OEM:NONSLP > Volume:MAK > Volume:GVLK
-::  4th column = Last part of license description
-::  5th column = Edition
-::  Separator  = "_"
+::  第 1 列 = Office 版本号
+::  第 2 列 = 激活 ID
+::  第 3 列 = 通用密钥。给出优先顺序，Retail:TB:Sub > Retail > OEM:NONSLP > Volume:MAK > Volume:GVLK
+::  第 4 列 = 许可证描述的最后一部分
+::  第 5 列 = 版本
+::  分隔符  = "_"
 
 :ohookdata
 
@@ -2685,8 +2686,8 @@ for %%# in (
 16_fb33d997-4aa3-494e-8b58-03e9ab0f181d_VN%f%CC4-CJ%f%QVK-BKX%f%34-77%f%Y8H-CYX%f%MR_Retail________Word2021Retail
 16_0c728382-95fb-4a55-8f12-62e605f91727_BJ%f%G97-NW%f%3GM-8QQ%f%Q7-FH%f%76G-686%f%XM_MAK-AE________Word2021Volume
 16_8fdb1f1e-663f-4f2e-8fdb-7c35aee7d5ea_GN%f%XWX-DF%f%797-B2J%f%T3-82%f%W27-KHP%f%XT_MAK-AE________ProPlus2024Volume-Preview
-16_33b11b14-91fd-4f7b-b704-e64a055cf601_X8%f%6XX-N3%f%QMW-B4W%f%GQ-QC%f%B69-V26%f%KW_MAK-AE________ProjectPro2024Volume-Preview
-16_eb074198-7384-4bdd-8e6c-c3342dac8435_DW%f%99Y-H7%f%NT6-6B2%f%9D-8J%f%Q8F-R3Q%f%T7_MAK-AE________VisioPro2024Volume-Preview
+16_33b11b14-91fd-4f7b-b704-e64a055cf601_X8%f%6XX-N3%f%QMW-B4W%f%GQ-QC%f%B69-V26%f%KW_MAK_AE________ProjectPro2024Volume-Preview
+16_eb074198-7384-4bdd-8e6c-c3342dac8435_DW%f%99Y-H7%f%NT6-6B2%f%9D-8J%f%Q8F-R3Q%f%T7_MAK_AE________VisioPro2024Volume-Preview
 16_6337137e-7c07-4197-8986-bece6a76fc33_2P%f%3C9-BQ%f%NJH-VCV%f%PH-YD%f%Y6M-43J%f%PQ_Subscription__O365BusinessRetail
 16_2f5c71b4-5b7a-4005-bb68-f9fac26f2ea3_W6%f%2NQ-26%f%7QR-RTF%f%74-PF%f%2MH-JQM%f%TH_Subscription__O365EduCloudRetail
 16_537ea5b5-7d50-4876-bd38-a53a77caca32_J2%f%W28-TN%f%9C8-26P%f%WV-F7%f%J4G-72X%f%CB_Subscription1_O365HomePremRetail
@@ -2717,42 +2718,42 @@ exit /b
 
 ::========================================================================================================================================
 
-::  This code is used to modify the timestamp value of sppc dll file in order to change checksums
-::  It's done to lower the potential false positive detection by antivirus's. On each install, it will install a unique sppc dll file
+::  此代码用于修改 sppc dll 文件的时间戳值以更改校验和
+::  这样做是为了降低防病毒软件的潜在误报检测。在每次安装时，它将安装一个唯一的 sppc dll 文件
 
 :oh_extractdll
 
 set b=
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':%_hook%\:.*';$encoded = ($f[1]) -replace '-', 'A' -replace '_', 'a';$bytes = [Con%b%vert]::FromBas%b%e64String($encoded); $PePath='%1'; $offset='%2'; $m=[io.file]::ReadAllText('!_batp!') -split ':hexedit\:.*';iex ($m[1]);" %nul2% | find /i "Error found" %nul1% && set hasherror=1
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':%_hook%\:.*';$bytes = [Con%b%vert]::FromBas%b%e64String($f[1]); $PePath='%1'; $offset='%2'; $m=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':hexedit\:.*';iex ($m[1]);" %nul2% | find /i "Error found" %nul1% && set hasherror=1
 exit /b
 
 :hexedit:
-# Use a MemoryStream to perform operations on the bytes
+# 使用内存流对字节执行操作
 $MemoryStream = New-Object System.IO.MemoryStream
 $Writer = New-Object System.IO.BinaryWriter($MemoryStream)
 $Writer.Write($bytes)
 
-# Define dynamic assembly, module, and type
+# 定义动态程序集、模块和类型
 $AssemblyBuilder = [AppDomain]::CurrentDomain.DefineDynamicAssembly(4, 1)
 $ModuleBuilder = $AssemblyBuilder.DefineDynamicModule(2, $False)
 $TypeBuilder = $ModuleBuilder.DefineType(0)
 
-# Define P/Invoke method
+# 定义 P/调用方法
 [void]$TypeBuilder.DefinePInvokeMethod('MapFileAndCheckSum', 'imagehlp.dll', 'Public, Static', [Reflection.CallingConventions]::Standard, [int], @([string], [int].MakeByRefType(), [int].MakeByRefType()), [Runtime.InteropServices.CallingConvention]::Winapi, [Runtime.InteropServices.CharSet]::Auto)
 
-# Create the type
+# 创建类型
 $Imagehlp = $TypeBuilder.CreateType()
 
-# Offset information
+# 偏移信息
 $timestampOffset = 136
 $exportTimestampOffset = $offset
 $checkSumOffset = 216
 
-# Calculate timestamp
+# 计算时间戳
 $currentTimestamp = [DateTime]::UtcNow
 $unixTimestamp = [int]($currentTimestamp - (Get-Date -Year 1970 -Month 1 -Day 1 -Hour 0 -Minute 0 -Second 0)).TotalSeconds
 
-# Change timestamps
+# 更改时间戳
 $Writer.BaseStream.Position = $timestampOffset
 $Writer.Write($unixTimestamp)
 
@@ -2761,36 +2762,36 @@ $Writer.Write($unixTimestamp)
 
 $Writer.Flush()
 
-# Write the current state of the MemoryStream to a temporary file
+# 将内存流的当前状态写入临时文件
 $tempFilePath = [System.IO.Path]::Combine($env:windir, "Temp", [System.IO.Path]::GetRandomFileName())
 [System.IO.File]::WriteAllBytes($tempFilePath, $MemoryStream.ToArray())
 
-# Update hash using the temporary file
+# 使用临时文件更新哈希
 [int]$HeaderSum = 0
 [int]$CheckSum = 0
 [void]$Imagehlp::MapFileAndCheckSum($tempFilePath, [ref]$HeaderSum, [ref]$CheckSum)
 
-# If the checksums don't match, update the checksum in the MemoryStream
+# 如果校验和不匹配，请更新内存流中的校验和
 if ($HeaderSum -ne $CheckSum) {
     $Writer.BaseStream.Position = $checkSumOffset
     $Writer.Write($CheckSum)
     $Writer.Flush()
 } else {
-    Write-host Error found
+    Write-host 发现错误
 }
 
-# Delete the temporary file
+# 删除临时文件
 Remove-Item -Path $tempFilePath -Force
 
-# Get the modified bytes
+# 获取修改后的字节
 $modifiedBytes = $MemoryStream.ToArray()
 
-# Write the modified bytes to the final file
+# 将修改后的字节写入最终文件
 [System.IO.File]::WriteAllBytes($PePath, $modifiedBytes)
 
 [void]$Imagehlp::MapFileAndCheckSum($PePath, [ref]$HeaderSum, [ref]$CheckSum)
 if ($HeaderSum -ne $CheckSum) {
-    Write-host Error found
+    Write-host 发现错误
 }
 
 $MemoryStream.Close()
@@ -2798,8 +2799,8 @@ $MemoryStream.Close()
 
 ::========================================================================================================================================
 ::
-::  This below blocks of text is encoded in base64 format
-::  The blocks in labels "sppc64.dll" and "sppc32.dll" contains below files
+::  下面的文本块以 base64 格式编码
+::  标签“sppc64.dll”和“sppc32.dll”中的块包含以下文件
 ::
 ::  e6ac83560c19ec7eb868c50ea97ea0ed5632a397a9f43c17e24e6de4a694d118 *sppc32.dll
 ::  c6df24deef2e83813dee9c81ddd9793a3d60c117a4e8e231b82e32b3192927e7 *sppc64.dll
@@ -2807,149 +2808,145 @@ $MemoryStream.Close()
 ::  The files are encoded in base64 to make MAS AIO version.
 ::
 ::  mass grave[.]dev/ohook
-::  Here you can find the files source code and info on how to rebuild the identical sppc.dll files
+::  在这里，你可以找到文件源代码以及如何重建相同的 sppc.dll 文件的信息
 ::
 ::  stackoverflow.com/a/35335273
-::  Here you can check how to extract sppc.dll files from base64
+::  在这里，你可以检查如何从 base64 中提取 sppc.dll 文件
 ::
-::  For any further question, feel free to contact us on mass grave[.]dev/contactus
+::  如有任何其他问题，请随时通过以下方式与我们联系 mass grave[.]dev/contactus
 ::
 ::========================================================================================================================================
 
-::  Replace - with A and _ with a before base64 conversion
-
 :sppc32.dll:
-TVqQ--M----E----//8--Lg---------Q-----------------------------------------------g-----4fug4-t-nNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4g_W4gRE9TIG1vZGUuDQ0KJ---------BQRQ--T-EH-MDc0GQ----------O--
-DiML-QIo--I----e---------B-----Q----------C-_g-Q-----g--B-----E----G----------CQ----B---i9M---I-Q-E--C---B------E---E--------B------Q---jR----Bg---Y-Q---H---HgD-------------------------I---BQ---------
-----------------------------------------------------------BsY---H------------------------------------C50ZXh0----c-E----Q-----g----Q------------------C---G-ucmRhdGE--Bg-----I-----I----G----------------
---B---B-LmVoX2ZyYW2------D-----C----C-------------------Q---QC5lZGF0YQ--jR----B-----Eg----o------------------E---E-u_WRhdGE--BgB----Y-----I----c------------------B---D-LnJzcmM---B4-w---H-----E----Hg--
-----------------Q---wC5yZWxvYw--F-----C------g---CI------------------E---EI-----------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------------------------------------LgB----wgw-VYnlVlONRfCD7DDHRf------
-iUQkFI1F9IlEJBCLRQzHRCQM-----IlEJ-SLRQjHRCQI-CC-_okEJMdF9-----Do-gE--Is1eGC-_oPsGIX-icOLRfB0CokEJDHb/9ZR6zKLVfTHRCQECiC-_okEJIlUJ-j/FYBggGqD7-yFwItF8IkEJHQK/9_7-Q---FLr-//WUI1l+InYW15dw1WJ5VdWU4PsPItF
-GIt1HIlEJBCLRRSJdCQUiUQkDItFEIlEJ-iLRQyJRCQEi0UIiQQk6Hw----xyYPsGInHhcB1XItFGDkIdlVr2SiLBgHYg3gQ-HRFiUQkBItFCIlN5IkEJOj7/v//i03khcB1L-Mex0MQ-Q---MdDF-----DHQxg-----x0Mc-----MdDI-----DHQyQ-----QeukjWX0
-ifhbXl9dwhg-kP8lcGC-_pCQ/yVsYIBqkJD/////-----P////8-----------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------TgBh-G0-ZQ---Ec-cgBh-GM-ZQ------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------U----------F6Ug-Bf-gBGwwEBIgB---Q----H----ODf//8I---------CQ----w----
-1N///50-----QQ4IhQJCDQVIhgODB-KPw0HGQcUMB-Qo----W----Eng//+q-----EEOCIUCQg0FRocDhgSDBQKbw0HGQcdBxQwEB---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------D-3NBk-----MZC---B----Qw---EM----oQ---NEE--EBC--DPQg--70I---VD---pQw--XUM--KFD--DpQw--F0Q--DVE--BnR---nUQ--ONE---tRQ--YUU--J9F--DTRQ--DUY--DtG--BxRg--r0Y--M9G--D7Rg--pR---FFH--BvRw--
-n0c--NNH---RS---TUg--G9I--ClS---zUg---VJ--BBSQ--bUk--KdJ--C7SQ--+0k--DlK--BPSg--dUo--J1K--DTSg--B0s--D1L--BpSw--pUs--ONL---NT---OUw--IlM--DRT---EU0--FlN--CjTQ--8U0--BtO--BHTg--h04--LtO--DnTg--K08--FtP
---C1Tw--608--CdQ--BdU---4kI--P1C---_Qw--RkM--IJD--DIQw---0Q--ClE--BRR---hUQ--MNE---LRQ--SkU--INF--C8RQ--80U--CdG--BZRg--k0Y--MJG--DoRg--GUc--DFH--BjRw--ikc--LxH--D1Rw--Mkg--GFI--CNS---vEg--OxI---mSQ--
-Wkk--I1J--C0SQ--3kk--B1K--BHSg--ZUo--IxK--C7Sg--8Eo--CVL--BWSw--iks--MdL--D7Sw--Jkw--GRM--CwT---9Ew--DhN--CBTQ--zU0---lO---0Tg--_k4--KRO--DUTg--DE8--EZP--CLTw--008---xQ--BFU---eF-------Q-C--M-B--F--Y-
-Bw-I--k-Cg-L--w-DQ-O--8-E--R-BI-Ew-U-BU-Fg-X-Bg-GQ-_-Bs-H--d-B4-Hw-g-CE-Ig-j-CQ-JQ-m-Cc-K--p-Co-Kw-s-C0-Lg-v-D--MQ-y-DM-N--1-DY-Nw-4-Dk-Og-7-Dw-PQ-+-D8-Q-BB-EI-c3BwYy5kbGw-U1BQQ1MuU0xDYWxsU2VydmVy-FNM
-Q2FsbFNlcnZlcgBTUFBDUy5TTENsb3Nl-FNMQ2xvc2U-U1BQQ1MuU0xDb25zdW1lUmln_HQ-U0xDb25zdW1lUmln_HQ-U1BQQ1MuU0xEZXBvc2l0TWlncmF0_W9uQmxvYgBTTERlcG9z_XRN_WdyYXRpb25CbG9i-FNQUENTLlNMRGVwb3NpdE9mZmxpbmVDb25m_XJt
-YXRpb25JZ-BTTERlcG9z_XRPZmZs_W5lQ29uZmlybWF0_W9uSWQ-U1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXg-U0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXg-U1BQQ1MuU0xEZXBvc2l0U3RvcmVUb2tlbgBTTERlcG9z_XRTdG9y
-ZVRv_2Vu-FNQUENTLlNMRmlyZUV2ZW50-FNMRmlyZUV2ZW50-FNQUENTLlNMR2F0_GVyTWlncmF0_W9uQmxvYgBTTEdhdGhlck1pZ3JhdGlvbkJsb2I-U1BQQ1MuU0xHYXRoZXJN_WdyYXRpb25CbG9iRXg-U0xHYXRoZXJN_WdyYXRpb25CbG9iRXg-U1BQQ1MuU0xH
-ZW5lcmF0ZU9mZmxpbmVJbnN0YWxsYXRpb25JZ-BTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklk-FNQUENTLlNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWRFe-BTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkRXg-U1BQQ1MuU0xHZXRBY3Rp
-dmVM_WNlbnNlSW5mbwBTTEdldEFjdGl2ZUxpY2Vuc2VJbmZv-FNQUENTLlNMR2V0QXBwbGljYXRpb25JbmZvcm1hdGlvbgBTTEdldEFwcGxpY2F0_W9uSW5mb3JtYXRpb24-U1BQQ1MuU0xHZXRBcHBs_WNhdGlvblBvbGljeQBTTEdldEFwcGxpY2F0_W9uUG9s_WN5
--FNQUENTLlNMR2V0QXV0_GVudGljYXRpb25SZXN1bHQ-U0xHZXRBdXRoZW50_WNhdGlvblJlc3Vsd-BTUFBDUy5TTEdldEVuY3J5cHRlZFBJREV4-FNMR2V0RW5jcnlwdGVkUElERXg-U1BQQ1MuU0xHZXRHZW51_W5lSW5mb3JtYXRpb24-U0xHZXRHZW51_W5lSW5m
-b3JtYXRpb24-U1BQQ1MuU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRz-FNMR2V0SW5zdGFsbGVkUHJvZHVjdEtleUlkcwBTUFBDUy5TTEdldExpY2Vuc2U-U0xHZXRM_WNlbnNl-FNQUENTLlNMR2V0TGljZW5zZUZpbGVJZ-BTTEdldExpY2Vuc2VG_WxlSWQ-U1BQ
-Q1MuU0xHZXRM_WNlbnNlSW5mb3JtYXRpb24-U0xHZXRM_WNlbnNlSW5mb3JtYXRpb24-U0xHZXRM_WNlbnNpbmdTdGF0dXNJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBLZXlJZ-BTTEdldFBLZXlJZ-BTUFBDUy5TTEdldFBLZXlJbmZvcm1hdGlvbgBTTEdldFBLZXlJ
-bmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0_W9u-FNMR2V0UG9s_WN5SW5mb3JtYXRpb24-U1BQQ1MuU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JE-FNMR2V0UG9s_WN5SW5mb3JtYXRpb25EV09SR-BTUFBDUy5TTEdldFByb2R1Y3RT_3VJbmZv
-cm1hdGlvbgBTTEdldFByb2R1Y3RT_3VJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFNMSURM_XN0-FNMR2V0U0xJRExpc3Q-U1BQQ1MuU0xHZXRTZXJ2_WNlSW5mb3JtYXRpb24-U0xHZXRTZXJ2_WNlSW5mb3JtYXRpb24-U1BQQ1MuU0xJbnN0YWxsTGljZW5zZQBTTElu
-c3RhbGxM_WNlbnNl-FNQUENTLlNMSW5zdGFsbFByb29mT2ZQdXJj_GFzZQBTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXg-U0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXg-U1BQQ1MuU0xJc0dlbnVpbmVMb2Nh
-bEV4-FNMSXNHZW51_W5lTG9jYWxFe-BTUFBDUy5TTExvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNMTG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U1BQQ1MuU0xPcGVu-FNMT3BlbgBTUFBDUy5TTFBlcnNpc3RBcHBs_WNhdGlvblBvbGlj_WVz-FNMUGVyc2lzdEFwcGxp
-Y2F0_W9uUG9s_WNpZXM-U1BQQ1MuU0xQZXJz_XN0UlRTUGF5bG9hZE92ZXJy_WRl-FNMUGVyc2lzdFJUU1BheWxvYWRPdmVycmlkZQBTUFBDUy5TTFJlQXJt-FNMUmVBcm0-U1BQQ1MuU0xSZWdpc3RlckV2ZW50-FNMUmVn_XN0ZXJFdmVud-BTUFBDUy5TTFJlZ2lz
-dGVyUGx1Z2lu-FNMUmVn_XN0ZXJQbHVn_W4-U1BQQ1MuU0xTZXRBdXRoZW50_WNhdGlvbkRhdGE-U0xTZXRBdXRoZW50_WNhdGlvbkRhdGE-U1BQQ1MuU0xTZXRDdXJyZW50UHJvZHVjdEtleQBTTFNldEN1cnJlbnRQcm9kdWN0S2V5-FNQUENTLlNMU2V0R2VudWlu
-ZUluZm9ybWF0_W9u-FNMU2V0R2VudWluZUluZm9ybWF0_W9u-FNQUENTLlNMVW5pbnN0YWxsTGljZW5zZQBTTFVu_W5zdGFsbExpY2Vuc2U-U1BQQ1MuU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2U-U1BQQ1MuU0xV
-bmxvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNMVW5sb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFVucmVn_XN0ZXJFdmVud-BTTFVucmVn_XN0ZXJFdmVud-BTUFBDUy5TTFVucmVn_XN0ZXJQbHVn_W4-U0xVbnJlZ2lzdGVyUGx1Z2lu-FNQUENTLlNMcEF1
-dGhlbnRpY2F0ZUdlbnVpbmVU_WNrZXRSZXNwb25zZQBTTHBBdXRoZW50_WNhdGVHZW51_W5lVGlj_2V0UmVzcG9uc2U-U1BQQ1MuU0xwQmVn_W5HZW51_W5lVGlj_2V0VHJhbnNhY3Rpb24-U0xwQmVn_W5HZW51_W5lVGlj_2V0VHJhbnNhY3Rpb24-U1BQQ1MuU0xw
-Q2xlYXJBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNz-FNQUENTLlNMcERlcG9z_XREb3dubGV2ZWxHZW51_W5lVGlj_2V0-FNMcERlcG9z_XREb3dubGV2ZWxHZW51_W5lVGlj_2V0-FNQUENTLlNMcERlcG9z_XRUb2tlbkFj
-dGl2YXRpb25SZXNwb25zZQBTTHBEZXBvc2l0VG9rZW5BY3RpdmF0_W9uUmVzcG9uc2U-U1BQQ1MuU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25D_GFsbGVuZ2U-U0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25D_GFsbGVuZ2U-U1BQQ1MuU0xwR2V0R2VudWluZUJs
-b2I-U0xwR2V0R2VudWluZUJsb2I-U1BQQ1MuU0xwR2V0R2VudWluZUxvY2Fs-FNMcEdldEdlbnVpbmVMb2Nhb-BTUFBDUy5TTHBHZXRM_WNlbnNlQWNxdWlz_XRpb25JbmZv-FNMcEdldExpY2Vuc2VBY3F1_XNpdGlvbkluZm8-U1BQQ1MuU0xwR2V0TVNQ_WRJbmZv
-cm1hdGlvbgBTTHBHZXRNU1BpZEluZm9ybWF0_W9u-FNQUENTLlNMcEdldE1hY2hpbmVVR1VJR-BTTHBHZXRNYWNo_W5lVUdVSUQ-U1BQQ1MuU0xwR2V0VG9rZW5BY3RpdmF0_W9uR3JhbnRJbmZv-FNMcEdldFRv_2VuQWN0_XZhdGlvbkdyYW50SW5mbwBTUFBDUy5T
-THBJQUFjdGl2YXRlUHJvZHVjd-BTTHBJQUFjdGl2YXRlUHJvZHVjd-BTUFBDUy5TTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTUFBDUy5TTHBQcm9jZXNzVk1Q
-_XBlTWVzc2FnZQBTTHBQcm9jZXNzVk1Q_XBlTWVzc2FnZQBTUFBDUy5TTHBTZXRBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTTHBTZXRBY3RpdmF0_W9uSW5Qcm9ncmVzcwBTUFBDUy5TTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBTTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBT
-UFBDUy5TTHBWTEFjdGl2YXRlUHJvZHVjd-BTTHBWTEFjdGl2YXRlUHJvZHVjd-------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------------------------------------------FBg-------------Ohg--BsY---XG--------------
-+G---Hhg--BkY--------------MYQ--gG------------------------------iG---Kpg--------yG--------DUY--------Ihg--CqY--------Mhg--------1G---------C-FNMR2V0TGljZW5z_W5nU3RhdHVzSW5mb3JtYXRpb24--QBTTEdldFByb2R1
-Y3RT_3VJbmZvcm1hdGlvbg--3QNMb2NhbEZyZWU-RwFTdHJTdHJOSVc--G----Bg--BzcHBjcy5kbGw----UY---S0VSTkVMMzIuZGxs-----Chg--BTSExXQVBJLmRsb-----------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------B-B-----Y--C--------------------B--E----w--C--------------------B--kE--BI----WH---BwD-------------BwDN----FY-UwBf-FY-RQBS-FM-SQBP-E4-XwBJ-E4-
-RgBP------C9BO/+---B--M----------w--------------------Q-B--C--------------------f-I---E-UwB0-HI-_QBu-Gc-RgBp-Gw-ZQBJ-G4-ZgBv----W-I---E-M--0-D--OQ-w-DQ-RQ-0----eg-t--E-QwBv-G0-c-Bh-G4-eQBO-GE-bQBl----
---BB-G4-bwBt-GE-b-Bv-HU-cw-g-FM-bwBm-HQ-dwBh-HI-ZQ-g-EQ-ZQB0-GU-cgBp-G8-cgBh-HQ-_QBv-G4-I-BD-G8-cgBw-G8-cgBh-HQ-_QBv-G4------D4-Cw-B-EY-_QBs-GU-R-Bl-HM-YwBy-Gk-c-B0-Gk-bwBu------Bv-Gg-bwBv-Gs-I-BT-F--
-U-BD-------w--g--QBG-Gk-b-Bl-FY-ZQBy-HM-_QBv-G4------D--Lg-z-C4-M--u-D-----q--U--QBJ-G4-d-Bl-HI-bgBh-Gw-TgBh-G0-ZQ---HM-c-Bw-GM------Iw-N--B-Ew-ZQBn-GE-b-BD-G8-c-B5-HI-_QBn-Gg-d----Kk-I--y-D--Mg-z-C--
-QQBu-G8-bQBh-Gw-bwB1-HM-I-BT-G8-ZgB0-Hc-YQBy-GU-I-BE-GU-d-Bl-HI-_QBv-HI-YQB0-Gk-bwBu-C--QwBv-HI-c-Bv-HI-YQB0-Gk-bwBu----Og-J--E-TwBy-Gk-ZwBp-G4-YQBs-EY-_QBs-GU-bgBh-G0-ZQ---HM-c-Bw-GM-LgBk-Gw-b-------
-L--G--E-U-By-G8-Z-B1-GM-d-BO-GE-bQBl------Bv-Gg-bwBv-Gs----0--g--QBQ-HI-bwBk-HU-YwB0-FY-ZQBy-HM-_QBv-G4----w-C4-Mw-u-D--Lg-w----R-----E-VgBh-HI-RgBp-Gw-ZQBJ-G4-ZgBv-------k--Q---BU-HI-YQBu-HM-b-Bh-HQ-
-_QBv-G4-------kE5-Q-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--------Q---U----OzBQMHEwfjBSMVox------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1vZGUuDQ0KJAAAAAAAAABQRQAATAEHAMDc0GQAAAAAAAAAAOAA
+DiMLAQIoAAIAAAAeAAAAAAAAABAAAAAQAAAAAAAAAACAagAQAAAAAgAABAAAAAEAAAAGAAAAAAAAAACQAAAABAAAi9MAAAIAQAEAACAAABAAAAAAEAAAEAAAAAAAABAAAAAAQAAAjRAAAABgAAAYAQAAAHAAAHgDAAAAAAAAAAAAAAAAAAAAAAAAAIAAABQAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABsYAAAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC50ZXh0AAAAcAEAAAAQAAAAAgAAAAQAAAAAAAAAAAAAAAAAACAAAGAucmRhdGEAABgAAAAAIAAAAAIAAAAGAAAAAAAAAAAAAAAA
+AABAAABALmVoX2ZyYW2AAAAAADAAAAACAAAACAAAAAAAAAAAAAAAAAAAQAAAQC5lZGF0YQAAjRAAAABAAAAAEgAAAAoAAAAAAAAAAAAAAAAAAEAAAEAuaWRhdGEAABgBAAAAYAAAAAIAAAAcAAAAAAAAAAAAAAAAAABAAADALnJzcmMAAAB4AwAAAHAAAAAEAAAAHgAA
+AAAAAAAAAAAAAAAAQAAAwC5yZWxvYwAAFAAAAACAAAAAAgAAACIAAAAAAAAAAAAAAAAAAEAAAEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALgBAAAAwgwAVYnlVlONRfCD7DDHRfAAAAAA
+iUQkFI1F9IlEJBCLRQzHRCQMAAAAAIlEJASLRQjHRCQIACCAaokEJMdF9AAAAADoAgEAAIs1eGCAaoPsGIXAicOLRfB0CokEJDHb/9ZR6zKLVfTHRCQECiCAaokEJIlUJAj/FYBggGqD7AyFwItF8IkEJHQK/9a7AQAAAFLrA//WUI1l+InYW15dw1WJ5VdWU4PsPItF
+GIt1HIlEJBCLRRSJdCQUiUQkDItFEIlEJAiLRQyJRCQEi0UIiQQk6HwAAAAxyYPsGInHhcB1XItFGDkIdlVr2SiLBgHYg3gQAHRFiUQkBItFCIlN5IkEJOj7/v//i03khcB1LAMex0MQAQAAAMdDFAAAAADHQxgAAAAAx0McAAAAAMdDIAAAAADHQyQAAAAAQeukjWX0
+ifhbXl9dwhgAkP8lcGCAapCQ/yVsYIBqkJD/////AAAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATgBhAG0AZQAAAEcAcgBhAGMAZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAF6UgABfAgBGwwEBIgBAAAQAAAAHAAAAODf//8IAAAAAAAAACQAAAAwAAAA
+1N///50AAAAAQQ4IhQJCDQVIhgODBAKPw0HGQcUMBAQoAAAAWAAAAEng//+qAAAAAEEOCIUCQg0FRocDhgSDBQKbw0HGQcdBxQwEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAADA3NBkAAAAAMZCAAABAAAAQwAAAEMAAAAoQAAANEEAAEBCAADPQgAA70IAAAVDAAApQwAAXUMAAKFDAADpQwAAF0QAADVEAABnRAAAnUQAAONEAAAtRQAAYUUAAJ9FAADTRQAADUYAADtGAABxRgAAr0YAAM9GAAD7RgAApRAAAFFHAABvRwAA
+n0cAANNHAAARSAAATUgAAG9IAAClSAAAzUgAAAVJAABBSQAAbUkAAKdJAAC7SQAA+0kAADlKAABPSgAAdUoAAJ1KAADTSgAAB0sAAD1LAABpSwAApUsAAONLAAANTAAAOUwAAIlMAADRTAAAEU0AAFlNAACjTQAA8U0AABtOAABHTgAAh04AALtOAADnTgAAK08AAFtP
+AAC1TwAA608AACdQAABdUAAA4kIAAP1CAAAaQwAARkMAAIJDAADIQwAAA0QAAClEAABRRAAAhUQAAMNEAAALRQAASkUAAINFAAC8RQAA80UAACdGAABZRgAAk0YAAMJGAADoRgAAGUcAADFHAABjRwAAikcAALxHAAD1RwAAMkgAAGFIAACNSAAAvEgAAOxIAAAmSQAA
+WkkAAI1JAAC0SQAA3kkAAB1KAABHSgAAZUoAAIxKAAC7SgAA8EoAACVLAABWSwAAiksAAMdLAAD7SwAAJkwAAGRMAACwTAAA9EwAADhNAACBTQAAzU0AAAlOAAA0TgAAak4AAKROAADUTgAADE8AAEZPAACLTwAA008AAAxQAABFUAAAeFAAAAAAAQACAAMABAAFAAYA
+BwAIAAkACgALAAwADQAOAA8AEAARABIAEwAUABUAFgAXABgAGQAaABsAHAAdAB4AHwAgACEAIgAjACQAJQAmACcAKAApACoAKwAsAC0ALgAvADAAMQAyADMANAA1ADYANwA4ADkAOgA7ADwAPQA+AD8AQABBAEIAc3BwYy5kbGwAU1BQQ1MuU0xDYWxsU2VydmVyAFNM
+Q2FsbFNlcnZlcgBTUFBDUy5TTENsb3NlAFNMQ2xvc2UAU1BQQ1MuU0xDb25zdW1lUmlnaHQAU0xDb25zdW1lUmlnaHQAU1BQQ1MuU0xEZXBvc2l0TWlncmF0aW9uQmxvYgBTTERlcG9zaXRNaWdyYXRpb25CbG9iAFNQUENTLlNMRGVwb3NpdE9mZmxpbmVDb25maXJt
+YXRpb25JZABTTERlcG9zaXRPZmZsaW5lQ29uZmlybWF0aW9uSWQAU1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXgAU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkRXgAU1BQQ1MuU0xEZXBvc2l0U3RvcmVUb2tlbgBTTERlcG9zaXRTdG9y
+ZVRva2VuAFNQUENTLlNMRmlyZUV2ZW50AFNMRmlyZUV2ZW50AFNQUENTLlNMR2F0aGVyTWlncmF0aW9uQmxvYgBTTEdhdGhlck1pZ3JhdGlvbkJsb2IAU1BQQ1MuU0xHYXRoZXJNaWdyYXRpb25CbG9iRXgAU0xHYXRoZXJNaWdyYXRpb25CbG9iRXgAU1BQQ1MuU0xH
+ZW5lcmF0ZU9mZmxpbmVJbnN0YWxsYXRpb25JZABTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkAFNQUENTLlNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWRFeABTTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkRXgAU1BQQ1MuU0xHZXRBY3Rp
+dmVMaWNlbnNlSW5mbwBTTEdldEFjdGl2ZUxpY2Vuc2VJbmZvAFNQUENTLlNMR2V0QXBwbGljYXRpb25JbmZvcm1hdGlvbgBTTEdldEFwcGxpY2F0aW9uSW5mb3JtYXRpb24AU1BQQ1MuU0xHZXRBcHBsaWNhdGlvblBvbGljeQBTTEdldEFwcGxpY2F0aW9uUG9saWN5
+AFNQUENTLlNMR2V0QXV0aGVudGljYXRpb25SZXN1bHQAU0xHZXRBdXRoZW50aWNhdGlvblJlc3VsdABTUFBDUy5TTEdldEVuY3J5cHRlZFBJREV4AFNMR2V0RW5jcnlwdGVkUElERXgAU1BQQ1MuU0xHZXRHZW51aW5lSW5mb3JtYXRpb24AU0xHZXRHZW51aW5lSW5m
+b3JtYXRpb24AU1BQQ1MuU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRzAFNMR2V0SW5zdGFsbGVkUHJvZHVjdEtleUlkcwBTUFBDUy5TTEdldExpY2Vuc2UAU0xHZXRMaWNlbnNlAFNQUENTLlNMR2V0TGljZW5zZUZpbGVJZABTTEdldExpY2Vuc2VGaWxlSWQAU1BQ
+Q1MuU0xHZXRMaWNlbnNlSW5mb3JtYXRpb24AU0xHZXRMaWNlbnNlSW5mb3JtYXRpb24AU0xHZXRMaWNlbnNpbmdTdGF0dXNJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBLZXlJZABTTEdldFBLZXlJZABTUFBDUy5TTEdldFBLZXlJbmZvcm1hdGlvbgBTTEdldFBLZXlJ
+bmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0aW9uAFNMR2V0UG9saWN5SW5mb3JtYXRpb24AU1BQQ1MuU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JEAFNMR2V0UG9saWN5SW5mb3JtYXRpb25EV09SRABTUFBDUy5TTEdldFByb2R1Y3RTa3VJbmZv
+cm1hdGlvbgBTTEdldFByb2R1Y3RTa3VJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFNMSURMaXN0AFNMR2V0U0xJRExpc3QAU1BQQ1MuU0xHZXRTZXJ2aWNlSW5mb3JtYXRpb24AU0xHZXRTZXJ2aWNlSW5mb3JtYXRpb24AU1BQQ1MuU0xJbnN0YWxsTGljZW5zZQBTTElu
+c3RhbGxMaWNlbnNlAFNQUENTLlNMSW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXgAU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlRXgAU1BQQ1MuU0xJc0dlbnVpbmVMb2Nh
+bEV4AFNMSXNHZW51aW5lTG9jYWxFeABTUFBDUy5TTExvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNMTG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU1BQQ1MuU0xPcGVuAFNMT3BlbgBTUFBDUy5TTFBlcnNpc3RBcHBsaWNhdGlvblBvbGljaWVzAFNMUGVyc2lzdEFwcGxp
+Y2F0aW9uUG9saWNpZXMAU1BQQ1MuU0xQZXJzaXN0UlRTUGF5bG9hZE92ZXJyaWRlAFNMUGVyc2lzdFJUU1BheWxvYWRPdmVycmlkZQBTUFBDUy5TTFJlQXJtAFNMUmVBcm0AU1BQQ1MuU0xSZWdpc3RlckV2ZW50AFNMUmVnaXN0ZXJFdmVudABTUFBDUy5TTFJlZ2lz
+dGVyUGx1Z2luAFNMUmVnaXN0ZXJQbHVnaW4AU1BQQ1MuU0xTZXRBdXRoZW50aWNhdGlvbkRhdGEAU0xTZXRBdXRoZW50aWNhdGlvbkRhdGEAU1BQQ1MuU0xTZXRDdXJyZW50UHJvZHVjdEtleQBTTFNldEN1cnJlbnRQcm9kdWN0S2V5AFNQUENTLlNMU2V0R2VudWlu
+ZUluZm9ybWF0aW9uAFNMU2V0R2VudWluZUluZm9ybWF0aW9uAFNQUENTLlNMVW5pbnN0YWxsTGljZW5zZQBTTFVuaW5zdGFsbExpY2Vuc2UAU1BQQ1MuU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU0xVbmluc3RhbGxQcm9vZk9mUHVyY2hhc2UAU1BQQ1MuU0xV
+bmxvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNMVW5sb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFVucmVnaXN0ZXJFdmVudABTTFVucmVnaXN0ZXJFdmVudABTUFBDUy5TTFVucmVnaXN0ZXJQbHVnaW4AU0xVbnJlZ2lzdGVyUGx1Z2luAFNQUENTLlNMcEF1
+dGhlbnRpY2F0ZUdlbnVpbmVUaWNrZXRSZXNwb25zZQBTTHBBdXRoZW50aWNhdGVHZW51aW5lVGlja2V0UmVzcG9uc2UAU1BQQ1MuU0xwQmVnaW5HZW51aW5lVGlja2V0VHJhbnNhY3Rpb24AU0xwQmVnaW5HZW51aW5lVGlja2V0VHJhbnNhY3Rpb24AU1BQQ1MuU0xw
+Q2xlYXJBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNzAFNQUENTLlNMcERlcG9zaXREb3dubGV2ZWxHZW51aW5lVGlja2V0AFNMcERlcG9zaXREb3dubGV2ZWxHZW51aW5lVGlja2V0AFNQUENTLlNMcERlcG9zaXRUb2tlbkFj
+dGl2YXRpb25SZXNwb25zZQBTTHBEZXBvc2l0VG9rZW5BY3RpdmF0aW9uUmVzcG9uc2UAU1BQQ1MuU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25DaGFsbGVuZ2UAU0xwR2VuZXJhdGVUb2tlbkFjdGl2YXRpb25DaGFsbGVuZ2UAU1BQQ1MuU0xwR2V0R2VudWluZUJs
+b2IAU0xwR2V0R2VudWluZUJsb2IAU1BQQ1MuU0xwR2V0R2VudWluZUxvY2FsAFNMcEdldEdlbnVpbmVMb2NhbABTUFBDUy5TTHBHZXRMaWNlbnNlQWNxdWlzaXRpb25JbmZvAFNMcEdldExpY2Vuc2VBY3F1aXNpdGlvbkluZm8AU1BQQ1MuU0xwR2V0TVNQaWRJbmZv
+cm1hdGlvbgBTTHBHZXRNU1BpZEluZm9ybWF0aW9uAFNQUENTLlNMcEdldE1hY2hpbmVVR1VJRABTTHBHZXRNYWNoaW5lVUdVSUQAU1BQQ1MuU0xwR2V0VG9rZW5BY3RpdmF0aW9uR3JhbnRJbmZvAFNMcEdldFRva2VuQWN0aXZhdGlvbkdyYW50SW5mbwBTUFBDUy5T
+THBJQUFjdGl2YXRlUHJvZHVjdABTTHBJQUFjdGl2YXRlUHJvZHVjdABTUFBDUy5TTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTTHBJc0N1cnJlbnRJbnN0YWxsZWRQcm9kdWN0S2V5RGVmYXVsdEtleQBTUFBDUy5TTHBQcm9jZXNzVk1Q
+aXBlTWVzc2FnZQBTTHBQcm9jZXNzVk1QaXBlTWVzc2FnZQBTUFBDUy5TTHBTZXRBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTTHBTZXRBY3RpdmF0aW9uSW5Qcm9ncmVzcwBTUFBDUy5TTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBTTHBUcmlnZ2VyU2VydmljZVdvcmtlcgBT
+UFBDUy5TTHBWTEFjdGl2YXRlUHJvZHVjdABTTHBWTEFjdGl2YXRlUHJvZHVjdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFBgAAAAAAAAAAAAAOhgAABsYAAAXGAAAAAAAAAAAAAA
++GAAAHhgAABkYAAAAAAAAAAAAAAMYQAAgGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiGAAAKpgAAAAAAAAyGAAAAAAAADUYAAAAAAAAIhgAACqYAAAAAAAAMhgAAAAAAAA1GAAAAAAAAACAFNMR2V0TGljZW5zaW5nU3RhdHVzSW5mb3JtYXRpb24AAQBTTEdldFByb2R1
+Y3RTa3VJbmZvcm1hdGlvbgAA3QNMb2NhbEZyZWUARwFTdHJTdHJOSVcAAGAAAABgAABzcHBjcy5kbGwAAAAUYAAAS0VSTkVMMzIuZGxsAAAAAChgAABTSExXQVBJLmRsbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABABAAAAAYAACAAAAAAAAAAAAAAAAAAAABAAEAAAAwAACAAAAAAAAAAAAAAAAAAAABAAkEAABIAAAAWHAAABwDAAAAAAAAAAAAABwDNAAAAFYAUwBfAFYARQBSAFMASQBPAE4AXwBJAE4A
+RgBPAAAAAAC9BO/+AAABAAMAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAQABAACAAAAAAAAAAAAAAAAAAAAfAIAAAEAUwB0AHIAaQBuAGcARgBpAGwAZQBJAG4AZgBvAAAAWAIAAAEAMAA0ADAAOQAwADQARQA0AAAAegAtAAEAQwBvAG0AcABhAG4AeQBOAGEAbQBlAAAA
+AABBAG4AbwBtAGEAbABvAHUAcwAgAFMAbwBmAHQAdwBhAHIAZQAgAEQAZQB0AGUAcgBpAG8AcgBhAHQAaQBvAG4AIABDAG8AcgBwAG8AcgBhAHQAaQBvAG4AAAAAAD4ACwABAEYAaQBsAGUARABlAHMAYwByAGkAcAB0AGkAbwBuAAAAAABvAGgAbwBvAGsAIABTAFAA
+UABDAAAAAAAwAAgAAQBGAGkAbABlAFYAZQByAHMAaQBvAG4AAAAAADAALgAzAC4AMAAuADAAAAAqAAUAAQBJAG4AdABlAHIAbgBhAGwATgBhAG0AZQAAAHMAcABwAGMAAAAAAIwANAABAEwAZQBnAGEAbABDAG8AcAB5AHIAaQBnAGgAdAAAAKkAIAAyADAAMgAzACAA
+QQBuAG8AbQBhAGwAbwB1AHMAIABTAG8AZgB0AHcAYQByAGUAIABEAGUAdABlAHIAaQBvAHIAYQB0AGkAbwBuACAAQwBvAHIAcABvAHIAYQB0AGkAbwBuAAAAOgAJAAEATwByAGkAZwBpAG4AYQBsAEYAaQBsAGUAbgBhAG0AZQAAAHMAcABwAGMALgBkAGwAbAAAAAAA
+LAAGAAEAUAByAG8AZAB1AGMAdABOAGEAbQBlAAAAAABvAGgAbwBvAGsAAAA0AAgAAQBQAHIAbwBkAHUAYwB0AFYAZQByAHMAaQBvAG4AAAAwAC4AMwAuADAALgAwAAAARAAAAAEAVgBhAHIARgBpAGwAZQBJAG4AZgBvAAAAAAAkAAQAAABUAHIAYQBuAHMAbABhAHQA
+aQBvAG4AAAAAAAkE5AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAQAAAUAAAAOzBQMHEwfjBSMVoxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 :sppc32.dll:
 
 :========================================================================================================================================
 
-::  Replace - with A and _ with a before base64 conversion
-
 :sppc64.dll:
-TVqQ--M----E----//8--Lg---------Q-----------------------------------------------g-----4fug4-t-nNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4g_W4gRE9TIG1vZGUuDQ0KJ---------BQRQ--ZIYH-MDc0GQ----------P--
-LiIL-gIo--I----e---------B-----Q-----JIx-g-----Q-----g--B----------G----------CQ----B---39----I-Y-E--C---------Q-----------Q--------E--------------Q-----F---I0Q----c---U-E---C---B4-w---D---CQ---------
---------------------------------------------------------------------------------iH---Dg------------------------------------udGV4d----H-B----E-----I----E-------------------g--BgLnJkYXRh---g-----C-----C
-----Bg------------------Q---QC5wZGF0YQ--J------w-----g----g------------------E---E-ueGRhdGE--CQ-----Q-----I----K------------------B---B-LmVkYXRh--CNE----F-----S----D-------------------Q---QC5pZGF0YQ--
-U-E---Bw-----g---B4------------------E---M-ucnNyYw---HgD----g-----Q----g------------------B---D---------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------------------------------------LgB----w0FUU0iD7EhFMclMjQXpDw--SI1E
-JDjHRCQ0-----EiJRCQoSI1EJDRIiUQkIEjHRCQ4-----Oj/----SItMJDhIix1TY---hcBBicR0B//TRTHk6yhEi0QkNEiNF_MP--D/FUNg--BIi0wkOEiFwHQK/9NBv-E---Dr-v/TRIngSIPESFtBXMNBVUFUVVdWU0iD7Dgx9kyLrCSQ----SIusJJg---BMiWwk
-IEiJz0iJbCQo6Io---BBicSFwHVEQTl1-HY+SGveKEiLVQBI-dqDeh--dChIifnoIv///4X-dRxI-10-SMdDE-E---BIx0MY-----EjHQy------SP/G67xEieBIg8Q4W15fXUFcQV3DkJCQkJCQkP8lel8--JCQDx+E------D/JXpf--CQk-8fh-------/yVKXw--
-kJD/JTpf--CQkP//////////----------D//////////w----------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------TgBh-G0-ZQ---Ec-cgBh-GM-ZQ------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------E---Bh----B----GE---jh----R---COE---GRE--BB-------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------E----BBwM-B4IDM-L----BD-c-DGIIM-dgBn-FU-T--t----------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------MDc0GQ-----xlI---E---BD----Qw---ChQ---0UQ--QFI--M9S--DvUg--BVM--ClT--BdUw--oVM--OlT---XV---NVQ--GdU
---CdV---41Q--C1V--BhVQ--n1U--NNV---NVg--O1Y--HFW--CvVg--z1Y--PtW--COE---UVc--G9X--CfVw--01c--BFY--BNW---b1g--KVY--DNW---BVk--EFZ--BtWQ--p1k--LtZ--D7WQ--OVo--E9_--B1Wg--nVo--NN_---HWw--PVs--Glb--ClWw--
-41s---1c---5X---iVw--NFc---RXQ--WV0--KNd--DxXQ--G14--Ede--CHXg--u14--Ode---rXw--W18--LVf--DrXw--J2---F1g--DiUg--/VI--BpT--BGUw--glM--MhT---DV---KVQ--FFU--CFV---w1Q---tV--BKVQ--g1U--LxV--DzVQ--J1Y--FlW
---CTVg--wlY--OhW---ZVw--MVc--GNX--CKVw--vFc--PVX---yW---YVg--I1Y--C8W---7Fg--CZZ--B_WQ--jVk--LRZ--DeWQ--HVo--Ed_--BlWg--jFo--Lt_--DwWg--JVs--FZb--CKWw--x1s--Ptb---mX---ZFw--LBc--D0X---OF0--IFd--DNXQ--
-CV4--DRe--BqXg--pF4--NRe---MXw--Rl8--Itf--DTXw--DG---EVg--B4Y------B--I--w-E--U-Bg-H--g-CQ-K--s-D--N--4-Dw-Q-BE-Eg-T-BQ-FQ-W-Bc-G--Z-Bo-Gw-c-B0-Hg-f-C--IQ-i-CM-J--l-CY-Jw-o-Ck-Kg-r-Cw-LQ-u-C8-M--x-DI-
-Mw-0-DU-Ng-3-Dg-OQ-6-Ds-P--9-D4-PwB--EE-QgBzcHBjLmRsb-BTUFBDUy5TTENhbGxTZXJ2ZXI-U0xDYWxsU2VydmVy-FNQUENTLlNMQ2xvc2U-U0xDbG9zZQBTUFBDUy5TTENvbnN1bWVS_Wdod-BTTENvbnN1bWVS_Wdod-BTUFBDUy5TTERlcG9z_XRN_Wdy
-YXRpb25CbG9i-FNMRGVwb3NpdE1pZ3JhdGlvbkJsb2I-U1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklk-FNMRGVwb3NpdE9mZmxpbmVDb25m_XJtYXRpb25JZ-BTUFBDUy5TTERlcG9z_XRPZmZs_W5lQ29uZmlybWF0_W9uSWRFe-BTTERlcG9z_XRP
-ZmZs_W5lQ29uZmlybWF0_W9uSWRFe-BTUFBDUy5TTERlcG9z_XRTdG9yZVRv_2Vu-FNMRGVwb3NpdFN0b3JlVG9rZW4-U1BQQ1MuU0xG_XJlRXZlbnQ-U0xG_XJlRXZlbnQ-U1BQQ1MuU0xHYXRoZXJN_WdyYXRpb25CbG9i-FNMR2F0_GVyTWlncmF0_W9uQmxvYgBT
-UFBDUy5TTEdhdGhlck1pZ3JhdGlvbkJsb2JFe-BTTEdhdGhlck1pZ3JhdGlvbkJsb2JFe-BTUFBDUy5TTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklk-FNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWQ-U1BQQ1MuU0xHZW5lcmF0ZU9mZmxpbmVJbnN0
-YWxsYXRpb25JZEV4-FNMR2VuZXJhdGVPZmZs_W5lSW5zdGFsbGF0_W9uSWRFe-BTUFBDUy5TTEdldEFjdGl2ZUxpY2Vuc2VJbmZv-FNMR2V0QWN0_XZlTGljZW5zZUluZm8-U1BQQ1MuU0xHZXRBcHBs_WNhdGlvbkluZm9ybWF0_W9u-FNMR2V0QXBwbGljYXRpb25J
-bmZvcm1hdGlvbgBTUFBDUy5TTEdldEFwcGxpY2F0_W9uUG9s_WN5-FNMR2V0QXBwbGljYXRpb25Qb2xpY3k-U1BQQ1MuU0xHZXRBdXRoZW50_WNhdGlvblJlc3Vsd-BTTEdldEF1dGhlbnRpY2F0_W9uUmVzdWx0-FNQUENTLlNMR2V0RW5jcnlwdGVkUElERXg-U0xH
-ZXRFbmNyeXB0ZWRQSURFe-BTUFBDUy5TTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTUFBDUy5TTEdldEluc3RhbGxlZFByb2R1Y3RLZXlJZHM-U0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRz-FNQUENTLlNMR2V0TGljZW5z
-ZQBTTEdldExpY2Vuc2U-U1BQQ1MuU0xHZXRM_WNlbnNlRmlsZUlk-FNMR2V0TGljZW5zZUZpbGVJZ-BTUFBDUy5TTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0_W9u-FNQUENT
-LlNMR2V0UEtleUlk-FNMR2V0UEtleUlk-FNQUENTLlNMR2V0UEtleUluZm9ybWF0_W9u-FNMR2V0UEtleUluZm9ybWF0_W9u-FNQUENTLlNMR2V0UG9s_WN5SW5mb3JtYXRpb24-U0xHZXRQb2xpY3lJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0
-_W9uRFdPUkQ-U0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JE-FNQUENTLlNMR2V0UHJvZHVjdFNrdUluZm9ybWF0_W9u-FNMR2V0UHJvZHVjdFNrdUluZm9ybWF0_W9u-FNQUENTLlNMR2V0U0xJRExpc3Q-U0xHZXRTTElETGlzd-BTUFBDUy5TTEdldFNlcnZpY2VJ
-bmZvcm1hdGlvbgBTTEdldFNlcnZpY2VJbmZvcm1hdGlvbgBTUFBDUy5TTEluc3RhbGxM_WNlbnNl-FNMSW5zdGFsbExpY2Vuc2U-U1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNl-FNMSW5zdGFsbFByb29mT2ZQdXJj_GFzZQBTUFBDUy5TTEluc3RhbGxQcm9v
-Zk9mUHVyY2hhc2VFe-BTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2VFe-BTUFBDUy5TTElzR2VudWluZUxvY2FsRXg-U0xJc0dlbnVpbmVMb2NhbEV4-FNQUENTLlNMTG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xMb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5T
-TE9wZW4-U0xPcGVu-FNQUENTLlNMUGVyc2lzdEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xQZXJz_XN0QXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFBlcnNpc3RSVFNQYXlsb2FkT3ZlcnJpZGU-U0xQZXJz_XN0UlRTUGF5bG9hZE92ZXJy_WRl-FNQUENTLlNMUmVB
-cm0-U0xSZUFybQBTUFBDUy5TTFJlZ2lzdGVyRXZlbnQ-U0xSZWdpc3RlckV2ZW50-FNQUENTLlNMUmVn_XN0ZXJQbHVn_W4-U0xSZWdpc3RlclBsdWdpbgBTUFBDUy5TTFNldEF1dGhlbnRpY2F0_W9uRGF0YQBTTFNldEF1dGhlbnRpY2F0_W9uRGF0YQBTUFBDUy5T
-TFNldEN1cnJlbnRQcm9kdWN0S2V5-FNMU2V0Q3VycmVudFByb2R1Y3RLZXk-U1BQQ1MuU0xTZXRHZW51_W5lSW5mb3JtYXRpb24-U0xTZXRHZW51_W5lSW5mb3JtYXRpb24-U1BQQ1MuU0xVbmluc3RhbGxM_WNlbnNl-FNMVW5pbnN0YWxsTGljZW5zZQBTUFBDUy5T
-TFVu_W5zdGFsbFByb29mT2ZQdXJj_GFzZQBTTFVu_W5zdGFsbFByb29mT2ZQdXJj_GFzZQBTUFBDUy5TTFVubG9hZEFwcGxpY2F0_W9uUG9s_WNpZXM-U0xVbmxvYWRBcHBs_WNhdGlvblBvbGlj_WVz-FNQUENTLlNMVW5yZWdpc3RlckV2ZW50-FNMVW5yZWdpc3Rl
-ckV2ZW50-FNQUENTLlNMVW5yZWdpc3RlclBsdWdpbgBTTFVucmVn_XN0ZXJQbHVn_W4-U1BQQ1MuU0xwQXV0_GVudGljYXRlR2VudWluZVRpY2tldFJlc3BvbnNl-FNMcEF1dGhlbnRpY2F0ZUdlbnVpbmVU_WNrZXRSZXNwb25zZQBTUFBDUy5TTHBCZWdpbkdlbnVp
-bmVU_WNrZXRUcmFuc2FjdGlvbgBTTHBCZWdpbkdlbnVpbmVU_WNrZXRUcmFuc2FjdGlvbgBTUFBDUy5TTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNz-FNMcENsZWFyQWN0_XZhdGlvbkluUHJvZ3Jlc3M-U1BQQ1MuU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU
-_WNrZXQ-U0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU_WNrZXQ-U1BQQ1MuU0xwRGVwb3NpdFRv_2VuQWN0_XZhdGlvblJlc3BvbnNl-FNMcERlcG9z_XRUb2tlbkFjdGl2YXRpb25SZXNwb25zZQBTUFBDUy5TTHBHZW5lcmF0ZVRv_2VuQWN0_XZhdGlvbkNoYWxs
-ZW5nZQBTTHBHZW5lcmF0ZVRv_2VuQWN0_XZhdGlvbkNoYWxsZW5nZQBTUFBDUy5TTHBHZXRHZW51_W5lQmxvYgBTTHBHZXRHZW51_W5lQmxvYgBTUFBDUy5TTHBHZXRHZW51_W5lTG9jYWw-U0xwR2V0R2VudWluZUxvY2Fs-FNQUENTLlNMcEdldExpY2Vuc2VBY3F1
-_XNpdGlvbkluZm8-U0xwR2V0TGljZW5zZUFjcXVpc2l0_W9uSW5mbwBTUFBDUy5TTHBHZXRNU1BpZEluZm9ybWF0_W9u-FNMcEdldE1TUGlkSW5mb3JtYXRpb24-U1BQQ1MuU0xwR2V0TWFj_GluZVVHVUlE-FNMcEdldE1hY2hpbmVVR1VJR-BTUFBDUy5TTHBHZXRU
-b2tlbkFjdGl2YXRpb25HcmFudEluZm8-U0xwR2V0VG9rZW5BY3RpdmF0_W9uR3JhbnRJbmZv-FNQUENTLlNMcElBQWN0_XZhdGVQcm9kdWN0-FNMcElBQWN0_XZhdGVQcm9kdWN0-FNQUENTLlNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5
--FNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5-FNQUENTLlNMcFByb2Nlc3NWTVBpcGVNZXNzYWdl-FNMcFByb2Nlc3NWTVBpcGVNZXNzYWdl-FNQUENTLlNMcFNldEFjdGl2YXRpb25JblByb2dyZXNz-FNMcFNldEFjdGl2YXRpb25JblBy
-b2dyZXNz-FNQUENTLlNMcFRy_WdnZXJTZXJ2_WNlV29y_2Vy-FNMcFRy_WdnZXJTZXJ2_WNlV29y_2Vy-FNQUENTLlNMcFZMQWN0_XZhdGVQcm9kdWN0-FNMcFZMQWN0_XZhdGVQcm9kdWN0--------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------UH--------------IHE--Ihw--Boc--------------wcQ--oH---Hhw-------------ERx--Cwc-----------------------------D-c--------OJw--------------------cQ------------------
-DHE------------------MBw--------4n--------------------Bx-------------------McQ-------------------gBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0_W9u--E-U0xHZXRQcm9kdWN0U2t1SW5mb3JtYXRpb24--OgDTG9jYWxGcmVl-FEB
-U3RyU3RyTklX--Bw----c---c3BwY3MuZGxs----FH---EtFUk5FTDMyLmRsb------oc---U0hMV0FQSS5kbGw-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------------------------------------E-E----Bg--I--------------------E--Q---D---I--------------
-------E-CQQ--Eg---BYg---H-M-------------H-M0----VgBT-F8-VgBF-FI-UwBJ-E8-TgBf-Ek-TgBG-E8------L0E7/4---E--w---------D--------------------B--E--I-------------------B8-g---QBT-HQ-cgBp-G4-ZwBG-Gk-b-Bl-Ek-
-bgBm-G8---BY-g---Q-w-DQ-M--5-D--N-BF-DQ---B6-C0--QBD-G8-bQBw-GE-bgB5-E4-YQBt-GU------EE-bgBv-G0-YQBs-G8-dQBz-C--UwBv-GY-d-B3-GE-cgBl-C--R-Bl-HQ-ZQBy-Gk-bwBy-GE-d-Bp-G8-bg-g-EM-bwBy-H--bwBy-GE-d-Bp-G8-
-bg------Pg-L--E-RgBp-Gw-ZQBE-GU-cwBj-HI-_QBw-HQ-_QBv-G4------G8-_-Bv-G8-_w-g-FM-U-BQ-EM------D--C--B-EY-_QBs-GU-VgBl-HI-cwBp-G8-bg------M--u-DM-Lg-w-C4-M----Co-BQ-B-Ek-bgB0-GU-cgBu-GE-b-BO-GE-bQBl----
-cwBw-H--Yw------j--0--E-T-Bl-Gc-YQBs-EM-bwBw-Hk-cgBp-Gc-_-B0----qQ-g-DI-M--y-DM-I-BB-G4-bwBt-GE-b-Bv-HU-cw-g-FM-bwBm-HQ-dwBh-HI-ZQ-g-EQ-ZQB0-GU-cgBp-G8-cgBh-HQ-_QBv-G4-I-BD-G8-cgBw-G8-cgBh-HQ-_QBv-G4-
----6--k--QBP-HI-_QBn-Gk-bgBh-Gw-RgBp-Gw-ZQBu-GE-bQBl----cwBw-H--Yw-u-GQ-b-Bs-------s--Y--QBQ-HI-bwBk-HU-YwB0-E4-YQBt-GU------G8-_-Bv-G8-_w---DQ-C--B-F--cgBv-GQ-dQBj-HQ-VgBl-HI-cwBp-G8-bg---D--Lg-z-C4-
-M--u-D----BE-----QBW-GE-cgBG-Gk-b-Bl-Ek-bgBm-G8------CQ-B----FQ-cgBh-G4-cwBs-GE-d-Bp-G8-bg------CQTkB---------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
+TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1vZGUuDQ0KJAAAAAAAAABQRQAAZIYHAMDc0GQAAAAAAAAAAPAA
+LiILAgIoAAIAAAAeAAAAAAAAABAAAAAQAAAAAJIxAgAAAAAQAAAAAgAABAAAAAAAAAAGAAAAAAAAAACQAAAABAAA39AAAAIAYAEAACAAAAAAAAAQAAAAAAAAAAAQAAAAAAAAEAAAAAAAAAAAAAAQAAAAAFAAAI0QAAAAcAAAUAEAAACAAAB4AwAAADAAACQAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiHAAADgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAudGV4dAAAAHABAAAAEAAAAAIAAAAEAAAAAAAAAAAAAAAAAAAgAABgLnJkYXRhAAAgAAAAACAAAAAC
+AAAABgAAAAAAAAAAAAAAAAAAQAAAQC5wZGF0YQAAJAAAAAAwAAAAAgAAAAgAAAAAAAAAAAAAAAAAAEAAAEAueGRhdGEAACQAAAAAQAAAAAIAAAAKAAAAAAAAAAAAAAAAAABAAABALmVkYXRhAACNEAAAAFAAAAASAAAADAAAAAAAAAAAAAAAAAAAQAAAQC5pZGF0YQAA
+UAEAAABwAAAAAgAAAB4AAAAAAAAAAAAAAAAAAEAAAMAucnNyYwAAAHgDAAAAgAAAAAQAAAAgAAAAAAAAAAAAAAAAAABAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALgBAAAAw0FUU0iD7EhFMclMjQXpDwAASI1E
+JDjHRCQ0AAAAAEiJRCQoSI1EJDRIiUQkIEjHRCQ4AAAAAOj/AAAASItMJDhIix1TYAAAhcBBicR0B//TRTHk6yhEi0QkNEiNFaMPAAD/FUNgAABIi0wkOEiFwHQK/9NBvAEAAADrAv/TRIngSIPESFtBXMNBVUFUVVdWU0iD7Dgx9kyLrCSQAAAASIusJJgAAABMiWwk
+IEiJz0iJbCQo6IoAAABBicSFwHVEQTl1AHY+SGveKEiLVQBIAdqDehAAdChIifnoIv///4XAdRxIA10ASMdDEAEAAABIx0MYAAAAAEjHQyAAAAAASP/G67xEieBIg8Q4W15fXUFcQV3DkJCQkJCQkP8lel8AAJCQDx+EAAAAAAD/JXpfAACQkA8fhAAAAAAA/yVKXwAA
+kJD/JTpfAACQkP//////////AAAAAAAAAAD//////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATgBhAG0AZQAAAEcAcgBhAGMAZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABhAAAABAAAAGEAAAjhAAAARAAACOEAAAGREAABBAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAEAAAABBwMAB4IDMALAAAABDAcADGIIMAdgBnAFUATAAtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDc0GQAAAAAxlIAAAEAAABDAAAAQwAAAChQAAA0UQAAQFIAAM9SAADvUgAABVMAAClTAABdUwAAoVMAAOlTAAAXVAAANVQAAGdU
+AACdVAAA41QAAC1VAABhVQAAn1UAANNVAAANVgAAO1YAAHFWAACvVgAAz1YAAPtWAACOEAAAUVcAAG9XAACfVwAA01cAABFYAABNWAAAb1gAAKVYAADNWAAABVkAAEFZAABtWQAAp1kAALtZAAD7WQAAOVoAAE9aAAB1WgAAnVoAANNaAAAHWwAAPVsAAGlbAAClWwAA
+41sAAA1cAAA5XAAAiVwAANFcAAARXQAAWV0AAKNdAADxXQAAG14AAEdeAACHXgAAu14AAOdeAAArXwAAW18AALVfAADrXwAAJ2AAAF1gAADiUgAA/VIAABpTAABGUwAAglMAAMhTAAADVAAAKVQAAFFUAACFVAAAw1QAAAtVAABKVQAAg1UAALxVAADzVQAAJ1YAAFlW
+AACTVgAAwlYAAOhWAAAZVwAAMVcAAGNXAACKVwAAvFcAAPVXAAAyWAAAYVgAAI1YAAC8WAAA7FgAACZZAABaWQAAjVkAALRZAADeWQAAHVoAAEdaAABlWgAAjFoAALtaAADwWgAAJVsAAFZbAACKWwAAx1sAAPtbAAAmXAAAZFwAALBcAAD0XAAAOF0AAIFdAADNXQAA
+CV4AADReAABqXgAApF4AANReAAAMXwAARl8AAItfAADTXwAADGAAAEVgAAB4YAAAAAABAAIAAwAEAAUABgAHAAgACQAKAAsADAANAA4ADwAQABEAEgATABQAFQAWABcAGAAZABoAGwAcAB0AHgAfACAAIQAiACMAJAAlACYAJwAoACkAKgArACwALQAuAC8AMAAxADIA
+MwA0ADUANgA3ADgAOQA6ADsAPAA9AD4APwBAAEEAQgBzcHBjLmRsbABTUFBDUy5TTENhbGxTZXJ2ZXIAU0xDYWxsU2VydmVyAFNQUENTLlNMQ2xvc2UAU0xDbG9zZQBTUFBDUy5TTENvbnN1bWVSaWdodABTTENvbnN1bWVSaWdodABTUFBDUy5TTERlcG9zaXRNaWdy
+YXRpb25CbG9iAFNMRGVwb3NpdE1pZ3JhdGlvbkJsb2IAU1BQQ1MuU0xEZXBvc2l0T2ZmbGluZUNvbmZpcm1hdGlvbklkAFNMRGVwb3NpdE9mZmxpbmVDb25maXJtYXRpb25JZABTUFBDUy5TTERlcG9zaXRPZmZsaW5lQ29uZmlybWF0aW9uSWRFeABTTERlcG9zaXRP
+ZmZsaW5lQ29uZmlybWF0aW9uSWRFeABTUFBDUy5TTERlcG9zaXRTdG9yZVRva2VuAFNMRGVwb3NpdFN0b3JlVG9rZW4AU1BQQ1MuU0xGaXJlRXZlbnQAU0xGaXJlRXZlbnQAU1BQQ1MuU0xHYXRoZXJNaWdyYXRpb25CbG9iAFNMR2F0aGVyTWlncmF0aW9uQmxvYgBT
+UFBDUy5TTEdhdGhlck1pZ3JhdGlvbkJsb2JFeABTTEdhdGhlck1pZ3JhdGlvbkJsb2JFeABTUFBDUy5TTEdlbmVyYXRlT2ZmbGluZUluc3RhbGxhdGlvbklkAFNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWQAU1BQQ1MuU0xHZW5lcmF0ZU9mZmxpbmVJbnN0
+YWxsYXRpb25JZEV4AFNMR2VuZXJhdGVPZmZsaW5lSW5zdGFsbGF0aW9uSWRFeABTUFBDUy5TTEdldEFjdGl2ZUxpY2Vuc2VJbmZvAFNMR2V0QWN0aXZlTGljZW5zZUluZm8AU1BQQ1MuU0xHZXRBcHBsaWNhdGlvbkluZm9ybWF0aW9uAFNMR2V0QXBwbGljYXRpb25J
+bmZvcm1hdGlvbgBTUFBDUy5TTEdldEFwcGxpY2F0aW9uUG9saWN5AFNMR2V0QXBwbGljYXRpb25Qb2xpY3kAU1BQQ1MuU0xHZXRBdXRoZW50aWNhdGlvblJlc3VsdABTTEdldEF1dGhlbnRpY2F0aW9uUmVzdWx0AFNQUENTLlNMR2V0RW5jcnlwdGVkUElERXgAU0xH
+ZXRFbmNyeXB0ZWRQSURFeABTUFBDUy5TTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTTEdldEdlbnVpbmVJbmZvcm1hdGlvbgBTUFBDUy5TTEdldEluc3RhbGxlZFByb2R1Y3RLZXlJZHMAU0xHZXRJbnN0YWxsZWRQcm9kdWN0S2V5SWRzAFNQUENTLlNMR2V0TGljZW5z
+ZQBTTEdldExpY2Vuc2UAU1BQQ1MuU0xHZXRMaWNlbnNlRmlsZUlkAFNMR2V0TGljZW5zZUZpbGVJZABTUFBDUy5TTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2VJbmZvcm1hdGlvbgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0aW9uAFNQUENT
+LlNMR2V0UEtleUlkAFNMR2V0UEtleUlkAFNQUENTLlNMR2V0UEtleUluZm9ybWF0aW9uAFNMR2V0UEtleUluZm9ybWF0aW9uAFNQUENTLlNMR2V0UG9saWN5SW5mb3JtYXRpb24AU0xHZXRQb2xpY3lJbmZvcm1hdGlvbgBTUFBDUy5TTEdldFBvbGljeUluZm9ybWF0
+aW9uRFdPUkQAU0xHZXRQb2xpY3lJbmZvcm1hdGlvbkRXT1JEAFNQUENTLlNMR2V0UHJvZHVjdFNrdUluZm9ybWF0aW9uAFNMR2V0UHJvZHVjdFNrdUluZm9ybWF0aW9uAFNQUENTLlNMR2V0U0xJRExpc3QAU0xHZXRTTElETGlzdABTUFBDUy5TTEdldFNlcnZpY2VJ
+bmZvcm1hdGlvbgBTTEdldFNlcnZpY2VJbmZvcm1hdGlvbgBTUFBDUy5TTEluc3RhbGxMaWNlbnNlAFNMSW5zdGFsbExpY2Vuc2UAU1BQQ1MuU0xJbnN0YWxsUHJvb2ZPZlB1cmNoYXNlAFNMSW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTUFBDUy5TTEluc3RhbGxQcm9v
+Zk9mUHVyY2hhc2VFeABTTEluc3RhbGxQcm9vZk9mUHVyY2hhc2VFeABTUFBDUy5TTElzR2VudWluZUxvY2FsRXgAU0xJc0dlbnVpbmVMb2NhbEV4AFNQUENTLlNMTG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU0xMb2FkQXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5T
+TE9wZW4AU0xPcGVuAFNQUENTLlNMUGVyc2lzdEFwcGxpY2F0aW9uUG9saWNpZXMAU0xQZXJzaXN0QXBwbGljYXRpb25Qb2xpY2llcwBTUFBDUy5TTFBlcnNpc3RSVFNQYXlsb2FkT3ZlcnJpZGUAU0xQZXJzaXN0UlRTUGF5bG9hZE92ZXJyaWRlAFNQUENTLlNMUmVB
+cm0AU0xSZUFybQBTUFBDUy5TTFJlZ2lzdGVyRXZlbnQAU0xSZWdpc3RlckV2ZW50AFNQUENTLlNMUmVnaXN0ZXJQbHVnaW4AU0xSZWdpc3RlclBsdWdpbgBTUFBDUy5TTFNldEF1dGhlbnRpY2F0aW9uRGF0YQBTTFNldEF1dGhlbnRpY2F0aW9uRGF0YQBTUFBDUy5T
+TFNldEN1cnJlbnRQcm9kdWN0S2V5AFNMU2V0Q3VycmVudFByb2R1Y3RLZXkAU1BQQ1MuU0xTZXRHZW51aW5lSW5mb3JtYXRpb24AU0xTZXRHZW51aW5lSW5mb3JtYXRpb24AU1BQQ1MuU0xVbmluc3RhbGxMaWNlbnNlAFNMVW5pbnN0YWxsTGljZW5zZQBTUFBDUy5T
+TFVuaW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTTFVuaW5zdGFsbFByb29mT2ZQdXJjaGFzZQBTUFBDUy5TTFVubG9hZEFwcGxpY2F0aW9uUG9saWNpZXMAU0xVbmxvYWRBcHBsaWNhdGlvblBvbGljaWVzAFNQUENTLlNMVW5yZWdpc3RlckV2ZW50AFNMVW5yZWdpc3Rl
+ckV2ZW50AFNQUENTLlNMVW5yZWdpc3RlclBsdWdpbgBTTFVucmVnaXN0ZXJQbHVnaW4AU1BQQ1MuU0xwQXV0aGVudGljYXRlR2VudWluZVRpY2tldFJlc3BvbnNlAFNMcEF1dGhlbnRpY2F0ZUdlbnVpbmVUaWNrZXRSZXNwb25zZQBTUFBDUy5TTHBCZWdpbkdlbnVp
+bmVUaWNrZXRUcmFuc2FjdGlvbgBTTHBCZWdpbkdlbnVpbmVUaWNrZXRUcmFuc2FjdGlvbgBTUFBDUy5TTHBDbGVhckFjdGl2YXRpb25JblByb2dyZXNzAFNMcENsZWFyQWN0aXZhdGlvbkluUHJvZ3Jlc3MAU1BQQ1MuU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVU
+aWNrZXQAU0xwRGVwb3NpdERvd25sZXZlbEdlbnVpbmVUaWNrZXQAU1BQQ1MuU0xwRGVwb3NpdFRva2VuQWN0aXZhdGlvblJlc3BvbnNlAFNMcERlcG9zaXRUb2tlbkFjdGl2YXRpb25SZXNwb25zZQBTUFBDUy5TTHBHZW5lcmF0ZVRva2VuQWN0aXZhdGlvbkNoYWxs
+ZW5nZQBTTHBHZW5lcmF0ZVRva2VuQWN0aXZhdGlvbkNoYWxsZW5nZQBTUFBDUy5TTHBHZXRHZW51aW5lQmxvYgBTTHBHZXRHZW51aW5lQmxvYgBTUFBDUy5TTHBHZXRHZW51aW5lTG9jYWwAU0xwR2V0R2VudWluZUxvY2FsAFNQUENTLlNMcEdldExpY2Vuc2VBY3F1
+aXNpdGlvbkluZm8AU0xwR2V0TGljZW5zZUFjcXVpc2l0aW9uSW5mbwBTUFBDUy5TTHBHZXRNU1BpZEluZm9ybWF0aW9uAFNMcEdldE1TUGlkSW5mb3JtYXRpb24AU1BQQ1MuU0xwR2V0TWFjaGluZVVHVUlEAFNMcEdldE1hY2hpbmVVR1VJRABTUFBDUy5TTHBHZXRU
+b2tlbkFjdGl2YXRpb25HcmFudEluZm8AU0xwR2V0VG9rZW5BY3RpdmF0aW9uR3JhbnRJbmZvAFNQUENTLlNMcElBQWN0aXZhdGVQcm9kdWN0AFNMcElBQWN0aXZhdGVQcm9kdWN0AFNQUENTLlNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5
+AFNMcElzQ3VycmVudEluc3RhbGxlZFByb2R1Y3RLZXlEZWZhdWx0S2V5AFNQUENTLlNMcFByb2Nlc3NWTVBpcGVNZXNzYWdlAFNMcFByb2Nlc3NWTVBpcGVNZXNzYWdlAFNQUENTLlNMcFNldEFjdGl2YXRpb25JblByb2dyZXNzAFNMcFNldEFjdGl2YXRpb25JblBy
+b2dyZXNzAFNQUENTLlNMcFRyaWdnZXJTZXJ2aWNlV29ya2VyAFNMcFRyaWdnZXJTZXJ2aWNlV29ya2VyAFNQUENTLlNMcFZMQWN0aXZhdGVQcm9kdWN0AFNMcFZMQWN0aXZhdGVQcm9kdWN0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUHAAAAAAAAAAAAAAIHEAAIhwAABocAAAAAAAAAAAAAAwcQAAoHAAAHhwAAAAAAAAAAAAAERxAACwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAcAAAAAAAAOJwAAAAAAAAAAAAAAAAAAAAcQAAAAAAAAAAAAAAAAAA
+DHEAAAAAAAAAAAAAAAAAAMBwAAAAAAAA4nAAAAAAAAAAAAAAAAAAAABxAAAAAAAAAAAAAAAAAAAMcQAAAAAAAAAAAAAAAAAAAgBTTEdldExpY2Vuc2luZ1N0YXR1c0luZm9ybWF0aW9uAAEAU0xHZXRQcm9kdWN0U2t1SW5mb3JtYXRpb24AAOgDTG9jYWxGcmVlAFEB
+U3RyU3RyTklXAABwAAAAcAAAc3BwY3MuZGxsAAAAFHAAAEtFUk5FTDMyLmRsbAAAAAAocAAAU0hMV0FQSS5kbGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAEAAAABgAAIAAAAAAAAAAAAAAAAAAAAEAAQAAADAAAIAAAAAAAAAAAAAA
+AAAAAAEACQQAAEgAAABYgAAAHAMAAAAAAAAAAAAAHAM0AAAAVgBTAF8AVgBFAFIAUwBJAE8ATgBfAEkATgBGAE8AAAAAAL0E7/4AAAEAAwAAAAAAAAADAAAAAAAAAAAAAAAAAAAABAAEAAIAAAAAAAAAAAAAAAAAAAB8AgAAAQBTAHQAcgBpAG4AZwBGAGkAbABlAEkA
+bgBmAG8AAABYAgAAAQAwADQAMAA5ADAANABFADQAAAB6AC0AAQBDAG8AbQBwAGEAbgB5AE4AYQBtAGUAAAAAAEEAbgBvAG0AYQBsAG8AdQBzACAAUwBvAGYAdAB3AGEAcgBlACAARABlAHQAZQByAGkAbwByAGEAdABpAG8AbgAgAEMAbwByAHAAbwByAGEAdABpAG8A
+bgAAAAAAPgALAAEARgBpAGwAZQBEAGUAcwBjAHIAaQBwAHQAaQBvAG4AAAAAAG8AaABvAG8AawAgAFMAUABQAEMAAAAAADAACAABAEYAaQBsAGUAVgBlAHIAcwBpAG8AbgAAAAAAMAAuADMALgAwAC4AMAAAACoABQABAEkAbgB0AGUAcgBuAGEAbABOAGEAbQBlAAAA
+cwBwAHAAYwAAAAAAjAA0AAEATABlAGcAYQBsAEMAbwBwAHkAcgBpAGcAaAB0AAAAqQAgADIAMAAyADMAIABBAG4AbwBtAGEAbABvAHUAcwAgAFMAbwBmAHQAdwBhAHIAZQAgAEQAZQB0AGUAcgBpAG8AcgBhAHQAaQBvAG4AIABDAG8AcgBwAG8AcgBhAHQAaQBvAG4A
+AAA6AAkAAQBPAHIAaQBnAGkAbgBhAGwARgBpAGwAZQBuAGEAbQBlAAAAcwBwAHAAYwAuAGQAbABsAAAAAAAsAAYAAQBQAHIAbwBkAHUAYwB0AE4AYQBtAGUAAAAAAG8AaABvAG8AawAAADQACAABAFAAcgBvAGQAdQBjAHQAVgBlAHIAcwBpAG8AbgAAADAALgAzAC4A
+MAAuADAAAABEAAAAAQBWAGEAcgBGAGkAbABlAEkAbgBmAG8AAAAAACQABAAAAFQAcgBhAG4AcwBsAGEAdABpAG8AbgAAAAAACQTkBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 :sppc64.dll:
 
 :+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2958,22 +2955,22 @@ M--u-D----BE-----QBW-GE-cgBG-Gk-b-Bl-Ek-bgBm-G8------CQ-B----FQ-cgBh-G4-cwBs-GE-
 @setlocal DisableDelayedExpansion
 @echo off
 
-::  To activate, run the script with "/KMS38" parameter or change 0 to 1 in below line
+::  若要激活，请使用 /KMS38 参数运行脚本或将以下行参数由 0 更改为 1
 set _act=0
 
-::  To remove KMS38 protection, run the script with /KMS38-RemoveProtection parameter or change 0 to 1 in below line
+::  若要移除 KMS38 保护，请使用 /KMS38-RemoveProtection 参数运行脚本或将以下行参数由 0 更改为 1
 set _rem=0
 
-::  To disable changing edition if current edition doesn't support KMS38 activation, change the value to 1 from 0 or run the script with "/KMS38-NoEditionChange" parameter
+::  若要在当前版本不支持 KMS38 激活时禁用更改版本，请将参数的值由 0 更改为 1，或使用“/KMS38-NoEditionChange”参数运行脚本
 set _NoEditionChange=0
 
-::  If value is changed in above lines or parameter is used then script will run in unattended mode
+::  如果在上面几行中更改了值或使用参数，脚本将会在无人值守模式下运行
 
 ::========================================================================================================================================
 
 cls
 color 07
-title  KMS38 Activation %masver%
+title KMS38 激活 %masver%
 
 set _args=
 set _elev=
@@ -3027,14 +3024,14 @@ set "_Yellow="Black" "Yellow""
 )
 
 set _k38=
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 if %~z0 GEQ 200000 (
-set "_exitmsg=Go back"
-set "_fixmsg=Go back to Main Menu, select Troubleshoot and run Fix Licensing option."
+set "_exitmsg=返回"
+set "_fixmsg=请返回主菜单，选择疑难解答并运行修复许可选项。"
 ) else (
-set "_exitmsg=Exit"
-set "_fixmsg=In MAS folder, run Troubleshoot script and select Fix Licensing option."
+set "_exitmsg=退出"
+set "_fixmsg=在 MAS 文件夹中，请运行疑难解答脚本并选择修复许可选项。"
 )
 
 set "specific_kms=SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\55c92734-d682-4d71-983e-d6ec3f16059f"
@@ -3043,14 +3040,14 @@ set "specific_kms=SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectio
 
 if %winbuild% LSS 14393 (
 %eline%
-echo Unsupported OS version detected [%winbuild%].
-echo KMS38 Activation is supported for Windows 10/11/Server, build 14393 and later.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo KMS38 激活支持 Windows 10/11/Server，Build 14393 及以上版本。
 goto dk_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -3073,7 +3070,7 @@ if %_rem%==1 goto :k_uninstall
 if %_unattended%==0 (
 cls
 mode 76, 25
-title  KMS38 Activation %masver%
+title KMS38 激活 %masver%
 
 echo:
 echo:
@@ -3081,15 +3078,15 @@ echo:
 echo:
 echo         ____________________________________________________________
 echo:
-echo                 [1] KMS38 Activation
+echo                 [1] KMS38 激活
 echo                 ____________________________________________
 echo:
-echo                 [2] Remove KM38 Protection
+echo                 [2] 移除 KM38 保护
 echo:
 echo                 [0] %_exitmsg%
 echo         ____________________________________________________________
 echo: 
-call :dk_color2 %_White% "              " %_Green% "Enter a menu option in the Keyboard [1,2,0]"
+call :dk_color2 %_White% "              " %_Green% "请输入一个菜单选项 [1,2,0]"
 choice /C:120 /N
 set _el=!errorlevel!
 if !_el!==3  exit /b
@@ -3105,21 +3102,21 @@ goto :k_menu
 cls
 mode 110, 34
 if exist "%Systemdrive%\Windows\System32\spp\store_test\" mode 134, 34
-title  KMS38 Activation %masver%
+title KMS38 激活 %masver%
 
 echo:
-echo Initializing...
+echo 正在初始化……
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto dk_done
 )
 
@@ -3128,38 +3125,38 @@ goto dk_done
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
 ::========================================================================================================================================
 
-::  Check if system is permanently activated or not
+::  检查系统是否已永久激活
 
 call :dk_checkperm
 if defined _perm (
 cls
 echo ___________________________________________________________________________________________
 echo:
-call :dk_color2 %_White% "     " %Green% "Checking: %winos% is Permanently Activated."
-call :dk_color2 %_White% "     " %Gray% "Activation is not required."
+call :dk_color2 %_White% "     " %Green% "正在检查：%winos% 已永久激活。"
+call :dk_color2 %_White% "     " %Gray% "不需要执行激活。"
 echo ___________________________________________________________________________________________
 if %_unattended%==1 goto dk_done
 echo:
-choice /C:10 /N /M ">    [1] Activate [0] %_exitmsg% : "
+choice /C:10 /N /M ">    [1] 激活 [0] %_exitmsg% ："
 if errorlevel 2 exit /b
 )
 cls
 
 ::========================================================================================================================================
 
-::  Check Evaluation version
+::  检查评估版本
 
 set _eval=
 set _evalserv=
@@ -3173,14 +3170,14 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul2
 %eline%
 echo [%winos% ^| %winbuild%]
 if defined _evalserv (
-echo Server Evaluation cannot be activated. Convert it to full Server OS.
+echo Server 评估版本无法激活。请将其转换为完整的 Server 操作系统。
 echo:
-echo In MAS, goto Extras and use 'Change Edition' option.
+echo 在 MAS 中，请转到附加功能并使用“更改版本”选项。
 ) else (
-echo Evaluation Editions cannot be activated. 
-echo You need to install full version of %winos%
+echo 评估版本无法激活。 
+echo 你需要安装 %winos% 的完整版本。
 echo:
-echo Download it from here,
+echo 请从此处下载，
 echo %mas%genuine-installation-media.html
 )
 goto dk_done
@@ -3189,7 +3186,7 @@ goto dk_done
 
 ::========================================================================================================================================
 
-:: Check clipup.exe for the detection and activation of server cor and acor editions
+::  检查 clipup.exe 以检测和激活服务器 cor 和 acor 版本
 
 set a_cor=
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*CorEdition~*.mum" if not exist "%systemroot%\System32\clipup.exe" set a_cor=1
@@ -3197,9 +3194,9 @@ if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*CorEdition~*.
 if defined a_cor (
 if not exist "!_work!\clipup.exe" (
 %eline%
-echo clipup.exe doesn't exist in Server Cor/Acor [No GUI] version.
-echo It's required for KMS38 Activation.
-echo Check below page on how to activate it.
+echo clipup.exe 在 Server Cor/Acor [无 GUI] 版本中不存在。
+echo 它是 KMS38 激活必要组件。
+echo 查看下方的页面了解如何激活它。
 echo %mas%kms38.html
 goto dk_done
 )
@@ -3211,7 +3208,7 @@ call :dk_checksku
 
 if not defined osSKU (
 %eline%
-echo SKU value was not detected properly. Aborting...
+echo 未正确检测到 SKU 值。正在中止……
 goto dk_done
 )
 
@@ -3223,11 +3220,11 @@ cls
 echo:
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
 for /f "tokens=6-7 delims=[]. " %%i in ('ver') do if "%%j"=="" (set fullbuild=%%i) else (set fullbuild=%%i.%%j)
-echo Checking OS Info                        [%winos% ^| %fullbuild% ^| %arch%]
+echo 正在检查操作系统信息                    [%winos% ^| %fullbuild% ^| %arch%]
 
 ::========================================================================================================================================
 
-::  Check Windows Script Host
+::  检查 Windows Script Host
 
 set _WSH=1
 reg query "HKCU\SOFTWARE\Microsoft\Windows Script Host\Settings" /v Enabled %nul2% | find /i "0x0" %nul1% && (set _WSH=0)
@@ -3237,12 +3234,12 @@ if %_WSH% EQU 0 (
 reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 reg add "HKCU\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f %nul%
 if not "%arch%"=="x86" reg add "HKLM\Software\Microsoft\Windows Script Host\Settings" /v Enabled /t REG_DWORD /d 1 /f /reg:32 %nul%
-echo Enabling Windows Script Host            [Successful]
+echo 正在启用 Windows Script Host            [成功]
 )
 
 ::========================================================================================================================================
 
-echo Initiating Diagnostic Tests...
+echo 正在初始化诊断测试……
 
 set "_serv=ClipSVC sppsvc KeyIso Winmgmt"
 
@@ -3255,13 +3252,13 @@ call :dk_errorcheck
 
 ::========================================================================================================================================
 
-::  Check if GVLK (KMS key) is already installed or not
+::  检查 SKU 值 / 在多个地方检查，查找损坏的版本更改
 
 set _gvlk=
 call :dk_channel
 if /i "Volume:GVLK"=="%_channel%" set _gvlk=1
 
-::  Detect Key
+::  检查密钥
 
 set key=
 set pkey=
@@ -3280,23 +3277,23 @@ set /a UBR=0
 if %osSKU%==191 if defined altkey if defined altedition (
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v UBR 2^>nul') do if not errorlevel 1 set /a UBR=%%b
 if %winbuild% GEQ 19044 if !UBR! LSS 2788 (
-call :dk_color %Blue% "Windows must to be updated to build 19044.2788 or higher for IotEnterpriseS KMS38 activation."
+call :dk_color %Blue% "对于 IotEnterpriseS KMS38 激活，Windows 必须更新到 Build 19044.2788 或更高版本。"
 )
 )
 
 if not defined key if defined notfoundaltactID (
-call :dk_color %Red% "Checking Alternate Edition For KMS38    [%altedition% Activation ID Not Found]"
+call :dk_color %Red% "正在检查 KMS38 的备用版本               [未找到 %altedition% 的激活 ID]"
 )
 
 if not defined key if not defined _gvlk (
 %eline%
 echo [%winos% ^| %winbuild% ^| SKU:%osSKU%]
 if not defined skufound (
-echo Unable to find this product in the supported product list.
+echo 在支持的产品列表中找不到此产品。
 ) else (
-echo Required License files not installed.
+echo 未安装所需的License文件。
 )
-echo Make sure you are using updated version of the script.
+echo 请确保你使用的是此脚本的更新版本。
 echo %mas%
 echo:
 goto dk_done
@@ -3308,7 +3305,7 @@ goto dk_done
 
 echo:
 if defined changekey (
-call :dk_color %Blue% "[%altedition%] Edition product key will be used to enable KMS38 activation."
+call :dk_color %Blue% "[%altedition%] 版本产品密钥将用于启用 KMS38 激活。"
 echo:
 )
 
@@ -3316,7 +3313,7 @@ set _partial=
 if not defined key (
 if %_wmic% EQU 1 for /f "tokens=2 delims==" %%# in ('wmic path SoftwareLicensingProduct where "ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f' and PartialProductKey<>null" Get PartialProductKey /value %nul6%') do set "_partial=%%#"
 if %_wmic% EQU 0 for /f "tokens=2 delims==" %%# in ('%psc% "(([WMISEARCHER]'SELECT PartialProductKey FROM SoftwareLicensingProduct WHERE ApplicationID=''55c92734-d682-4d71-983e-d6ec3f16059f'' AND PartialProductKey IS NOT NULL').Get()).PartialProductKey | %% {echo ('PartialProductKey='+$_)}" %nul6%') do set "_partial=%%#"
-call echo Checking Installed Product Key          [Partial Key - %%_partial%%] [Volume:GVLK]
+call echo 正在检查已安装的产品密钥                [部分产品密钥 - %%_partial%%] [Volume:GVLK]
 )
 
 set error_code=
@@ -3330,9 +3327,9 @@ if !error_code! NEQ 0 set "error_code=[0x!=ExitCode!]"
 
 if !error_code! EQU 0 (
 call :dk_refresh
-echo Installing KMS Client Setup Key         [%key%] [Successful]
+echo 正在安装 KMS 客户端安装程序密钥         [%key%] [成功]
 ) else (
-call :dk_color %Red% "Installing KMS Client Setup Key         [%key%] [Failed] !error_code!"
+call :dk_color %Red% "正在安装 KMS 客户端安装程序密钥         [%key%] [失败] !error_code!"
 if not defined error (
 call :dk_color %Blue% "%_fixmsg%"
 set showfix=1
@@ -3343,29 +3340,29 @@ set error=1
 
 ::========================================================================================================================================
 
-::  Check activation ID for setting specific KMS host
+::  检查激活 ID 用于设置特定 KMS 主机
 
 set app=
 if %_wmic% EQU 1 for /f "tokens=2 delims==" %%a in ('"wmic path SoftwareLicensingProduct where (ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f' and Description like '%%KMSCLIENT%%' and PartialProductKey is not NULL) get ID /VALUE" %nul6%') do call set "app=%%a"
 if %_wmic% EQU 0 for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISEARCHER]'SELECT ID FROM SoftwareLicensingProduct WHERE ApplicationID=''55c92734-d682-4d71-983e-d6ec3f16059f'' AND Description like ''%%KMSCLIENT%%'' AND PartialProductKey IS NOT NULL').Get()).ID | %% {echo ('ID='+$_)}" %nul6%') do call set "app=%%a"
 
 if not defined app (
-call :dk_color %Red% "Checking Installed GVLK Activation ID   [Not Found] Aborting..."
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color %Red% "正在检查已安装的 GVLK 激活 ID           [未找到] 正在中止……"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 goto :dk_done
 )
 
 ::========================================================================================================================================
 
-::  Set specific KMS host to Local Host
-::  By doing this, global KMS IP can not replace KMS38 activation but can be used with Office and other Windows Editions
+::  将特定 KMS 主机设置为本地主机
+::  通过这样做，全球 KMS IP 无法代替 KMS38 激活，但可以与 Office 和其他 Windows 版本一起使用
 
 echo:
 %nul% reg delete "HKLM\%specific_kms%" /f
 %nul% reg delete "HKU\S-1-5-20\%specific_kms%" /f
 
 %nul% reg query "HKLM\%specific_kms%" && (
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regdel\:.*';iex ($f[1]);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':regdel\:.*';iex ($f[1]);"
 %nul% reg delete "HKLM\%specific_kms%" /f
 )
 
@@ -3374,14 +3371,14 @@ set k_error=
 %nul% reg add "HKLM\%specific_kms%\%app%" /f /v KeyManagementServicePort /t REG_SZ /d "1688" || set k_error=1
 
 if not defined k_error (
-echo Adding Specific KMS Host                [LocalHost 127.0.0.2] [Successful]
+echo 正在添加特定 KMS 主机                   [LocalHost 127.0.0.2] [成功]
 ) else (
-call :dk_color %Red% "Adding Specific KMS Host                [LocalHost 127.0.0.2] [Failed]"
+call :dk_color %Red% "正在添加特定 KMS 主机                   [LocalHost 127.0.0.2] [失败]"
 )
 
 ::========================================================================================================================================
 
-::  Copy clipup.exe to System32 directory to activate Server Cor/Acor editions
+::  将 clipup.exe 复制到 System32 目录以激活 Server Cor/Acor 版本
 
 if defined a_cor (
 set "_clipup=%systemroot%\System32\clipup.exe"
@@ -3391,22 +3388,22 @@ popd
 
 echo:
 if exist "!_clipup!" (
-echo Copying clipup.exe File to              [%systemroot%\System32\] [Successful]
+echo 正在复制 clipup.exe 文件到              [%systemroot%\System32\] [成功]
 ) else (
-call :dk_color %Red% "Copying clipup.exe File to              [%systemroot%\System32\] [Failed] Aborting..."
+call :dk_color %Red% "正在复制 clipup.exe 文件到              [%systemroot%\System32\] [失败] 正在中止……"
 goto :k_final
 )
 )
 
 ::========================================================================================================================================
 
-::  Generate GenuineTicket.xml and apply
-::  In some cases clipup -v -o method fails and in some cases service restart method fails as well
-::  To maximize success rate and get better error details, script will install tickets two times (service restart + clipup -v -o)
+::  生成 GenuineTicket.xml 并应用
+::  应用票证的最正确方法是重新启动 ClipSVC 服务，但我们无法以此方式检查日志详细信息
+::  为了获取日志详细信息并正确应用票证，脚本将安装票证 2 次（重新启动服务 + clipup -v -o）
 
 if not exist %SystemRoot%\system32\ClipUp.exe (
-call :dk_color %Red% "Checking ClipUp.exe File                [Not found, aborting the process]"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color %Red% "正在检查 ClipUp.exe 文件                [未找到，中止进程]"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 goto :k_final
 )
 
@@ -3417,9 +3414,9 @@ if exist "%tdir%\Genuine*" del /f /q "%tdir%\Genuine*" %nul%
 if exist "%tdir%\*.xml" del /f /q "%tdir%\*.xml" %nul%
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\Install\Migration\*" del /f /q "%ProgramData%\Microsoft\Windows\ClipSVC\Install\Migration\*" %nul%
 
-::  Signature value is as it is, it's not encoded
-::  Session ID is in Base64 encoded format. It's decoded value is "OSMajorVersion=5;OSMinorVersion=1;OSPlatformId=2;PP=0;GVLKExp=2038-01-19T03:14:07Z;DownlevelGenuineState=1;"
-::  Check mass grave[.]dev/kms38.html#Manual_Activation to see how it's generated
+::  签名值按原样，未经过编码
+::  会话 ID 采用 Base64 编码格式。它的解码值是“OSMajorVersion=5;OSMinorVersion=1;OSPlatformId=2;PP=0;GVLKExp=2038-01-19T03:14:07Z;DownlevelGenuineState=1;”
+::  请查看 mass grave[.]dev/kms38.html#Manual_Activation 了解它如何生成
 
 set "signature=C52iGEoH+1VqzI6kEAqOhUyrWuEObnivzaVjyef8WqItVYd/xGDTZZ3bkxAI9hTpobPFNJyJx6a3uriXq3HVd7mlXfSUK9ydeoUdG4eqMeLwkxeb6jQWJzLOz41rFVSMtBL0e+ycCATebTaXS4uvFYaDHDdPw2lKY8ADj3MLgsA="
 set "sessionId=TwBTAE0AYQBqAG8AcgBWAGUAcgBzAGkAbwBuAD0ANQA7AE8AUwBNAGkAbgBvAHIAVgBlAHIAcwBpAG8AbgA9ADEAOwBPAFMAUABsAGEAdABmAG8AcgBtAEkAZAA9ADIAOwBQAFAAPQAwADsARwBWAEwASwBFAHgAcAA9ADIAMAAzADgALQAwADEALQAxADkAVAAwADMAOgAxADQAOgAwADcAWgA7AEQAbwB3AG4AbABlAHYAZQBsAEcAZQBuAHUAaQBuAGUAUwB0AGEAdABlAD0AMQA7AAAA"
@@ -3428,23 +3425,23 @@ set "sessionId=TwBTAE0AYQBqAG8AcgBWAGUAcgBzAGkAbwBuAD0ANQA7AE8AUwBNAGkAbgBvAHIAV
 copy /y /b "%tdir%\GenuineTicket" "%tdir%\GenuineTicket.xml" %nul%
 
 if not exist "%tdir%\GenuineTicket.xml" (
-call :dk_color %Red% "Generating GenuineTicket.xml            [Failed, aborting the process]"
+call :dk_color %Red% "正在生成 GenuineTicket.xml              [失败，中止进程]"
 if exist "%tdir%\Genuine*" del /f /q "%tdir%\Genuine*" %nul%
 goto :k_final
 ) else (
-echo Generating GenuineTicket.xml            [Successful]
+echo 正在生成 GenuineTicket.xml              [成功]
 )
 
 set "_xmlexist=if exist "%tdir%\GenuineTicket.xml""
 
-::  Stop sppsvc
+::  停止 sppsvc
 
 %psc% Stop-Service sppsvc %nul%
 
 sc query sppsvc | find /i "STOPPED" %nul% && (
-echo Stopping sppsvc Service                 [Successful]
+echo 正在停止 sppsvc 服务                    [成功]
 ) || (
-call :dk_color %Gray% "Stopping sppsvc Service                 [Failed]"
+call :dk_color %Gray% "正在停止 sppsvc 服务                    [失败]"
 )
 
 %_xmlexist% (
@@ -3455,7 +3452,7 @@ call :dk_color %Gray% "Stopping sppsvc Service                 [Failed]"
 %_xmlexist% (
 set error=1
 if exist "%tdir%\*.xml" del /f /q "%tdir%\*.xml" %nul%
-call :dk_color %Red% "Installing GenuineTicket.xml            [Failed With ClipSVC Service Restart, Wait...]"
+call :dk_color %Red% "正在安装 GenuineTicket.xml              [重新启动 ClipSVC 服务失败，正在等待……]"
 )
 )
 
@@ -3467,19 +3464,19 @@ set rebuildinfo=
 if not exist %ProgramData%\Microsoft\Windows\ClipSVC\tokens.dat (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Checking ClipSVC tokens.dat             [Not Found]"
+call :dk_color %Red% "正在检查 ClipSVC tokens.dat             [未找到]"
 )
 
 %_xmlexist% (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Installing GenuineTicket.xml            [Failed With clipup -v -o]"
+call :dk_color %Red% "正在安装 GenuineTicket.xml              [使用 clipup -v -o 失败]"
 )
 
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\Install\Migration\*.xml" (
 set error=1
 set rebuildinfo=1
-call :dk_color %Red% "Checking Ticket Migration               [Failed]"
+call :dk_color %Red% "检查票证迁移                            [失败]"
 )
 
 if defined applist if not defined showfix if defined rebuildinfo (
@@ -3494,7 +3491,7 @@ if exist "%tdir%\Genuine*" del /f /q "%tdir%\Genuine*" %nul%
 call :dk_product
 
 echo:
-echo Activating...
+echo 正在激活……
 echo:
 
 call :k_checkexp
@@ -3503,15 +3500,15 @@ call :k_actinfo
 goto :k_final
 )
 
-::  Clear 180 Days KMS Activation lock with Windows SKU specific rearm and without the need to restart the system
+::  清除 180 天 KMS 激活锁，具有特定于 Windows SKU 的重置，无需重新启动系统
 
 if %_wmic% EQU 1 wmic path SoftwareLicensingProduct where ID='%app%' call ReArmsku %nul%
 if %_wmic% EQU 0 %psc% "$null=([WMI]'SoftwareLicensingProduct=''%app%''').ReArmsku()" %nul%
 
 if %errorlevel%==0 (
-echo Applying SKU-ID Rearm                   [Successful]
+echo 正在应用 SKU-ID Rearm                   [成功]
 ) else (
-call :dk_color %Red% "Applying SKU-ID Rearm                   [Failed]"
+call :dk_color %Red% "正在应用 SKU-ID Rearm                   [失败]"
 )
 call :dk_refresh
 
@@ -3522,53 +3519,53 @@ call :k_actinfo
 goto :k_final
 )
 
-call :dk_color %Red% "Activation Failed"
+call :dk_color %Red% "激活失败"
 if not defined error call :dk_color %Blue% "%_fixmsg%"
-call :dk_color2 %Blue% "Check this page for help" %_Yellow% " %mas%troubleshoot"
+call :dk_color2 %Blue% "查看此页面以获取帮助" %_Yellow% " %mas%troubleshoot"
 
 ::========================================================================================================================================
 
 :k_final
 
-::  Remove the added Specific KMS Host (Local Host) if activation is not completed
+::  如果未完成激活，移除所添加的特定 KMS 主机（本地主机）
 
 echo:
 if not defined _k38 (
 %nul% reg delete "HKLM\%specific_kms%" /f
 %nul% reg delete "HKU\S-1-5-20\%specific_kms%" /f
 %nul% reg query "HKLM\%specific_kms%" && (
-call :dk_color %Red% "Removing The Added Specific KMS Host    [Failed]"
+call :dk_color %Red% "正在移除所添加的特定 KMS 主机           [失败]"
 ) || (
-echo Removing The Added Specific KMS Host    [Successful]
+echo 正在移除所添加的特定 KMS 主机           [成功]
 )
 )
 
-::  Protect KMS38 if opted by the user and conditions are correct
+::  保护 KMS38（如果用户选择且条件正确）
 
 if defined _k38 (
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regdel\:.*';& ([ScriptBlock]::Create($f[1])) -protect;"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':regdel\:.*';& ([ScriptBlock]::Create($f[1])) -protect;"
 %nul% reg delete "HKLM\%specific_kms%" /f
 %nul% reg query "HKLM\%specific_kms%" && (
-echo Protect KMS38 From KMS                  [Successful] [Locked A Registry Key]
+echo 通过 KMS 保护 KMS38                     [成功] [已锁定注册表项]
 ) || (
-call :dk_color %Red% "Protect KMS38 From KMS                  [Failed To Lock A Registry Key]"
+call :dk_color %Red% "通过 KMS 保护 KMS38                     [锁定注册表项失败]"
 )
 )
 
-::  clipup.exe does not exist in server cor and acor editions by default, it was copied there with this script
+::  默认情况下 clipup.exe 在 server cor 和 acor 版本中不存在，已使用此脚本复制到相应位置
 
 if defined a_cor if exist "%_clipup%" del /f /q "%_clipup%" %nul%
 
 if defined a_cor (
 if exist "%_clipup%" (
-call :dk_color %Red% "Deleting copied clipup.exe file         [Failed]"
+call :dk_color %Red% "正在删除已复制的 clipup.exe 文件        [失败]"
 ) else (
-echo Deleting copied clipup.exe file         [Successful]
+echo 正在删除已复制的 clipup.exe 文件        [成功]
 )
 )
 
 for %%# in (175 407) do if %osSKU%==%%# (
-call :dk_color %Red% "%winos% does not support activation on non-azure platforms."
+call :dk_color %Red% "%winos% 版本不支持在非 Azure 平台上激活。"
 )
 
 goto :dk_done
@@ -3579,31 +3576,31 @@ goto :dk_done
 
 cls
 mode 99, 28
-title  Remove KMS38 Protection %masver%
+title 移除 KMS38 保护 %masver%
 
 %nul% reg delete "HKLM\%specific_kms%" /f
 %nul% reg delete "HKU\S-1-5-20\%specific_kms%" /f
 
 %nul% reg query "HKLM\%specific_kms%" && (
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regdel\:.*';iex ($f[1]);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':regdel\:.*';iex ($f[1]);"
 %nul% reg delete "HKLM\%specific_kms%" /f
 )
 
 echo:
 %nul% reg query "HKLM\%specific_kms%" && (
-call :dk_color %Red% "Removing Specific KMS Host              [Failed]"
+call :dk_color %Red% "正在移除特定 KMS 主机                   [失败]"
 ) || (
-echo Removing Specific KMS Host              [Successful]
+echo 正在移除特定 KMS 主机                   [成功]
 )
 
 goto :dk_done
 
 ::========================================================================================================================================
 
-::  This code runs to protect/undo below registry key for KMS38 protection
+::  运行此代码以保护/撤消以下注册表项以进行 KMS38 保护
 ::  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\55c92734-d682-4d71-983e-d6ec3f16059f
 
-::  KMS38 protection stops 180 days KMS Activation from replacing KMS38 activation
+::  KMS38 保护将会停止 180 天 KMS 激活从而取代 KMS38 激活
 
 :regdel:
 param (
@@ -3630,16 +3627,16 @@ $key.SetAccessControl($acl)
 
 ::========================================================================================================================================
 
-::  Check KMS activation status
+::  检查 KMS 激活状态
 
 :k_actinfo
 
 set xpr=
 for /f "tokens=* delims=" %%# in ('%psc% "$([DateTime]::Now.addMinutes(%gpr%)).ToString('yyyy-MM-dd HH:mm:ss')" %nul6%') do set "xpr=%%#"
-call :dk_color %Green% "%winos% is activated till !xpr!"
+call :dk_color %Green% "%winos% 已激活至 !xpr!"
 exit /b
 
-::  Check remaining KMS activation grace period
+::  检查剩余的 KMS 激活宽限期
 
 :k_checkexp
 
@@ -3649,7 +3646,7 @@ if %_wmic% EQU 0 for /f "tokens=2 delims==" %%# in ('%psc% "(([WMISEARCHER]'SELE
 if %gpr% GTR 259200 (set _k38=1) else (set _k38=)
 exit /b
 
-::  Get Windows installed key channel
+::  检查 Windows 已安装密钥的通道
 
 :dk_channel
 
@@ -3659,8 +3656,8 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Get Product Key from pkeyhelper.dll for future new editions
-::  It works on Windows 10 1803 (17134) and later builds.
+::  从 pkeyhelper.dll 获取产品序列用于未来的新版本
+::  它工作在 Windows 10 1803（17134）及以上版本。
 
 :dk_pkey
 
@@ -3673,7 +3670,7 @@ set pkey=
 for /f %%a in ('%psc% "%d1%"') do if not errorlevel 1 (set pkey=%%a)
 exit /b
 
-::  Get channel name for the key which was extracted from pkeyhelper.dll
+::  获取从 pkeyhelper.dll 中提取的密钥的通道名称
 
 :dk_pkeychannel
 
@@ -3704,12 +3701,12 @@ exit /b
 
 ::========================================================================================================================================
 
-::  1st column = Activation ID
-::  2nd column = GVLK (Generic volume licensing key)
-::  3rd column = SKU ID
-::  4th column = WMI Edition ID (For reference only)
-::  5th column = Build Branch name incase same Edition ID is used in different OS versions with different key (For reference only)
-::  Separator  = "_"
+::  第 1 列 = 激活 ID
+::  第 2 列 = GVLK（通用批量许可密钥）
+::  第 3 列 = SKU ID
+::  第 4 列 = WMI 版本 ID（仅供参考）
+::  第 5 列 = 内部版本分支名称以防相同的版本 ID 在不同的操作系统版本中使用不同的密钥（仅供参考）
+::  分隔符  = "_"
 
 :kms38data
 
@@ -3778,15 +3775,15 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Below code is used to get alternate edition name and key if current edition doesn't support KMS38 activation
+::  如果当前版本不支持 KMS38 激活，以下代码用于获取备用版本名称和密钥
 
-::  1st column = Current SKU ID
-::  2nd column = Current Edition Name
-::  3rd column = Current Edition Activation ID
-::  4th column = Alternate Edition Activation ID
-::  5th column = Alternate Edition GVLK
-::  6th column = Alternate Edition Name
-::  Separator  = _
+::  第 1 列 = 当前 SKU ID
+::  第 2 列 = 当前版本名称
+::  第 3 列 = 当前版本激活 ID
+::  第 4 列 = 备用版本激活 ID
+::  第 5 列 = 备用版本 GVLK
+::  第 6 列 = 备用版本名称
+::  分隔符  = _
 
 
 :kms38fallback
@@ -3825,9 +3822,9 @@ exit /b
 
 cls
 color 07
-title  Online KMS Activation %masver%
+title 在线 KMS 激活 %masver%
 
-::  You are not supposed to edit anything below this.
+::  你不应编辑此处下方的任何内容。
 
 set WMI_VBS=0
 set _Debug=0
@@ -3881,13 +3878,13 @@ if %winbuild% GEQ 10586 reg query "HKCU\Console" /v ForceV2 2>nul | find /i "0x0
 call :_colorprep
 set "_buf={$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=300;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 
-set "nceline=echo. &echo ==== ERROR ==== &echo."
-set "eline=echo. &call :_color %Red% "==== ERROR ====" &echo."
+set "nceline=echo. &echo ==== 错误 ==== &echo."
+set "eline=echo. &call :_color %Red% "==== 错误 ====" &echo."
 if %_Debug% EQU 1 set _unattended=1
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -3904,9 +3901,9 @@ setlocal EnableDelayedExpansion
 
 ::========================================================================================================================================
 
-if %~z0 GEQ 300000 (set "_exitmsg=Go back") else (set "_exitmsg=Exit")
+if %~z0 GEQ 300000 (set "_exitmsg=返回") else (set "_exitmsg=退出")
 
-::  Check not x86 Windows
+::  检查非 x86 Windows
 
 set notx86=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
@@ -3916,16 +3913,16 @@ if /i not "%arch%"=="x86" set notx86=1
 
 for %%# in (wmic.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find wmic.exe in the system.
-if %winbuild% GEQ 22621 echo Make sure WMIC is enabled in optional features.
+echo 在系统中找不到 wmic.exe。
+if %winbuild% GEQ 22621 echo 确保 WMIC 已在可选功能中启用。
 goto Done
 )
 
 wmic path Win32_ComputerSystem get CreationClassName /value 2>nul | find /i "ComputerSystem" 1>nul || (
 %nceline%
-echo WMI is not responding in the system.
+echo wmic.exe 在系统中未响应。
 echo:
-echo In MAS, Goto Troubleshoot and run Fix WMI option.
+echo 在 MAS 中，请转到疑难解答并运行修复 WMI 选项。
 goto Done
 )
 
@@ -3951,7 +3948,7 @@ if defined _unattended if not defined _unattendedact goto Done
 
 ::========================================================================================================================================
 
-set "_title=Online KMS Activation %masver%"
+set "_title=在线 KMS 激活 %masver%"
 set _gui=
 
 :_KMS_Menu
@@ -3983,7 +3980,7 @@ goto Done
 
 cls
 set _gui=1
-title  %_title%
+title %_title%
 mode con: cols=76 lines=30
 
 echo.
@@ -3992,32 +3989,32 @@ echo.
 echo.
 echo.       ______________________________________________________________
 echo.
-echo.              [1] Activate - Windows
-echo.              [2] Activate - Office
-echo.              [3] Activate - All
+echo.              [1] 激活     - Windows
+echo.              [2] 激活     - Office
+echo.              [3] 激活     - 所有
 echo.
-if defined _tskinstalled call :_color2 %_White% "              [4] Install Auto-Renewal      " %_Green% "[Installed]"
-if defined _oldtsk       call :_color2 %_White% "              [4] Install Auto-Renewal      " %_Red% "[Old Installed]"
-if not defined _tskinstalled if not defined _oldtsk echo.              [4] Install Auto-Renewal
-echo.              [5] Uninstall
+if defined _tskinstalled call :_color2 %_White% "              [4] 安装自动续期              " %_Green% "[已安装]"
+if defined _oldtsk       call :_color2 %_White% "              [4] 安装自动续期              " %_Red% "[旧安装]"
+if not defined _tskinstalled if not defined _oldtsk echo.              [4] 安装自动续期
+echo.              [5] 卸载
 echo.              _______________________________________________  
 echo.
 if %_Debug%==0 (
-echo.              [6] Enable Debug Mode         [No]
+echo.              [6] 启用调试模式              [否]
 ) else (
-call :_color2 %_White% "              [6] Enable Debug Mode         " %_Red% "[Yes]"
+call :_color2 %_White% "              [6] 启用调试模式              " %_Red% "[是]"
 )
 if %vNextOverride% EQU 1 (
 if %sub_next% EQU 1 (
-call :_color2 %_White% "              [7] Override Office vNext     " %_Red% "[Yes]"
+call :_color2 %_White% "              [7] 覆盖 Office vNext         " %_Red% "[是]"
 ) else (
-echo               [7] Override Office vNext     [Yes]
+echo               [7] 覆盖 Office vNext         [是]
 )
 ) else (
 if %sub_next% EQU 1 (
-call :_color2 %_White% "              [7] Override Office vNext     " %_Yellow% "[No]"
+call :_color2 %_White% "              [7] 覆盖 Office vNext         " %_Yellow% "[否]"
 ) else (
-echo               [7] Override Office vNext     [No]
+echo               [7] 覆盖 Office vNext         [否]
 )
 )
 echo.              _______________________________________________       
@@ -4025,7 +4022,7 @@ echo.
 echo.              [0] %_exitmsg%
 echo.       ______________________________________________________________
 echo.
-call :_color2 %_White% "           " %_Green% "Enter a menu option in the Keyboard [1,2,3,4,5,6,7,0]"
+call :_color2 %_White% "           " %_Green% "请输入一个菜单选项 [1,2,3,4,5,6,7,0]"
 choice /C:12345670 /N
 set _el=%errorlevel%
 
@@ -4046,7 +4043,7 @@ goto _KMS_Menu
 if defined _unattended exit /b
 
 echo.
-echo Press any key to exit...
+echo 请按任意键退出脚本……
 pause >nul
 exit /b
 
@@ -4070,10 +4067,10 @@ set "_run=nul"
 if %Logger% EQU 1 set _run="%~dpn0_Silent.log"
 
 set "SysPath=%SystemRoot%\System32"
-set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
 set "SysPath=%SystemRoot%\Sysnative"
-set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%Path%"
+set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%Path%"
 )
 set "_bit=64"
 set "_wow=1"
@@ -4103,19 +4100,19 @@ if not errorlevel 1 set _UNC=1
 )
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop') do call set "_dsk=%%b"
 if exist "%PUBLIC%\Desktop\desktop.ini" set "_dsk=%PUBLIC%\Desktop"
-set "_mO21a=Detected Office 2021 C2R Retail is activated"
-set "_mO19a=Detected Office 2019 C2R Retail is activated"
-set "_mO16a=Detected Office 2016 C2R Retail is activated"
-set "_mO15a=Detected Office 2013 C2R Retail is activated"
-set "_mO21c=Detected Office 2021 C2R Retail could not be converted to Volume"
-set "_mO19c=Detected Office 2019 C2R Retail could not be converted to Volume"
-set "_mO16c=Detected Office 2016 C2R Retail could not be converted to Volume"
-set "_mO15c=Detected Office 2013 C2R Retail could not be converted to Volume"
-set "_mO14c=Detected Office 2010 C2R Retail is not supported by this script"
-set "_mO14m=Detected Office 2010 MSI Retail is not supported by this script"
-set "_mO15m=Detected Office 2013 MSI Retail is not supported by this script"
-set "_mO16m=Detected Office 2016 MSI Retail is not supported by this script"
-set "_mOuwp=Detected Office 365/2016 UWP is not supported by this script"
+set "_mO21a=检测到 Office 2021 C2R 零售版本已经激活"
+set "_mO19a=检测到 Office 2019 C2R 零售版本已经激活"
+set "_mO16a=检测到 Office 2016 C2R 零售版本已经激活"
+set "_mO15a=检测到 Office 2013 C2R 零售版本已经激活"
+set "_mO21c=检测到 Office 2021 C2R 零售版本无法转换为批量版本"
+set "_mO19c=检测到 Office 2019 C2R 零售版本无法转换为批量版本"
+set "_mO16c=检测到 Office 2016 C2R 零售版本无法转换为批量版本"
+set "_mO15c=检测到 Office 2013 C2R 零售版本无法转换为批量版本"
+set "_mO14c=检测到 Office 2010 C2R 零售版本不支持此脚本"
+set "_mO14m=检测到 Office 2010 MSI 零售版本不支持此脚本"
+set "_mO15m=检测到 Office 2013 MSI 零售版本不支持此脚本"
+set "_mO16m=检测到 Office 2016 MSI 零售版本不支持此脚本"
+set "_mOuwp=检测到 Office 365/2016 UWP 不支持此脚本"
 set DO15Ids=ProPlus,Standard,Access,Lync,Excel,Groove,InfoPath,OneNote,Outlook,PowerPoint,Publisher,Word
 set DO16Ids=ProPlus,Standard,Access,SkypeforBusiness,Excel,Outlook,PowerPoint,Publisher,Word
 set LV16Ids=Mondo,ProPlus,ProjectPro,VisioPro,Standard,ProjectStd,VisioStd,Access,SkypeforBusiness,OneNote,Excel,Outlook,PowerPoint,Publisher,Word
@@ -4158,9 +4155,9 @@ pushd "!_work!"
 if not defined _unattended (
 mode con cols=98 lines=31
 %psc% "&%_buf%"
-title  %_title%
+title %_title%
 ) else (
-title  Online KMS Activation %masver%
+title 在线 KMS 激活 %masver%
 )
 
 if defined _gui if %_Debug%==1 mode con cols=98 lines=30
@@ -4180,10 +4177,10 @@ if %_Debug% EQU 0 (
   set "_log=!_dsk!\%~n0"
   if %Silent% EQU 0 (
   echo.
-  echo Running in Debug Mode...
-  if not defined _args (echo The window will be closed when finished) else (echo please wait...)
+  echo 正在调试模式下运行……
+  if not defined _args (echo 当完成之后，此窗口将会关闭) else (echo请稍候……)
   echo.
-  echo Writing debug log to:
+  echo 正在写入调试日志到：
   echo "!_log!_Debug.log"
   )
   @echo on
@@ -4193,7 +4190,7 @@ if %_Debug% EQU 0 (
 @echo off
 if defined _gui if %_Debug%==1 (
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 )
@@ -4207,9 +4204,9 @@ set act_failed=0
 set /a act_attempt=0
 
 echo.
-echo Initializing...
+echo 正在初始化……
 
-:: Check Internet connection. Works even if ICMP echo is disabled.
+::  检查 Internet 连接。即使禁用 ICMP 回显也可以工作。
 
 call :setserv
 for %%a in (%srvlist%) do (
@@ -4223,18 +4220,18 @@ if [%errorlevel%]==[0] goto IntConnected
 
 cls
 if %_Debug%==1 (
-echo Error: Internet is not connected.
+echo 错误：Internet 未连接。
 exit /b
 )
 
 if defined _unattended (
 echo.
-call :_color %_Red% "Internet is not connected, continuing the process anyway."
+call :_color %_Red% "Internet 未连接，无论如何仍继续此过程。"
 ) else (
 %eline%
-echo Internet is not connected.
+echo Internet 未连接。
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 )
@@ -4270,7 +4267,7 @@ set ESU_EDT=0
 if %ESU_KMS% EQU 1 for %%A in (%ESUEditions%) do (
   if exist "%SysPath%\spp\tokens\skus\Security-SPP-Component-SKU-%%A\*.xrm-ms" set ESU_EDT=1
 )
-:: if %ESU_EDT% EQU 1 set SSppHook=1
+::  if %ESU_EDT% EQU 1 set SSppHook=1
 set ESU_ADD=0
 
 if %winbuild% GEQ 9200 (
@@ -4338,13 +4335,13 @@ IF /I "%EditionID%"=="EnterpriseG" SET Win10Gov=1
 IF /I "%EditionID%"=="EnterpriseGN" SET Win10Gov=1
 
 :Main
-if defined EditionID (set "_winos=Windows %EditionID% edition") else (set "_winos=Detected Windows")
+if defined EditionID (set "_winos=Windows %EditionID% edition") else (set "_winos=检测到 Windows")
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName %_Nul6%') do if not errorlevel 1 set "_winos=%%b"
-set "nKMS=does not support KMS activation..."
-set "nEval=Evaluation Editions cannot be activated. Please install full Windows OS."
+set "nKMS=不支持 KMS 激活……"
+set "nEval=评估版本无法激活。请安装完整版本 Windows 操作系统。"
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*EvalEdition~*.mum" set _eval=1
-if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*EvalEdition~*.mum" set "nEval=Server Evaluation cannot be activated. Please convert to full Server OS."
-if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*EvalCorEdition~*.mum" set _eval=1&set "nEval=Server Evaluation cannot be activated. Please convert to full Server OS."
+if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*EvalEdition~*.mum" set "nEval=Server 评估版本无法激活。请转换为完整的 Server 操作系统。"
+if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*EvalCorEdition~*.mum" set _eval=1&set "nEval=Server 评估版本无法激活。请转换为完整的 Server 操作系统。"
 set "_C16R="
 reg query HKLM\SOFTWARE\Microsoft\Office\ClickToRun /v InstallPath %_Nul3% && for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\ClickToRun /v InstallPath" %_Nul6%') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms" (
 reg query HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration /v ProductReleaseIds %_Nul3% && set "_C16R=HKLM\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
@@ -4365,7 +4362,7 @@ if %_O14MSI% EQU 1 set "_C14R="
 set S_OK=1
 call :RunSPP
 if %ActOffice% NEQ 0 call :RunOSPP
-if %ActOffice% EQU 0 (echo.&echo Office activation is OFF...)
+if %ActOffice% EQU 0 (echo.&echo Office 激活已关闭……)
 
 if exist "!_temp!\crv*.txt" del /f /q "!_temp!\crv*.txt"
 if exist "!_temp!\*chk.txt" del /f /q "!_temp!\*chk.txt"
@@ -4394,13 +4391,13 @@ set "_qr=%_zz1% %spp% %_zz2% %_zz5%Description like '%%KMSCLIENT%%' %_zz6% %_zz3
 %_qr% %_Nul2% | findstr /i Windows %_Nul1% && (set WinVL=1)
 if %WinVL% EQU 0 (
 if %ActWindows% EQU 0 (
-  echo.&echo Windows activation is OFF...
+  echo.&echo Windows 激活已关闭……
   ) else (
   if %SSppHook% EQU 0 (
     echo.&echo %_winos% %nKMS%
     if defined _eval echo %nEval%
     ) else (
-    echo.&echo Failed checking KMS Activation ID^(s^) for Windows. &call :CheckWS
+    echo.&echo 检查 Windows 的 KMS 激活 ID 失败。&call :CheckWS
     exit /b
     )
   )
@@ -4437,9 +4434,9 @@ set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_wApp%' and Description like 
 if %W1nd0ws% EQU 0 for /f "tokens=2 delims==" %%G in ('%_qr%') do (set app=%%G&call :sppchkwin)
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_wApp%' and Description like '%%KMSCLIENT%%' %adoff% %_zz6% %_zz3% ID %_zz8%"
 if %W1nd0ws% EQU 1 if %ActWindows% NEQ 0 for /f "tokens=2 delims==" %%G in ('%_qr%') do (set app=%%G&call :sppchkwin)
-:: set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_wApp%' and Description like '%%KMSCLIENT%%' %addon% %_zz6% %_zz3% ID %_zz8%"
-:: if %ESU_EDT% EQU 1 if %ActWindows% NEQ 0 for /f "tokens=2 delims==" %%G in ('%_qr%') do (set app=%%G&call :esuchk)
-if %W1nd0ws% EQU 1 if %ActWindows% EQU 0 (echo.&echo Windows activation is OFF...)
+::  set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_wApp%' and Description like '%%KMSCLIENT%%' %addon% %_zz6% %_zz3% ID %_zz8%"
+::  if %ESU_EDT% EQU 1 if %ActWindows% NEQ 0 for /f "tokens=2 delims==" %%G in ('%_qr%') do (set app=%%G&call :esuchk)
+if %W1nd0ws% EQU 1 if %ActWindows% EQU 0 (echo.&echo Windows 激活已关闭……)
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_oApp%' and Description like '%%KMSCLIENT%%' %_zz6% %_zz3% ID %_zz8%"
 if %Off1ce% EQU 1 if %ActOffice% NEQ 0 for /f "tokens=2 delims==" %%G in ('%_qr%') do (set app=%%G&call :sppchkoff 1)
 reg delete "HKLM\%SPPk%" /f /v DisableDnsPublishing %_Null%
@@ -4452,13 +4449,13 @@ if %winbuild% GEQ 10240 reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersio
 dir /b "%ProgramFiles%\WindowsApps\Microsoft.Office.Desktop*" %_Nul3% && set OffUWP=1
 if not %xOS%==x86 dir /b "%ProgramW6432%\WindowsApps\Microsoft.Office.Desktop*" %_Nul3% && set OffUWP=1
 )
-rem nothing installed
+rem 无已安装的方案
 if %loc_off21% EQU 0 if %loc_off19% EQU 0 if %loc_off16% EQU 0 if %loc_off15% EQU 0 (
 if %winbuild% GEQ 9200 (
-  if %OffUWP% EQU 0 (echo.&echo No Installed Office 2013-2021 Product Detected...) else (echo.&echo %_mOuwp%)
+  if %OffUWP% EQU 0 (echo.&echo 未检测到已安装的 Office 2013-2021 产品……) else (echo.&echo %_mOuwp%)
   exit /b
   )
-if %winbuild% LSS 9200 (if %loc_off14% EQU 0 (echo.&echo No Installed Office %aword% Product Detected...&exit /b))
+if %winbuild% LSS 9200 (if %loc_off14% EQU 0 (echo.&echo 未检测到已安装的 Office %aword% 产品……&exit /b))
 )
 if %vNextOverride% EQU 1 if %AutoR2V% EQU 1 (
 set sub_o365=0
@@ -4624,12 +4621,12 @@ if %vol_off21% EQU 0 if %vol_off19% EQU 0 if %vol_off16% EQU 0 if %vol_off15% EQ
 if %winbuild% GEQ 9200 set vol_offgl=0
 if %winbuild% LSS 9200 if %vol_off14% EQU 0 set vol_offgl=0
 )
-rem mixed Volume + Retail
+rem 混合批量版本 + 零售版本方案
 if %run_off21% EQU 1 if %AutoR2V% EQU 1 if %RanR2V% EQU 0 goto :C2RR2V
 if %run_off19% EQU 1 if %AutoR2V% EQU 1 if %RanR2V% EQU 0 goto :C2RR2V
 if %run_off16% EQU 1 if %AutoR2V% EQU 1 if %RanR2V% EQU 0 goto :C2RR2V
 if %run_off15% EQU 1 if %AutoR2V% EQU 1 if %RanR2V% EQU 0 goto :C2RR2V
-rem all supported Volume + message for unsupported
+rem 全支持批量方案 + 不支持的消息
 if %loc_off16% EQU 0 if %ret_off16% EQU 1 if %_O16MSI% EQU 0 if %OffUWP% EQU 1 (echo.&echo %_mOuwp%)
 if %vol_offgl% EQU 1 (
 if %ret_off16% EQU 1 if %_O16MSI% EQU 1 (echo.&echo %_mO16m%)
@@ -4638,10 +4635,10 @@ if %winbuild% LSS 9200 if %loc_off14% EQU 1 if %vol_off14% EQU 0 (if defined _C1
 exit /b
 )
 set Off1ce=0
-rem Retail C2R
+rem 零售 C2R 方案
 if %AutoR2V% EQU 1 if %RanR2V% EQU 0 goto :C2RR2V
 :ReturnSPP
-rem Retail MSI/C2R or failed C2R-R2V
+rem 零售 MSI/C2R 方案或失败的 C2R-R2V 方案
 if %loc_off21% EQU 1 if %vol_off21% EQU 0 (
 if %aC2R21% EQU 1 (echo.&echo %_mO21a%) else (echo.&echo %_mO21c%)
 )
@@ -4745,8 +4742,8 @@ cscript //nologo "!_temp!\slmgr.vbs" /xpr %_Nul2% | findstr /i "permanently" %_N
 )
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ApplicationID='%_wApp%' and LicenseStatus='1' %adoff% %_zz6% %_zz3% Name %_zz8%"
 if %WinPerm% EQU 1 (
-for /f "tokens=2 delims==" %%x in ('%_qr%') do echo Checking: %%x
-echo Product is Permanently Activated.
+for /f "tokens=2 delims==" %%x in ('%_qr%') do echo 正在检查：%%x
+echo 产品已永久激活。
 exit /b
 )
 call :insKey
@@ -4800,14 +4797,14 @@ set aC2R19=0
 set aC2R16=0
 set aC2R15=0
 if %winbuild% LSS 9200 (set "aword=2010-2021") else (set "aword=2010")
-if %OsppHook% EQU 0 (echo.&echo No Installed Office %aword% Product Detected...&exit /b)
-if %winbuild% GEQ 9200 if %loc_off14% EQU 0 (echo.&echo No Installed Office %aword% Product Detected...&exit /b)
+if %OsppHook% EQU 0 (echo.&echo 未检测到已安装的 Office %aword% 产品……&exit /b)
+if %winbuild% GEQ 9200 if %loc_off14% EQU 0 (echo.&echo 未检测到已安装的 Office %aword% 产品……&exit /b)
 set err_offsvc=0
 net start osppsvc /y %_Nul3% || (
 sc start osppsvc %_Nul3%
 if !errorlevel! EQU 1053 set err_offsvc=1
 )
-if %err_offsvc% EQU 1 (echo.&echo Error: osppsvc service is not running...&exit /b)
+if %err_offsvc% EQU 1 (echo.&echo 错误：osppsvc 服务未运行……&exit /b)
 if %winbuild% GEQ 9200 call :oppoff
 if %winbuild% LSS 9200 call :sppoff
 if %Off1ce% EQU 0 exit /b
@@ -4848,18 +4845,18 @@ if /i not "%~3"=="" for /f "tokens=2 delims==" %%A in ('%_qr% %_Nul6%') do set /
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%LicenseFamily='Office%~5'%_zz6% %_zz3% LicenseStatus %_zz8%"
 if /i not "%~5"=="" for /f "tokens=2 delims==" %%A in ('%_qr% %_Nul6%') do set /a ls3=%%A
 if "%ls3%"=="1" (
-echo Checking: %~6
-echo Product is Permanently Activated.
+echo 正在检查：%~6
+echo 产品已永久激活。
 exit /b
 )
 if "%ls2%"=="1" (
-echo Checking: %~4
-echo Product is Permanently Activated.
+echo 正在检查：%~4
+echo 产品已永久激活。
 exit /b
 )
 if "%ls%"=="1" (
-echo Checking: %~2
-echo Product is Permanently Activated.
+echo 正在检查：%~2
+echo 产品已永久激活。
 exit /b
 )
 call :insKey
@@ -5098,18 +5095,18 @@ set S_OK=1
 echo.
 set "_key="
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ID='%app%'%_zz6% %_zz3% Name %_zz8%"
-if %ESU_ADD% EQU 0 for /f "tokens=2 delims==" %%x in ('%_qr%') do echo Installing Key: %%x
-if %ESU_ADD% EQU 1 for /f "tokens=2 delims==f" %%x in ('%_qr%') do echo Installing Key: %%x
+if %ESU_ADD% EQU 0 for /f "tokens=2 delims==" %%x in ('%_qr%') do echo 正在安装密钥：%%x
+if %ESU_ADD% EQU 1 for /f "tokens=2 delims==f" %%x in ('%_qr%') do echo 正在安装密钥：%%x
 set ESU_ADD=0
 call :keys %app%
-if "%_key%"=="" (echo No associated KMS Client key found&exit /b)
+if "%_key%"=="" (echo 未找到关联的 KMS 客户端密钥&exit /b)
 set "_qr=wmic path %sps% where Version='%slsv%' call InstallProductKey ProductKey="%_key%""
 if %WMI_VBS% NEQ 0 set "_qr=%_csp% %sps% "%_key%""
 %_qr% %_Nul3%
 set ERRORCODE=%ERRORLEVEL%
 if %ERRORCODE% NEQ 0 (
 cmd /c exit /b %ERRORCODE%
-echo Failed: 0x!=ExitCode!
+echo 失败：0x!=ExitCode!
 set S_OK=0
 exit /b
 )
@@ -5129,15 +5126,15 @@ set "_qr=%_zz7% %spp% %_zz2% %_zz5%ID='%app%'%_zz6% %_zz3% Name %_zz8%"
 if %W1nd0ws% EQU 0 if %_officespp% EQU 0 if %sps% EQU SoftwareLicensingService (
 reg add "HKLM\%SPPk%\%_wApp%\%app%" /f /v KeyManagementServiceName /t REG_SZ /d "127.0.0.2" %_Nul3%
 reg add "HKLM\%SPPk%\%_wApp%\%app%" /f /v KeyManagementServicePort /t REG_SZ /d "%KMS_Port%" %_Nul3%
-for /f "tokens=2 delims==" %%x in ('%_qr%') do echo Checking: %%x
-echo Product is KMS 2038 Activated.
+for /f "tokens=2 delims==" %%x in ('%_qr%') do echo 正在检查：%%x
+echo 产品已通过 KMS 2038 激活。
 set _keepkms38=1
 exit /b
 )
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ID='%app%'%_zz6% %_zz3% Name %_zz8%"
 if %act_attempt% LSS 1 (
-if %ESU_ADD% EQU 0 for /f "tokens=2 delims==" %%x in ('%_qr%') do echo Activating: %%x
-if %ESU_ADD% EQU 1 for /f "tokens=2 delims==f" %%x in ('%_qr%') do echo Activating: %%x
+if %ESU_ADD% EQU 0 for /f "tokens=2 delims==" %%x in ('%_qr%') do echo 正在激活：%%x
+if %ESU_ADD% EQU 1 for /f "tokens=2 delims==f" %%x in ('%_qr%') do echo 正在激活：%%x
 )
 
 set ESU_ADD=0
@@ -5146,20 +5143,20 @@ if %WMI_VBS% NEQ 0 set "_qr=%_csm% "%spp%.ID='%app%'" Activate"
 %_qr% %_Nul3%
 call set ERRORCODE=%ERRORLEVEL%
 if %act_attempt% LSS 1 if %ERRORCODE% EQU -1073418187 (
-echo Product Activation Failed: 0xC004F035
-if %OSType% EQU Win7 echo Windows 7 cannot be KMS-activated on this computer due to unqualified OEM BIOS.
-echo See Read Me for details.
+echo 产品激活失败：0xC004F035
+if %OSType% EQU Win7 echo 由于使用不合格的 OEM BIOS，此电脑运行的 Windows 7 无法通过 KMS 激活。
+echo 请参阅自述文件了解详细信息。
 exit /b
 )
 if %act_attempt% LSS 1 if %ERRORCODE% EQU -1073417728 (
-echo Product Activation Failed: 0xC004F200
-echo Windows needs to rebuild the activation-related files.
-echo See KB2736303 for details.
+echo 产品激活失败：0xC004F200
+echo Windows 需要重建激活相关文件。
+echo 请参阅 KB2736303 了解详细信息。
 exit /b
 )
 if %act_attempt% LSS 1 if %ERRORCODE% EQU -1073422315 (
-echo Product Activation Failed: 0xC004E015
-echo Running slmgr.vbs /rilc to mitigate.
+echo 产品激活失败：0xC004E015
+echo 正在运行 slmgr.vbs /rilc 缓解。
 cscript //Nologo //B %SysPath%\slmgr.vbs /rilc
 )
 set gpr=0
@@ -5167,8 +5164,8 @@ set gpr2=0
 set "_qr=%_zz7% %spp% %_zz2% %_zz5%ID='%app%'%_zz6% %_zz3% GracePeriodRemaining %_zz8%"
 for /f "tokens=2 delims==" %%x in ('%_qr%') do (set gpr=%%x&set /a "gpr2=(%%x+1440-1)/1440")
 if %act_attempt% LSS 1 if %ERRORCODE% EQU 0 if %gpr% EQU 0 (
-echo Product Activation succeeded, but Remaining Period failed to increase.
-if %OSType% EQU Win7 echo This could be related to the error described in KB4487266
+echo 产品激活成功，但剩余期限增加失败。
+if %OSType% EQU Win7 echo 这可能与 KB4487266 中描述的错误有关
 exit /b
 )
 set Act_OK=0
@@ -5178,8 +5175,8 @@ if %gpr% GTR 259200 if %Win10Gov% EQU 1 set Act_OK=1
 if %gpr% EQU 259200 set Act_OK=1
 
 if %ERRORCODE% EQU 0 if %Act_OK% EQU 1 (
-call :_color %_Green% "Product Activation Successful"
-echo Remaining Period: %gpr2% days ^(%gpr% minutes^)
+call :_color %_Green% "产品激活成功"
+echo 剩余期限：%gpr2% 天（%gpr% 分钟）
 set /a act_attempt=0
 exit /b
 )
@@ -5203,11 +5200,11 @@ goto :activate
 
 cmd /c exit /b %ERRORCODE%
 if %ERRORCODE% NEQ 0 (
-call :_color %_Red% "Product Activation Failed: 0x!=ExitCode!"
+call :_color %_Red% "产品激活失败：0x!=ExitCode!"
 ) else (
-call :_color %_Red% "Product Activation Failed"
+call :_color %_Red% "产品激活失败"
 )
-echo Remaining Period: %gpr2% days ^(%gpr% minutes^)
+echo 剩余期限：%gpr2% 天（%gpr% 分钟）
 set S_OK=0
 set act_failed=1
 set /a act_attempt=0
@@ -5232,7 +5229,7 @@ call :CheckWS
 if %WMIe% EQU 1 (
 echo.
 echo %_err%
-echo Failed running WMI query check.
+echo 运行 WMI 查询检查失败。
 )
 goto :eof
 
@@ -5243,9 +5240,9 @@ set "_qrs=%_zz1% SoftwareLicensingService %_zz3% Version %_zz4%"
 %_qrs% %_Nul2% | findstr /r "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" %_Nul1% || (
   set WMIe=1
   %_qrw% %_Nul2% | find /i "ComputerSystem" %_Nul1% && (
-    echo Error: SPP is not responding
+    echo 错误：SPP 没有响应
     ) || (
-    echo Error: WMI ^& SPP are not responding
+    echo 错误：WMI 和 SPP 没有响应
   )
 )
 goto :eof
@@ -5265,7 +5262,7 @@ set error1=%errorlevel%
 sc query OfficeSvc %_Nul3%
 set error2=%errorlevel%
 if %error1% EQU 1060 if %error2% EQU 1060 (
-echo Error: Office C2R service is not detected
+echo 错误：没有检测到 Office C2R 安装路径
 goto :%_fC2R%
 )
 set _Office16=0
@@ -5283,7 +5280,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\WOW6432Node\Microsof
   set _Office15=1
 )
 if %_Office16% EQU 0 if %_Office15% EQU 0 (
-echo Error: Office C2R InstallPath is not detected
+echo 错误：没有检测到 Office C2R 安装路径
 goto :%_fC2R%
 )
 
@@ -5315,13 +5312,13 @@ set "_LicensesPath=%_InstallRoot%\Licenses16"
 set "_Integrator=%_InstallRoot%\integration\integrator.exe"
 for /f "skip=2 tokens=2*" %%a in ('"reg query %_PRIDs% /v ActiveConfiguration" %_Nul6%') do set "_PRIDs=%_PRIDs%\%%b"
 if "%_ProductIds%"=="" (
-if %_Office15% EQU 0 (echo Error: Office C2R ProductIDs are not detected&goto :%_fC2R%) else (goto :Reg15istry)
+if %_Office15% EQU 0 (echo 错误：没有检测到 Office C2R 产品 ID&goto :%_fC2R%) else (goto :Reg15istry)
 )
 if not exist "%_LicensesPath%\ProPlus*.xrm-ms" (
-if %_Office15% EQU 0 (echo Error: Office C2R Licenses files are not detected&goto :%_fC2R%) else (goto :Reg15istry)
+if %_Office15% EQU 0 (echo 错误：没有检测到 Office C2R 许可文件&goto :%_fC2R%) else (goto :Reg15istry)
 )
 if not exist "%_Integrator%" (
-if %_Office15% EQU 0 (echo Error: Office C2R Licenses Integrator is not detected&goto :%_fC2R%) else (goto :Reg15istry)
+if %_Office15% EQU 0 (echo 错误：没有检测到 Office C2R 许可集成程序&goto :%_fC2R%) else (goto :Reg15istry)
 )
 if exist "%_LicensesPath%\Word2019VL_KMS_Client_AE*.xrm-ms" (set "_tag=2019"&set "_ons= 2019")
 if exist "%_LicensesPath%\Word2021VL_KMS_Client_AE*.xrm-ms" (set _LTSC=1)
@@ -5372,13 +5369,13 @@ if exist "%ProgramFiles%\Microsoft Office\Office15\OSPP.VBS" (
   set "_OSPP15VBS=%ProgramFiles(x86)%\Microsoft Office\Office15\OSPP.VBS"
 )
 if "%_Product15Ids%"=="" (
-if %_Office16% EQU 0 (echo Error: Office 2013 C2R ProductIDs are not detected&goto :%_fC2R%) else (goto :CheckC2R)
+if %_Office16% EQU 0 (echo 错误：没有检测到 Office 2013 C2R 产品 ID&goto :%_fC2R%) else (goto :CheckC2R)
 )
 if not exist "%_Licenses15Path%\ProPlus*.xrm-ms" (
-if %_Office16% EQU 0 (echo Error: Office 2013 C2R Licenses files are not detected&goto :%_fC2R%) else (goto :CheckC2R)
+if %_Office16% EQU 0 (echo 错误：没有检测到 Office 2013 C2R 许可文件&goto :%_fC2R%) else (goto :CheckC2R)
 )
 if %winbuild% LSS 9200 if not exist "%_OSPP15VBS%" (
-if %_Office16% EQU 0 (echo Error: Office 2013 C2R Licensing tool OSPP.vbs is not detected&goto :%_fC2R%) else (goto :CheckC2R)
+if %_Office16% EQU 0 (echo 错误：没有检测到 Office 2013 C2R 许可工具 OSPP.vbs&goto :%_fC2R%) else (goto :CheckC2R)
 )
 
 :CheckC2R
@@ -5406,7 +5403,7 @@ set "_wmi="
 set "_qr=%_zz7% %_sps% %_zz3% Version %_zz8%"
 for /f "tokens=2 delims==" %%# in ('%_qr%') do set _wmi=%%#
 if "%_wmi%"=="" (
-echo Error: %_sps% WMI version is not detected
+echo 错误：没有检测到 %_sps% WMI 版本
 call :CheckWS
 goto :%_fC2R%
 )
@@ -5421,7 +5418,7 @@ find /i "TIMEBASED_SUB channel" "!_temp!\crvRetail.txt" %_Nul1% && set _Retail=1
 set rancopp=0
 if %_Retail% EQU 0 if %_OMSI% EQU 0 (
 set rancopp=1
-%_Nul3% powershell "$f=[io.file]::ReadAllText('!_batp!') -split ':cleanlicense\:.*';iex ($f[1]);"
+%_Nul3% powershell "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':cleanlicense\:.*';iex ($f[1]);"
 )
 set _O16O365=0
 set _C16Msg=0
@@ -5519,17 +5516,17 @@ find /i "Office16MondoVL_KMS_Client" "!_temp!\crvVolume.txt" %_Nul1% && (
 if %sub_o365% EQU 1 (
   for %%a in (%_Suites%) do set _%%a=0
 echo.
-echo Microsoft Office is activated with a vNext license.
+echo Microsoft Office 已使用 vNext 许可证激活。
 )
 if %sub_proj% EQU 1 (
   for %%a in (%_PrjSKU%) do set _%%a=0
 echo.
-echo Microsoft Project is activated with a vNext license.
+echo Microsoft Project 已使用 vNext 许可证激活。
 )
 if %sub_vsio% EQU 1 (
   for %%a in (%_VisSKU%) do set _%%a=0
 echo.
-echo Microsoft Visio is activated with a vNext license.
+echo Microsoft Visio 已使用 vNext 许可证激活。
 )
 
 for %%a in (%_RetIds%,ProPlus) do if !_%%a! EQU 1 (
@@ -5537,7 +5534,7 @@ set _C16Msg=1
 )
 if %_C16Msg% EQU 1 (
 echo.
-echo Converting Office C2R Retail-to-Volume:
+echo 正在将 Office C2R 零售版本转换为批量版本：
 )
 if %_C16Msg% EQU 0 (if %_Office15% EQU 1 (goto :R15V) else (goto :GVLKC2R))
 
@@ -5550,74 +5547,74 @@ if !_Mondo! EQU 1 (
 call :InsLic Mondo
 )
 if !_O365ProPlus! EQU 1 (
-echo O365ProPlus 2016 Suite ^<-^> Mondo 2016 Licenses
+echo O365ProPlus 2016 套件 ^<-^> Mondo 2016 许可
 call :InsLic O365ProPlus DRNV7-VGMM2-B3G9T-4BF84-VMFTK
 if !_Mondo! EQU 0 call :InsLic Mondo
 )
 if !_O365Business! EQU 1 if !_O365ProPlus! EQU 0 (
 set _O365ProPlus=1
-echo O365Business 2016 Suite ^<-^> Mondo 2016 Licenses
+echo O365Business 2016 套件 ^<-^> Mondo 2016 许可
 call :InsLic O365Business NCHRJ-3VPGW-X73DM-6B36K-3RQ6B
 if !_Mondo! EQU 0 call :InsLic Mondo
 )
 if !_O365SmallBusPrem! EQU 1 if !_O365Business! EQU 0 if !_O365ProPlus! EQU 0 (
 set _O365ProPlus=1
-echo O365SmallBusPrem 2016 Suite ^<-^> Mondo 2016 Licenses
+echo O365SmallBusPrem 2016 套件 ^<-^> Mondo 2016 许可
 call :InsLic O365SmallBusPrem 3FBRX-NFP7C-6JWVK-F2YGK-H499R
 if !_Mondo! EQU 0 call :InsLic Mondo
 )
 if !_O365HomePrem! EQU 1 if !_O365SmallBusPrem! EQU 0 if !_O365Business! EQU 0 if !_O365ProPlus! EQU 0 (
 set _O365ProPlus=1
-echo O365HomePrem 2016 Suite ^<-^> Mondo 2016 Licenses
+echo O365HomePrem 2016 套件 ^<-^> Mondo 2016 许可
 call :InsLic O365HomePrem 9FNY8-PWWTY-8RY4F-GJMTV-KHGM9
 if !_Mondo! EQU 0 call :InsLic Mondo
 )
 if !_O365EduCloud! EQU 1 if !_O365HomePrem! EQU 0 if !_O365SmallBusPrem! EQU 0 if !_O365Business! EQU 0 if !_O365ProPlus! EQU 0 (
 set _O365ProPlus=1
-echo O365EduCloud 2016 Suite ^<-^> Mondo 2016 Licenses
+echo O365EduCloud 2016 套件 ^<-^> Mondo 2016 许可
 call :InsLic O365EduCloud 8843N-BCXXD-Q84H8-R4Q37-T3CPT
 if !_Mondo! EQU 0 call :InsLic Mondo
 )
 if !_O365ProPlus! EQU 1 set _O16O365=1
 if !_Mondo! EQU 1 if !_O365ProPlus! EQU 0 (
-echo Mondo 2016 Suite
+echo Mondo 2016 套件
 call :InsLic O365ProPlus DRNV7-VGMM2-B3G9T-4BF84-VMFTK
 if %_Office15% EQU 1 (goto :R15V) else (goto :GVLKC2R)
 )
 if !_ProPlus2021! EQU 1 if !_O365ProPlus! EQU 0 (
-echo ProPlus 2021 Suite
+echo ProPlus 2021 套件
 call :InsLic ProPlus2021
 )
 if !_ProPlus2019! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 (
-echo ProPlus 2019 Suite -^> ProPlus%_ons% Licenses
+echo ProPlus 2019 套件 -^> ProPlus%_ons% 许可
 call :InsLic ProPlus%_tag%
 )
 if !_ProPlus! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 (
-echo ProPlus 2016 Suite -^> ProPlus%_ons% Licenses
+echo ProPlus 2016 套件 -^> ProPlus%_ons% 许可
 call :InsLic ProPlus%_tag%
 )
 if !_Professional2021! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 (
-echo Professional 2021 Suite -^> ProPlus 2021 Licenses
+echo Professional 2021 套件 -^> ProPlus 2021 许可
 call :InsLic ProPlus2021
 )
 if !_Professional2019! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 (
-echo Professional 2019 Suite -^> ProPlus%_ons% Licenses
+echo Professional 2019 套件 -^> ProPlus%_ons% 许可
 call :InsLic ProPlus%_tag%
 )
 if !_Professional! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 (
-echo Professional 2016 Suite -^> ProPlus%_ons% Licenses
+echo Professional 2016 套件 -^> ProPlus%_ons% 许可
 call :InsLic ProPlus%_tag%
 )
 if !_Standard2021! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 (
-echo Standard 2021 Suite
+echo Standard 2021 套件
 call :InsLic Standard2021
 )
 if !_Standard2019! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 (
-echo Standard 2019 Suite -^> Standard%_ons% Licenses
+echo Standard 2019 套件 -^> Standard%_ons% 许可
 call :InsLic Standard%_tag%
 )
 if !_Standard! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 (
-echo Standard 2016 Suite -^> Standard%_ons% Licenses
+echo Standard 2016 套件 -^> Standard%_ons% 许可
 call :InsLic Standard%_tag%
 )
 for %%a in (ProjectPro,VisioPro,ProjectStd,VisioStd) do if !_%%a2021! EQU 1 (
@@ -5626,88 +5623,88 @@ for %%a in (ProjectPro,VisioPro,ProjectStd,VisioStd) do if !_%%a2021! EQU 1 (
 )
 for %%a in (ProjectPro,VisioPro,ProjectStd,VisioStd) do if !_%%a2019! EQU 1 (
 if !_%%a2021! EQU 0 (
-  echo %%a 2019 SKU -^> %%a%_ons% Licenses
+  echo %%a 2019 SKU -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (ProjectPro,VisioPro,ProjectStd,VisioStd) do if !_%%a! EQU 1 (
 if !_%%a2021! EQU 0 if !_%%a2019! EQU 0 (
-  echo %%a 2016 SKU -^> %%a%_ons% Licenses
+  echo %%a 2016 SKU -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (HomeBusiness,HomeStudent) do if !_%%a2021! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 (
   set _Standard2021=1
-  echo %%a 2021 Suite -^> Standard 2021 Licenses
+  echo %%a 2021 套件 -^> Standard 2021 许可
   call :InsLic Standard2021
   )
 )
 for %%a in (HomeBusiness,HomeStudent) do if !_%%a2019! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 if !_%%a2021! EQU 0 (
   set _Standard2019=1
-  echo %%a 2019 Suite -^> Standard%_ons% Licenses
+  echo %%a 2019 套件 -^> Standard%_ons% 许可
   call :InsLic Standard%_tag%
   )
 )
 for %%a in (HomeBusiness,HomeStudent) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 if !_%%a2021! EQU 0 if !_%%a2019! EQU 0 (
   set _Standard=1
-  echo %%a 2016 Suite -^> Standard%_ons% Licenses
+  echo %%a 2016 套件 -^> Standard%_ons% 许可
   call :InsLic Standard%_tag%
   )
 )
 for %%a in (%_A21Ids%,OneNote) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 (
-  echo %%a App
+  echo %%a 应用
   call :InsLic %%a
   )
 )
 for %%a in (%_A16Ids%) do if !_%%a2019! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 if !_%%a2021! EQU 0 (
-  echo %%a 2019 App -^> %%a%_ons% Licenses
+  echo %%a 2019 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (%_A16Ids%) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_Standard2021! EQU 0 if !_Standard2019! EQU 0 if !_Standard! EQU 0 if !_%%a2021! EQU 0 if !_%%a2019! EQU 0 (
-  echo %%a 2016 App -^> %%a%_ons% Licenses
+  echo %%a 2016 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (Access) do if !_%%a2021! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 (
-  echo %%a 2021 App
+  echo %%a 2021 应用
   call :InsLic %%a2021
   )
 )
 for %%a in (Access) do if !_%%a2019! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_%%a2021! EQU 0 (
-  echo %%a 2019 App -^> %%a%_ons% Licenses
+  echo %%a 2019 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (Access) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_Professional2021! EQU 0 if !_Professional2019! EQU 0 if !_Professional! EQU 0 if !_%%a2021! EQU 0 if !_%%a2019! EQU 0 (
-  echo %%a 2016 App -^> %%a%_ons% Licenses
+  echo %%a 2016 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (SkypeforBusiness) do if !_%%a2021! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 (
-  echo %%a 2021 App
+  echo %%a 2021 应用
   call :InsLic %%a2021
   )
 )
 for %%a in (SkypeforBusiness) do if !_%%a2019! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_%%a2021! EQU 0 (
-  echo %%a 2019 App -^> %%a%_ons% Licenses
+  echo %%a 2019 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
 for %%a in (SkypeforBusiness) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus2021! EQU 0 if !_ProPlus2019! EQU 0 if !_ProPlus! EQU 0 if !_%%a2021! EQU 0 if !_%%a2019! EQU 0 (
-  echo %%a 2016 App -^> %%a%_ons% Licenses
+  echo %%a 2016 应用 -^> %%a%_ons% 许可
   call :InsLic %%a%_tag%
   )
 )
@@ -5767,7 +5764,7 @@ set _C15Msg=1
 )
 if %_C15Msg% EQU 1 if %_C16Msg% EQU 0 (
 echo.
-echo Converting Office C2R Retail-to-Volume:
+echo 正在将 Office C2R 零售版本转换为批量版本：
 )
 if %_C15Msg% EQU 0 goto :GVLKC2R
 
@@ -5780,48 +5777,48 @@ if !_Mondo! EQU 1 (
 call :Ins15Lic Mondo
 )
 if !_O365ProPlus! EQU 1 if !_O16O365! EQU 0 (
-echo O365ProPlus 2013 Suite ^<-^> Mondo 2013 Licenses
+echo O365ProPlus 2013 套件 ^<-^> Mondo 2013 许可
 call :Ins15Lic O365ProPlus DRNV7-VGMM2-B3G9T-4BF84-VMFTK
 if !_Mondo! EQU 0 call :Ins15Lic Mondo
 )
 if !_O365SmallBusPrem! EQU 1 if !_O365ProPlus! EQU 0 if !_O16O365! EQU 0 (
 set _O365ProPlus=1
-echo O365SmallBusPrem 2013 Suite ^<-^> Mondo 2013 Licenses
+echo O365SmallBusPrem 2013 套件 ^<-^> Mondo 2013 许可
 call :Ins15Lic O365SmallBusPrem 3FBRX-NFP7C-6JWVK-F2YGK-H499R
 if !_Mondo! EQU 0 call :Ins15Lic Mondo
 )
 if !_O365HomePrem! EQU 1 if !_O365SmallBusPrem! EQU 0 if !_O365ProPlus! EQU 0 if !_O16O365! EQU 0 (
 set _O365ProPlus=1
-echo O365HomePrem 2013 Suite ^<-^> Mondo 2013 Licenses
+echo O365HomePrem 2013 套件 ^<-^> Mondo 2013 许可
 call :Ins15Lic O365HomePrem 9FNY8-PWWTY-8RY4F-GJMTV-KHGM9
 if !_Mondo! EQU 0 call :Ins15Lic Mondo
 )
 if !_O365Business! EQU 1 if !_O365HomePrem! EQU 0 if !_O365SmallBusPrem! EQU 0 if !_O365ProPlus! EQU 0 if !_O16O365! EQU 0 (
 set _O365ProPlus=1
-echo O365Business 2013 Suite ^<-^> Mondo 2013 Licenses
+echo O365Business 2013 套件 ^<-^> Mondo 2013 许可
 call :Ins15Lic O365Business MCPBN-CPY7X-3PK9R-P6GTT-H8P8Y
 if !_Mondo! EQU 0 call :Ins15Lic Mondo
 )
 if !_Mondo! EQU 1 if !_O365ProPlus! EQU 0 if !_O16O365! EQU 0 (
-echo Mondo 2013 Suite
+echo Mondo 2013 套件
 call :Ins15Lic O365ProPlus DRNV7-VGMM2-B3G9T-4BF84-VMFTK
 goto :GVLKC2R
 )
 if !_SPD! EQU 1 if !_Mondo! EQU 0 if !_O365ProPlus! EQU 0 (
-echo SharePoint Designer 2013 App -^> Mondo 2013 Licenses
+echo SharePoint Designer 2013 应用 -^> Mondo 2013 许可
 call :Ins15Lic Mondo
 goto :GVLKC2R
 )
 if !_ProPlus! EQU 1 if !_O365ProPlus! EQU 0 (
-echo ProPlus 2013 Suite
+echo ProPlus 2013 套件
 call :Ins15Lic ProPlus
 )
 if !_Professional! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 (
-echo Professional 2013 Suite -^> ProPlus 2013 Licenses
+echo Professional 2013 套件 -^> ProPlus 2013 许可
 call :Ins15Lic ProPlus
 )
 if !_Standard! EQU 1 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 if !_Professional! EQU 0 (
-echo Standard 2013 Suite
+echo Standard 2013 套件
 call :Ins15Lic Standard
 )
 for %%a in (ProjectPro,VisioPro,ProjectStd,VisioStd) do if !_%%a! EQU 1 (
@@ -5831,25 +5828,25 @@ call :Ins15Lic %%a
 for %%a in (HomeBusiness,HomeStudent) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 if !_Professional! EQU 0 if !_Standard! EQU 0 (
   set _Standard=1
-  echo %%a 2013 Suite -^> Standard 2013 Licenses
+  echo %%a 2013 套件 -^> Standard 2013 许可
   call :Ins15Lic Standard
   )
 )
 for %%a in (%_A15Ids%) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 if !_Professional! EQU 0 if !_Standard! EQU 0 (
-  echo %%a 2013 App
+  echo %%a 2013 应用
   call :Ins15Lic %%a
   )
 )
 for %%a in (Access) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 if !_Professional! EQU 0 (
-  echo %%a 2013 App
+  echo %%a 2013 应用
   call :Ins15Lic %%a
   )
 )
 for %%a in (Lync) do if !_%%a! EQU 1 (
 if !_O365ProPlus! EQU 0 if !_ProPlus! EQU 0 (
-  echo SkypeforBusiness 2015 App
+  echo SkypeforBusiness 2015 应用
   call :Ins15Lic %%a
   )
 )
@@ -5962,795 +5959,795 @@ if "%~1"=="" exit /b
 set yh=-
 goto :%1 %_Nul2%
 
-:: Windows 11 [Ni]
+::  Windows 11 [Ni]
 :59eb965c-9150-42b7-a0ec-22151b9897c5
-set "_key=KBN8V%yh%HFGQ4%yh%MGXVD%yh%347P6%yh%PDQGT" &:: IoT Enterprise LTSC
+set "_key=KBN8V%yh%HFGQ4%yh%MGXVD%yh%347P6%yh%PDQGT" &::  IoT Enterprise LTSC
 exit /b
 
-:: Windows 11 [Co]
+::  Windows 11 [Co]
 :ca7df2e3-5ea0-47b8-9ac1-b1be4d8edd69
-set "_key=37D7F%yh%N49CB%yh%WQR8W%yh%TBJ73%yh%FM8RX" &:: SE {Cloud}
+set "_key=37D7F%yh%N49CB%yh%WQR8W%yh%TBJ73%yh%FM8RX" &::  SE {Cloud}
 exit /b
 
 :d30136fc-cb4b-416e-a23d-87207abc44a9
-set "_key=6XN7V%yh%PCBDC%yh%BDBRH%yh%8DQY7%yh%G6R44" &:: SE N {Cloud N}
+set "_key=6XN7V%yh%PCBDC%yh%BDBRH%yh%8DQY7%yh%G6R44" &::  SE N {Cloud N}
 exit /b
 
-:: Windows 10 [RS5]
+::  Windows 10 [RS5]
 :32d2fab3-e4a8-42c2-923b-4bf4fd13e6ee
-set "_key=M7XTQ%yh%FN8P6%yh%TTKYV%yh%9D4CC%yh%J462D" &:: Enterprise LTSC 2019
+set "_key=M7XTQ%yh%FN8P6%yh%TTKYV%yh%9D4CC%yh%J462D" &::  Enterprise LTSC 2019
 exit /b
 
 :7103a333-b8c8-49cc-93ce-d37c09687f92
-set "_key=92NFX%yh%8DJQP%yh%P6BBQ%yh%THF9C%yh%7CG2H" &:: Enterprise LTSC 2019 N
+set "_key=92NFX%yh%8DJQP%yh%P6BBQ%yh%THF9C%yh%7CG2H" &::  Enterprise LTSC 2019 N
 exit /b
 
 :ec868e65-fadf-4759-b23e-93fe37f2cc29
-set "_key=CPWHC%yh%NT2C7%yh%VYW78%yh%DHDB2%yh%PG3GK" &:: Enterprise for Virtual Desktops
+set "_key=CPWHC%yh%NT2C7%yh%VYW78%yh%DHDB2%yh%PG3GK" &::  Enterprise for Virtual Desktops
 exit /b
 
 :0df4f814-3f57-4b8b-9a9d-fddadcd69fac
-set "_key=NBTWJ%yh%3DR69%yh%3C4V8%yh%C26MC%yh%GQ9M6" &:: Lean
+set "_key=NBTWJ%yh%3DR69%yh%3C4V8%yh%C26MC%yh%GQ9M6" &::  Lean
 exit /b
 
-:: Windows 10 [RS3]
+::  Windows 10 [RS3]
 :82bbc092-bc50-4e16-8e18-b74fc486aec3
-set "_key=NRG8B%yh%VKK3Q%yh%CXVCJ%yh%9G2XF%yh%6Q84J" &:: Pro Workstation
+set "_key=NRG8B%yh%VKK3Q%yh%CXVCJ%yh%9G2XF%yh%6Q84J" &::  Pro Workstation
 exit /b
 
 :4b1571d3-bafb-4b40-8087-a961be2caf65
-set "_key=9FNHH%yh%K3HBT%yh%3W4TD%yh%6383H%yh%6XYWF" &:: Pro Workstation N
+set "_key=9FNHH%yh%K3HBT%yh%3W4TD%yh%6383H%yh%6XYWF" &::  Pro Workstation N
 exit /b
 
 :e4db50ea-bda1-4566-b047-0ca50abc6f07
-set "_key=7NBT4%yh%WGBQX%yh%MP4H7%yh%QXFF8%yh%YP3KX" &:: Enterprise Remote Server
+set "_key=7NBT4%yh%WGBQX%yh%MP4H7%yh%QXFF8%yh%YP3KX" &::  Enterprise Remote Server
 exit /b
 
-:: Windows 10 [RS2]
+::  Windows 10 [RS2]
 :e0b2d383-d112-413f-8a80-97f373a5820c
-set "_key=YYVX9%yh%NTFWV%yh%6MDM3%yh%9PT4T%yh%4M68B" &:: Enterprise G
+set "_key=YYVX9%yh%NTFWV%yh%6MDM3%yh%9PT4T%yh%4M68B" &::  Enterprise G
 exit /b
 
 :e38454fb-41a4-4f59-a5dc-25080e354730
-set "_key=44RPN%yh%FTY23%yh%9VTTB%yh%MP9BX%yh%T84FV" &:: Enterprise G N
+set "_key=44RPN%yh%FTY23%yh%9VTTB%yh%MP9BX%yh%T84FV" &::  Enterprise G N
 exit /b
 
-:: Windows 10 [RS1]
+::  Windows 10 [RS1]
 :2d5a5a60-3040-48bf-beb0-fcd770c20ce0
-set "_key=DCPHK%yh%NFMTC%yh%H88MJ%yh%PFHPY%yh%QJ4BJ" &:: Enterprise 2016 LTSB
+set "_key=DCPHK%yh%NFMTC%yh%H88MJ%yh%PFHPY%yh%QJ4BJ" &::  Enterprise 2016 LTSB
 exit /b
 
 :9f776d83-7156-45b2-8a5c-359b9c9f22a3
-set "_key=QFFDN%yh%GRT3P%yh%VKWWX%yh%X7T3R%yh%8B639" &:: Enterprise 2016 LTSB N
+set "_key=QFFDN%yh%GRT3P%yh%VKWWX%yh%X7T3R%yh%8B639" &::  Enterprise 2016 LTSB N
 exit /b
 
 :3f1afc82-f8ac-4f6c-8005-1d233e606eee
-set "_key=6TP4R%yh%GNPTD%yh%KYYHQ%yh%7B7DP%yh%J447Y" &:: Pro Education
+set "_key=6TP4R%yh%GNPTD%yh%KYYHQ%yh%7B7DP%yh%J447Y" &::  Pro Education
 exit /b
 
 :5300b18c-2e33-4dc2-8291-47ffcec746dd
-set "_key=YVWGF%yh%BXNMC%yh%HTQYQ%yh%CPQ99%yh%66QFC" &:: Pro Education N
+set "_key=YVWGF%yh%BXNMC%yh%HTQYQ%yh%CPQ99%yh%66QFC" &::  Pro Education N
 exit /b
 
-:: Windows 10 [TH]
+::  Windows 10 [TH]
 :58e97c99-f377-4ef1-81d5-4ad5522b5fd8
-set "_key=TX9XD%yh%98N7V%yh%6WMQ6%yh%BX7FG%yh%H8Q99" &:: Home
+set "_key=TX9XD%yh%98N7V%yh%6WMQ6%yh%BX7FG%yh%H8Q99" &::  Home
 exit /b
 
 :7b9e1751-a8da-4f75-9560-5fadfe3d8e38
-set "_key=3KHY7%yh%WNT83%yh%DGQKR%yh%F7HPR%yh%844BM" &:: Home N
+set "_key=3KHY7%yh%WNT83%yh%DGQKR%yh%F7HPR%yh%844BM" &::  Home N
 exit /b
 
 :cd918a57-a41b-4c82-8dce-1a538e221a83
-set "_key=7HNRX%yh%D7KGG%yh%3K4RQ%yh%4WPJ4%yh%YTDFH" &:: Home Single Language
+set "_key=7HNRX%yh%D7KGG%yh%3K4RQ%yh%4WPJ4%yh%YTDFH" &::  Home Single Language
 exit /b
 
 :a9107544-f4a0-4053-a96a-1479abdef912
-set "_key=PVMJN%yh%6DFY6%yh%9CCP6%yh%7BKTT%yh%D3WVR" &:: Home China
+set "_key=PVMJN%yh%6DFY6%yh%9CCP6%yh%7BKTT%yh%D3WVR" &::  Home China
 exit /b
 
 :2de67392-b7a7-462a-b1ca-108dd189f588
-set "_key=W269N%yh%WFGWX%yh%YVC9B%yh%4J6C9%yh%T83GX" &:: Pro
+set "_key=W269N%yh%WFGWX%yh%YVC9B%yh%4J6C9%yh%T83GX" &::  Pro
 exit /b
 
 :a80b5abf-76ad-428b-b05d-a47d2dffeebf
-set "_key=MH37W%yh%N47XK%yh%V7XM9%yh%C7227%yh%GCQG9" &:: Pro N
+set "_key=MH37W%yh%N47XK%yh%V7XM9%yh%C7227%yh%GCQG9" &::  Pro N
 exit /b
 
 :e0c42288-980c-4788-a014-c080d2e1926e
-set "_key=NW6C2%yh%QMPVW%yh%D7KKK%yh%3GKT6%yh%VCFB2" &:: Education
+set "_key=NW6C2%yh%QMPVW%yh%D7KKK%yh%3GKT6%yh%VCFB2" &::  Education
 exit /b
 
 :3c102355-d027-42c6-ad23-2e7ef8a02585
-set "_key=2WH4N%yh%8QGBV%yh%H22JP%yh%CT43Q%yh%MDWWJ" &:: Education N
+set "_key=2WH4N%yh%8QGBV%yh%H22JP%yh%CT43Q%yh%MDWWJ" &::  Education N
 exit /b
 
 :73111121-5638-40f6-bc11-f1d7b0d64300
-set "_key=NPPR9%yh%FWDCX%yh%D2C8J%yh%H872K%yh%2YT43" &:: Enterprise
+set "_key=NPPR9%yh%FWDCX%yh%D2C8J%yh%H872K%yh%2YT43" &::  Enterprise
 exit /b
 
 :e272e3e2-732f-4c65-a8f0-484747d0d947
-set "_key=DPH2V%yh%TTNVB%yh%4X9Q3%yh%TJR4H%yh%KHJW4" &:: Enterprise N
+set "_key=DPH2V%yh%TTNVB%yh%4X9Q3%yh%TJR4H%yh%KHJW4" &::  Enterprise N
 exit /b
 
 :7b51a46c-0c04-4e8f-9af4-8496cca90d5e
-set "_key=WNMTR%yh%4C88C%yh%JK8YV%yh%HQ7T2%yh%76DF9" &:: Enterprise 2015 LTSB
+set "_key=WNMTR%yh%4C88C%yh%JK8YV%yh%HQ7T2%yh%76DF9" &::  Enterprise 2015 LTSB
 exit /b
 
 :87b838b7-41b6-4590-8318-5797951d8529
-set "_key=2F77B%yh%TNFGY%yh%69QQF%yh%B8YKP%yh%D69TJ" &:: Enterprise 2015 LTSB N
+set "_key=2F77B%yh%TNFGY%yh%69QQF%yh%B8YKP%yh%D69TJ" &::  Enterprise 2015 LTSB N
 exit /b
 
-:: Windows Server 2022 [Fe]
+::  Windows Server 2022 [Fe]
 :9bd77860-9b31-4b7b-96ad-2564017315bf
-set "_key=VDYBN%yh%27WPP%yh%V4HQT%yh%9VMD4%yh%VMK7H" &:: Standard
+set "_key=VDYBN%yh%27WPP%yh%V4HQT%yh%9VMD4%yh%VMK7H" &::  Standard
 exit /b
 
 :ef6cfc9f-8c5d-44ac-9aad-de6a2ea0ae03
-set "_key=WX4NM%yh%KYWYW%yh%QJJR4%yh%XV3QB%yh%6VM33" &:: Datacenter
+set "_key=WX4NM%yh%KYWYW%yh%QJJR4%yh%XV3QB%yh%6VM33" &::  Datacenter
 exit /b
 
 :8c8f0ad3-9a43-4e05-b840-93b8d1475cbc
-set "_key=6N379%yh%GGTMK%yh%23C6M%yh%XVVTC%yh%CKFRQ" &:: Azure Core
+set "_key=6N379%yh%GGTMK%yh%23C6M%yh%XVVTC%yh%CKFRQ" &::  Azure Core
 exit /b
 
 :f5e9429c-f50b-4b98-b15c-ef92eb5cff39
-set "_key=67KN8%yh%4FYJW%yh%2487Q%yh%MQ2J7%yh%4C4RG" &:: Standard ACor
+set "_key=67KN8%yh%4FYJW%yh%2487Q%yh%MQ2J7%yh%4C4RG" &::  Standard ACor
 exit /b
 
 :39e69c41-42b4-4a0a-abad-8e3c10a797cc
-set "_key=QFND9%yh%D3Y9C%yh%J3KKY%yh%6RPVP%yh%2DPYV" &:: Datacenter ACor
+set "_key=QFND9%yh%D3Y9C%yh%J3KKY%yh%6RPVP%yh%2DPYV" &::  Datacenter ACor
 exit /b
 
-:: Windows Server 2019 [RS5]
+::  Windows Server 2019 [RS5]
 :de32eafd-aaee-4662-9444-c1befb41bde2
-set "_key=N69G4%yh%B89J2%yh%4G8F4%yh%WWYCC%yh%J464C" &:: Standard
+set "_key=N69G4%yh%B89J2%yh%4G8F4%yh%WWYCC%yh%J464C" &::  Standard
 exit /b
 
 :34e1ae55-27f8-4950-8877-7a03be5fb181
-set "_key=WMDGN%yh%G9PQG%yh%XVVXX%yh%R3X43%yh%63DFG" &:: Datacenter
+set "_key=WMDGN%yh%G9PQG%yh%XVVXX%yh%R3X43%yh%63DFG" &::  Datacenter
 exit /b
 
 :a99cc1f0-7719-4306-9645-294102fbff95
-set "_key=FDNH6%yh%VW9RW%yh%BXPJ7%yh%4XTYG%yh%239TB" &:: Azure Core
+set "_key=FDNH6%yh%VW9RW%yh%BXPJ7%yh%4XTYG%yh%239TB" &::  Azure Core
 exit /b
 
 :73e3957c-fc0c-400d-9184-5f7b6f2eb409
-set "_key=N2KJX%yh%J94YW%yh%TQVFB%yh%DG9YT%yh%724CC" &:: Standard ACor
+set "_key=N2KJX%yh%J94YW%yh%TQVFB%yh%DG9YT%yh%724CC" &::  Standard ACor
 exit /b
 
 :90c362e5-0da1-4bfd-b53b-b87d309ade43
-set "_key=6NMRW%yh%2C8FM%yh%D24W7%yh%TQWMY%yh%CWH2D" &:: Datacenter ACor
+set "_key=6NMRW%yh%2C8FM%yh%D24W7%yh%TQWMY%yh%CWH2D" &::  Datacenter ACor
 exit /b
 
 :034d3cbb-5d4b-4245-b3f8-f84571314078
-set "_key=WVDHN%yh%86M7X%yh%466P6%yh%VHXV7%yh%YY726" &:: Essentials
+set "_key=WVDHN%yh%86M7X%yh%466P6%yh%VHXV7%yh%YY726" &::  Essentials
 exit /b
 
 :8de8eb62-bbe0-40ac-ac17-f75595071ea3
-set "_key=GRFBW%yh%QNDC4%yh%6QBHG%yh%CCK3B%yh%2PR88" &:: ServerARM64
+set "_key=GRFBW%yh%QNDC4%yh%6QBHG%yh%CCK3B%yh%2PR88" &::  ServerARM64
 exit /b
 
 :19b5e0fb-4431-46bc-bac1-2f1873e4ae73
-set "_key=NTBV8%yh%9K7Q8%yh%V27C6%yh%M2BTV%yh%KHMXV" &:: Azure Datacenter - ServerTurbine
+set "_key=NTBV8%yh%9K7Q8%yh%V27C6%yh%M2BTV%yh%KHMXV" &::  Azure Datacenter - ServerTurbine
 exit /b
 
-:: Windows Server 2016 [RS4]
+::  Windows Server 2016 [RS4]
 :43d9af6e-5e86-4be8-a797-d072a046896c
-set "_key=K9FYF%yh%G6NCK%yh%73M32%yh%XMVPY%yh%F9DRR" &:: ServerARM64
+set "_key=K9FYF%yh%G6NCK%yh%73M32%yh%XMVPY%yh%F9DRR" &::  ServerARM64
 exit /b
 
-:: Windows Server 2016 [RS3]
+::  Windows Server 2016 [RS3]
 :61c5ef22-f14f-4553-a824-c4b31e84b100
-set "_key=PTXN8%yh%JFHJM%yh%4WC78%yh%MPCBR%yh%9W4KR" &:: Standard ACor
+set "_key=PTXN8%yh%JFHJM%yh%4WC78%yh%MPCBR%yh%9W4KR" &::  Standard ACor
 exit /b
 
 :e49c08e7-da82-42f8-bde2-b570fbcae76c
-set "_key=2HXDN%yh%KRXHB%yh%GPYC7%yh%YCKFJ%yh%7FVDG" &:: Datacenter ACor
+set "_key=2HXDN%yh%KRXHB%yh%GPYC7%yh%YCKFJ%yh%7FVDG" &::  Datacenter ACor
 exit /b
 
-:: Windows Server 2016 [RS1]
+::  Windows Server 2016 [RS1]
 :8c1c5410-9f39-4805-8c9d-63a07706358f
-set "_key=WC2BQ%yh%8NRM3%yh%FDDYY%yh%2BFGV%yh%KHKQY" &:: Standard
+set "_key=WC2BQ%yh%8NRM3%yh%FDDYY%yh%2BFGV%yh%KHKQY" &::  Standard
 exit /b
 
 :21c56779-b449-4d20-adfc-eece0e1ad74b
-set "_key=CB7KF%yh%BWN84%yh%R7R2Y%yh%793K2%yh%8XDDG" &:: Datacenter
+set "_key=CB7KF%yh%BWN84%yh%R7R2Y%yh%793K2%yh%8XDDG" &::  Datacenter
 exit /b
 
 :3dbf341b-5f6c-4fa7-b936-699dce9e263f
-set "_key=VP34G%yh%4NPPG%yh%79JTQ%yh%864T4%yh%R3MQX" &:: Azure Core
+set "_key=VP34G%yh%4NPPG%yh%79JTQ%yh%864T4%yh%R3MQX" &::  Azure Core
 exit /b
 
 :2b5a1b0f-a5ab-4c54-ac2f-a6d94824a283
-set "_key=JCKRF%yh%N37P4%yh%C2D82%yh%9YXRT%yh%4M63B" &:: Essentials
+set "_key=JCKRF%yh%N37P4%yh%C2D82%yh%9YXRT%yh%4M63B" &::  Essentials
 exit /b
 
 :7b4433f4-b1e7-4788-895a-c45378d38253
-set "_key=QN4C6%yh%GBJD2%yh%FB422%yh%GHWJK%yh%GJG2R" &:: Cloud Storage
+set "_key=QN4C6%yh%GBJD2%yh%FB422%yh%GHWJK%yh%GJG2R" &::  Cloud Storage
 exit /b
 
-:: Windows 8.1
+::  Windows 8.1
 :fe1c3238-432a-43a1-8e25-97e7d1ef10f3
-set "_key=M9Q9P%yh%WNJJT%yh%6PXPY%yh%DWX8H%yh%6XWKK" &:: Core
+set "_key=M9Q9P%yh%WNJJT%yh%6PXPY%yh%DWX8H%yh%6XWKK" &::  Core
 exit /b
 
 :78558a64-dc19-43fe-a0d0-8075b2a370a3
-set "_key=7B9N3%yh%D94CG%yh%YTVHR%yh%QBPX3%yh%RJP64" &:: Core N
+set "_key=7B9N3%yh%D94CG%yh%YTVHR%yh%QBPX3%yh%RJP64" &::  Core N
 exit /b
 
 :c72c6a1d-f252-4e7e-bdd1-3fca342acb35
-set "_key=BB6NG%yh%PQ82V%yh%VRDPW%yh%8XVD2%yh%V8P66" &:: Core Single Language
+set "_key=BB6NG%yh%PQ82V%yh%VRDPW%yh%8XVD2%yh%V8P66" &::  Core Single Language
 exit /b
 
 :db78b74f-ef1c-4892-abfe-1e66b8231df6
-set "_key=NCTT7%yh%2RGK8%yh%WMHRF%yh%RY7YQ%yh%JTXG3" &:: Core China
+set "_key=NCTT7%yh%2RGK8%yh%WMHRF%yh%RY7YQ%yh%JTXG3" &::  Core China
 exit /b
 
 :ffee456a-cd87-4390-8e07-16146c672fd0
-set "_key=XYTND%yh%K6QKT%yh%K2MRH%yh%66RTM%yh%43JKP" &:: Core ARM
+set "_key=XYTND%yh%K6QKT%yh%K2MRH%yh%66RTM%yh%43JKP" &::  Core ARM
 exit /b
 
 :c06b6981-d7fd-4a35-b7b4-054742b7af67
-set "_key=GCRJD%yh%8NW9H%yh%F2CDX%yh%CCM8D%yh%9D6T9" &:: Pro
+set "_key=GCRJD%yh%8NW9H%yh%F2CDX%yh%CCM8D%yh%9D6T9" &::  Pro
 exit /b
 
 :7476d79f-8e48-49b4-ab63-4d0b813a16e4
-set "_key=HMCNV%yh%VVBFX%yh%7HMBH%yh%CTY9B%yh%B4FXY" &:: Pro N
+set "_key=HMCNV%yh%VVBFX%yh%7HMBH%yh%CTY9B%yh%B4FXY" &::  Pro N
 exit /b
 
 :096ce63d-4fac-48a9-82a9-61ae9e800e5f
-set "_key=789NJ%yh%TQK6T%yh%6XTH8%yh%J39CJ%yh%J8D3P" &:: Pro with Media Center
+set "_key=789NJ%yh%TQK6T%yh%6XTH8%yh%J39CJ%yh%J8D3P" &::  Pro with Media Center
 exit /b
 
 :81671aaf-79d1-4eb1-b004-8cbbe173afea
-set "_key=MHF9N%yh%XY6XB%yh%WVXMC%yh%BTDCT%yh%MKKG7" &:: Enterprise
+set "_key=MHF9N%yh%XY6XB%yh%WVXMC%yh%BTDCT%yh%MKKG7" &::  Enterprise
 exit /b
 
 :113e705c-fa49-48a4-beea-7dd879b46b14
-set "_key=TT4HM%yh%HN7YT%yh%62K67%yh%RGRQJ%yh%JFFXW" &:: Enterprise N
+set "_key=TT4HM%yh%HN7YT%yh%62K67%yh%RGRQJ%yh%JFFXW" &::  Enterprise N
 exit /b
 
 :0ab82d54-47f4-4acb-818c-cc5bf0ecb649
-set "_key=NMMPB%yh%38DD4%yh%R2823%yh%62W8D%yh%VXKJB" &:: Embedded Industry Pro
+set "_key=NMMPB%yh%38DD4%yh%R2823%yh%62W8D%yh%VXKJB" &::  Embedded Industry Pro
 exit /b
 
 :cd4e2d9f-5059-4a50-a92d-05d5bb1267c7
-set "_key=FNFKF%yh%PWTVT%yh%9RC8H%yh%32HB2%yh%JB34X" &:: Embedded Industry Enterprise
+set "_key=FNFKF%yh%PWTVT%yh%9RC8H%yh%32HB2%yh%JB34X" &::  Embedded Industry Enterprise
 exit /b
 
 :f7e88590-dfc7-4c78-bccb-6f3865b99d1a
-set "_key=VHXM3%yh%NR6FT%yh%RY6RT%yh%CK882%yh%KW2CJ" &:: Embedded Industry Automotive
+set "_key=VHXM3%yh%NR6FT%yh%RY6RT%yh%CK882%yh%KW2CJ" &::  Embedded Industry Automotive
 exit /b
 
 :e9942b32-2e55-4197-b0bd-5ff58cba8860
-set "_key=3PY8R%yh%QHNP9%yh%W7XQD%yh%G6DPH%yh%3J2C9" &:: with Bing
+set "_key=3PY8R%yh%QHNP9%yh%W7XQD%yh%G6DPH%yh%3J2C9" &::  with Bing
 exit /b
 
 :c6ddecd6-2354-4c19-909b-306a3058484e
-set "_key=Q6HTR%yh%N24GM%yh%PMJFP%yh%69CD8%yh%2GXKR" &:: with Bing N
+set "_key=Q6HTR%yh%N24GM%yh%PMJFP%yh%69CD8%yh%2GXKR" &::  with Bing N
 exit /b
 
 :b8f5e3a3-ed33-4608-81e1-37d6c9dcfd9c
-set "_key=KF37N%yh%VDV38%yh%GRRTV%yh%XH8X6%yh%6F3BB" &:: with Bing Single Language
+set "_key=KF37N%yh%VDV38%yh%GRRTV%yh%XH8X6%yh%6F3BB" &::  with Bing Single Language
 exit /b
 
 :ba998212-460a-44db-bfb5-71bf09d1c68b
-set "_key=R962J%yh%37N87%yh%9VVK2%yh%WJ74P%yh%XTMHR" &:: with Bing China
+set "_key=R962J%yh%37N87%yh%9VVK2%yh%WJ74P%yh%XTMHR" &::  with Bing China
 exit /b
 
 :e58d87b5-8126-4580-80fb-861b22f79296
-set "_key=MX3RK%yh%9HNGX%yh%K3QKC%yh%6PJ3F%yh%W8D7B" &:: Pro for Students
+set "_key=MX3RK%yh%9HNGX%yh%K3QKC%yh%6PJ3F%yh%W8D7B" &::  Pro for Students
 exit /b
 
 :cab491c7-a918-4f60-b502-dab75e334f40
-set "_key=TNFGH%yh%2R6PB%yh%8XM3K%yh%QYHX2%yh%J4296" &:: Pro for Students N
+set "_key=TNFGH%yh%2R6PB%yh%8XM3K%yh%QYHX2%yh%J4296" &::  Pro for Students N
 exit /b
 
-:: Windows Server 2012 R2
+::  Windows Server 2012 R2
 :b3ca044e-a358-4d68-9883-aaa2941aca99
-set "_key=D2N9P%yh%3P6X9%yh%2R39C%yh%7RTCD%yh%MDVJX" &:: Standard
+set "_key=D2N9P%yh%3P6X9%yh%2R39C%yh%7RTCD%yh%MDVJX" &::  Standard
 exit /b
 
 :00091344-1ea4-4f37-b789-01750ba6988c
-set "_key=W3GGN%yh%FT8W3%yh%Y4M27%yh%J84CP%yh%Q3VJ9" &:: Datacenter
+set "_key=W3GGN%yh%FT8W3%yh%Y4M27%yh%J84CP%yh%Q3VJ9" &::  Datacenter
 exit /b
 
 :21db6ba4-9a7b-4a14-9e29-64a60c59301d
-set "_key=KNC87%yh%3J2TX%yh%XB4WP%yh%VCPJV%yh%M4FWM" &:: Essentials
+set "_key=KNC87%yh%3J2TX%yh%XB4WP%yh%VCPJV%yh%M4FWM" &::  Essentials
 exit /b
 
 :b743a2be-68d4-4dd3-af32-92425b7bb623
-set "_key=3NPTF%yh%33KPT%yh%GGBPR%yh%YX76B%yh%39KDD" &:: Cloud Storage
+set "_key=3NPTF%yh%33KPT%yh%GGBPR%yh%YX76B%yh%39KDD" &::  Cloud Storage
 exit /b
 
-:: Windows 8
+::  Windows 8
 :c04ed6bf-55c8-4b47-9f8e-5a1f31ceee60
-set "_key=BN3D2%yh%R7TKB%yh%3YPBD%yh%8DRP2%yh%27GG4" &:: Core
+set "_key=BN3D2%yh%R7TKB%yh%3YPBD%yh%8DRP2%yh%27GG4" &::  Core
 exit /b
 
 :197390a0-65f6-4a95-bdc4-55d58a3b0253
-set "_key=8N2M2%yh%HWPGY%yh%7PGT9%yh%HGDD8%yh%GVGGY" &:: Core N
+set "_key=8N2M2%yh%HWPGY%yh%7PGT9%yh%HGDD8%yh%GVGGY" &::  Core N
 exit /b
 
 :8860fcd4-a77b-4a20-9045-a150ff11d609
-set "_key=2WN2H%yh%YGCQR%yh%KFX6K%yh%CD6TF%yh%84YXQ" &:: Core Single Language
+set "_key=2WN2H%yh%YGCQR%yh%KFX6K%yh%CD6TF%yh%84YXQ" &::  Core Single Language
 exit /b
 
 :9d5584a2-2d85-419a-982c-a00888bb9ddf
-set "_key=4K36P%yh%JN4VD%yh%GDC6V%yh%KDT89%yh%DYFKP" &:: Core China
+set "_key=4K36P%yh%JN4VD%yh%GDC6V%yh%KDT89%yh%DYFKP" &::  Core China
 exit /b
 
 :af35d7b7-5035-4b63-8972-f0b747b9f4dc
-set "_key=DXHJF%yh%N9KQX%yh%MFPVR%yh%GHGQK%yh%Y7RKV" &:: Core ARM
+set "_key=DXHJF%yh%N9KQX%yh%MFPVR%yh%GHGQK%yh%Y7RKV" &::  Core ARM
 exit /b
 
 :a98bcd6d-5343-4603-8afe-5908e4611112
-set "_key=NG4HW%yh%VH26C%yh%733KW%yh%K6F98%yh%J8CK4" &:: Pro
+set "_key=NG4HW%yh%VH26C%yh%733KW%yh%K6F98%yh%J8CK4" &::  Pro
 exit /b
 
 :ebf245c1-29a8-4daf-9cb1-38dfc608a8c8
-set "_key=XCVCF%yh%2NXM9%yh%723PB%yh%MHCB7%yh%2RYQQ" &:: Pro N
+set "_key=XCVCF%yh%2NXM9%yh%723PB%yh%MHCB7%yh%2RYQQ" &::  Pro N
 exit /b
 
 :a00018a3-f20f-4632-bf7c-8daa5351c914
-set "_key=GNBB8%yh%YVD74%yh%QJHX6%yh%27H4K%yh%8QHDG" &:: Pro with Media Center
+set "_key=GNBB8%yh%YVD74%yh%QJHX6%yh%27H4K%yh%8QHDG" &::  Pro with Media Center
 exit /b
 
 :458e1bec-837a-45f6-b9d5-925ed5d299de
-set "_key=32JNW%yh%9KQ84%yh%P47T8%yh%D8GGY%yh%CWCK7" &:: Enterprise
+set "_key=32JNW%yh%9KQ84%yh%P47T8%yh%D8GGY%yh%CWCK7" &::  Enterprise
 exit /b
 
 :e14997e7-800a-4cf7-ad10-de4b45b578db
-set "_key=JMNMF%yh%RHW7P%yh%DMY6X%yh%RF3DR%yh%X2BQT" &:: Enterprise N
+set "_key=JMNMF%yh%RHW7P%yh%DMY6X%yh%RF3DR%yh%X2BQT" &::  Enterprise N
 exit /b
 
 :10018baf-ce21-4060-80bd-47fe74ed4dab
-set "_key=RYXVT%yh%BNQG7%yh%VD29F%yh%DBMRY%yh%HT73M" &:: Embedded Industry Pro
+set "_key=RYXVT%yh%BNQG7%yh%VD29F%yh%DBMRY%yh%HT73M" &::  Embedded Industry Pro
 exit /b
 
 :18db1848-12e0-4167-b9d7-da7fcda507db
-set "_key=NKB3R%yh%R2F8T%yh%3XCDP%yh%7Q2KW%yh%XWYQ2" &:: Embedded Industry Enterprise
+set "_key=NKB3R%yh%R2F8T%yh%3XCDP%yh%7Q2KW%yh%XWYQ2" &::  Embedded Industry Enterprise
 exit /b
 
-:: Windows Server 2012
+::  Windows Server 2012
 :f0f5ec41-0d55-4732-af02-440a44a3cf0f
-set "_key=XC9B7%yh%NBPP2%yh%83J2H%yh%RHMBY%yh%92BT4" &:: Standard
+set "_key=XC9B7%yh%NBPP2%yh%83J2H%yh%RHMBY%yh%92BT4" &::  Standard
 exit /b
 
 :d3643d60-0c42-412d-a7d6-52e6635327f6
-set "_key=48HP8%yh%DN98B%yh%MYWDG%yh%T2DCC%yh%8W83P" &:: Datacenter
+set "_key=48HP8%yh%DN98B%yh%MYWDG%yh%T2DCC%yh%8W83P" &::  Datacenter
 exit /b
 
 :7d5486c7-e120-4771-b7f1-7b56c6d3170c
-set "_key=HM7DN%yh%YVMH3%yh%46JC3%yh%XYTG7%yh%CYQJJ" &:: MultiPoint Standard
+set "_key=HM7DN%yh%YVMH3%yh%46JC3%yh%XYTG7%yh%CYQJJ" &::  MultiPoint Standard
 exit /b
 
 :95fd1c83-7df5-494a-be8b-1300e1c9d1cd
-set "_key=XNH6W%yh%2V9GX%yh%RGJ4K%yh%Y8X6F%yh%QGJ2G" &:: MultiPoint Premium
+set "_key=XNH6W%yh%2V9GX%yh%RGJ4K%yh%Y8X6F%yh%QGJ2G" &::  MultiPoint Premium
 exit /b
 
-:: Windows 7
+::  Windows 7
 :b92e9980-b9d5-4821-9c94-140f632f6312
-set "_key=FJ82H%yh%XT6CR%yh%J8D7P%yh%XQJJ2%yh%GPDD4" &:: Professional
+set "_key=FJ82H%yh%XT6CR%yh%J8D7P%yh%XQJJ2%yh%GPDD4" &::  Professional
 exit /b
 
 :54a09a0d-d57b-4c10-8b69-a842d6590ad5
-set "_key=MRPKT%yh%YTG23%yh%K7D7T%yh%X2JMM%yh%QY7MG" &:: Professional N
+set "_key=MRPKT%yh%YTG23%yh%K7D7T%yh%X2JMM%yh%QY7MG" &::  Professional N
 exit /b
 
 :5a041529-fef8-4d07-b06f-b59b573b32d2
-set "_key=W82YF%yh%2Q76Y%yh%63HXB%yh%FGJG9%yh%GF7QX" &:: Professional E
+set "_key=W82YF%yh%2Q76Y%yh%63HXB%yh%FGJG9%yh%GF7QX" &::  Professional E
 exit /b
 
 :ae2ee509-1b34-41c0-acb7-6d4650168915
-set "_key=33PXH%yh%7Y6KF%yh%2VJC9%yh%XBBR8%yh%HVTHH" &:: Enterprise
+set "_key=33PXH%yh%7Y6KF%yh%2VJC9%yh%XBBR8%yh%HVTHH" &::  Enterprise
 exit /b
 
 :1cb6d605-11b3-4e14-bb30-da91c8e3983a
-set "_key=YDRBP%yh%3D83W%yh%TY26F%yh%D46B2%yh%XCKRJ" &:: Enterprise N
+set "_key=YDRBP%yh%3D83W%yh%TY26F%yh%D46B2%yh%XCKRJ" &::  Enterprise N
 exit /b
 
 :46bbed08-9c7b-48fc-a614-95250573f4ea
-set "_key=C29WB%yh%22CC8%yh%VJ326%yh%GHFJW%yh%H9DH4" &:: Enterprise E
+set "_key=C29WB%yh%22CC8%yh%VJ326%yh%GHFJW%yh%H9DH4" &::  Enterprise E
 exit /b
 
 :db537896-376f-48ae-a492-53d0547773d0
-set "_key=YBYF6%yh%BHCR3%yh%JPKRB%yh%CDW7B%yh%F9BK4" &:: Embedded POSReady 7
+set "_key=YBYF6%yh%BHCR3%yh%JPKRB%yh%CDW7B%yh%F9BK4" &::  Embedded POSReady 7
 exit /b
 
 :e1a8296a-db37-44d1-8cce-7bc961d59c54
-set "_key=XGY72%yh%BRBBT%yh%FF8MH%yh%2GG8H%yh%W7KCW" &:: Embedded Standard
+set "_key=XGY72%yh%BRBBT%yh%FF8MH%yh%2GG8H%yh%W7KCW" &::  Embedded Standard
 exit /b
 
 :aa6dd3aa-c2b4-40e2-a544-a6bbb3f5c395
-set "_key=73KQT%yh%CD9G6%yh%K7TQG%yh%66MRP%yh%CQ22C" &:: Embedded ThinPC
+set "_key=73KQT%yh%CD9G6%yh%K7TQG%yh%66MRP%yh%CQ22C" &::  Embedded ThinPC
 exit /b
 
-:: Windows Server 2008 R2
+::  Windows Server 2008 R2
 :a78b8bd9-8017-4df5-b86a-09f756affa7c
-set "_key=6TPJF%yh%RBVHG%yh%WBW2R%yh%86QPH%yh%6RTM4" &:: Web
+set "_key=6TPJF%yh%RBVHG%yh%WBW2R%yh%86QPH%yh%6RTM4" &::  Web
 exit /b
 
 :cda18cf3-c196-46ad-b289-60c072869994
-set "_key=TT8MH%yh%CG224%yh%D3D7Q%yh%498W2%yh%9QCTX" &:: HPC
+set "_key=TT8MH%yh%CG224%yh%D3D7Q%yh%498W2%yh%9QCTX" &::  HPC
 exit /b
 
 :68531fb9-5511-4989-97be-d11a0f55633f
-set "_key=YC6KT%yh%GKW9T%yh%YTKYR%yh%T4X34%yh%R7VHC" &:: Standard
+set "_key=YC6KT%yh%GKW9T%yh%YTKYR%yh%T4X34%yh%R7VHC" &::  Standard
 exit /b
 
 :7482e61b-c589-4b7f-8ecc-46d455ac3b87
-set "_key=74YFP%yh%3QFB3%yh%KQT8W%yh%PMXWJ%yh%7M648" &:: Datacenter
+set "_key=74YFP%yh%3QFB3%yh%KQT8W%yh%PMXWJ%yh%7M648" &::  Datacenter
 exit /b
 
 :620e2b3d-09e7-42fd-802a-17a13652fe7a
-set "_key=489J6%yh%VHDMP%yh%X63PK%yh%3K798%yh%CPX3Y" &:: Enterprise
+set "_key=489J6%yh%VHDMP%yh%X63PK%yh%3K798%yh%CPX3Y" &::  Enterprise
 exit /b
 
 :8a26851c-1c7e-48d3-a687-fbca9b9ac16b
-set "_key=GT63C%yh%RJFQ3%yh%4GMB6%yh%BRFB9%yh%CB83V" &:: Itanium
+set "_key=GT63C%yh%RJFQ3%yh%4GMB6%yh%BRFB9%yh%CB83V" &::  Itanium
 exit /b
 
 :f772515c-0e87-48d5-a676-e6962c3e1195
-set "_key=736RG%yh%XDKJK%yh%V34PF%yh%BHK87%yh%J6X3K" &:: MultiPoint Server - ServerEmbeddedSolution
+set "_key=736RG%yh%XDKJK%yh%V34PF%yh%BHK87%yh%J6X3K" &::  MultiPoint Server - ServerEmbeddedSolution
 exit /b
 
-:: Office 2021
+::  Office 2021
 :fbdb3e18-a8ef-4fb3-9183-dffd60bd0984
-set "_key=FXYTK%yh%NJJ8C%yh%GB6DW%yh%3DYQT%yh%6F7TH" &:: Professional Plus
+set "_key=FXYTK%yh%NJJ8C%yh%GB6DW%yh%3DYQT%yh%6F7TH" &::  Professional Plus
 exit /b
 
 :080a45c5-9f9f-49eb-b4b0-c3c610a5ebd3
-set "_key=KDX7X%yh%BNVR8%yh%TXXGX%yh%4Q7Y8%yh%78VT3" &:: Standard
+set "_key=KDX7X%yh%BNVR8%yh%TXXGX%yh%4Q7Y8%yh%78VT3" &::  Standard
 exit /b
 
 :76881159-155c-43e0-9db7-2d70a9a3a4ca
-set "_key=FTNWT%yh%C6WBT%yh%8HMGF%yh%K9PRX%yh%QV9H8" &:: Project Professional
+set "_key=FTNWT%yh%C6WBT%yh%8HMGF%yh%K9PRX%yh%QV9H8" &::  Project Professional
 exit /b
 
 :6dd72704-f752-4b71-94c7-11cec6bfc355
-set "_key=J2JDC%yh%NJCYY%yh%9RGQ4%yh%YXWMH%yh%T3D4T" &:: Project Standard
+set "_key=J2JDC%yh%NJCYY%yh%9RGQ4%yh%YXWMH%yh%T3D4T" &::  Project Standard
 exit /b
 
 :fb61ac9a-1688-45d2-8f6b-0674dbffa33c
-set "_key=KNH8D%yh%FGHT4%yh%T8RK3%yh%CTDYJ%yh%K2HT4" &:: Visio Professional
+set "_key=KNH8D%yh%FGHT4%yh%T8RK3%yh%CTDYJ%yh%K2HT4" &::  Visio Professional
 exit /b
 
 :72fce797-1884-48dd-a860-b2f6a5efd3ca
-set "_key=MJVNY%yh%BYWPY%yh%CWV6J%yh%2RKRT%yh%4M8QG" &:: Visio Standard
+set "_key=MJVNY%yh%BYWPY%yh%CWV6J%yh%2RKRT%yh%4M8QG" &::  Visio Standard
 exit /b
 
 :1fe429d8-3fa7-4a39-b6f0-03dded42fe14
-set "_key=WM8YG%yh%YNGDD%yh%4JHDC%yh%PG3F4%yh%FC4T4" &:: Access
+set "_key=WM8YG%yh%YNGDD%yh%4JHDC%yh%PG3F4%yh%FC4T4" &::  Access
 exit /b
 
 :ea71effc-69f1-4925-9991-2f5e319bbc24
-set "_key=NWG3X%yh%87C9K%yh%TC7YY%yh%BC2G7%yh%G6RVC" &:: Excel
+set "_key=NWG3X%yh%87C9K%yh%TC7YY%yh%BC2G7%yh%G6RVC" &::  Excel
 exit /b
 
 :a5799e4c-f83c-4c6e-9516-dfe9b696150b
-set "_key=C9FM6%yh%3N72F%yh%HFJXB%yh%TM3V9%yh%T86R9" &:: Outlook
+set "_key=C9FM6%yh%3N72F%yh%HFJXB%yh%TM3V9%yh%T86R9" &::  Outlook
 exit /b
 
 :6e166cc3-495d-438a-89e7-d7c9e6fd4dea
-set "_key=TY7XF%yh%NFRBR%yh%KJ44C%yh%G83KF%yh%GX27K" &:: PowerPoint
+set "_key=TY7XF%yh%NFRBR%yh%KJ44C%yh%G83KF%yh%GX27K" &::  PowerPoint
 exit /b
 
 :aa66521f-2370-4ad8-a2bb-c095e3e4338f
-set "_key=2MW9D%yh%N4BXM%yh%9VBPG%yh%Q7W6M%yh%KFBGQ" &:: Publisher
+set "_key=2MW9D%yh%N4BXM%yh%9VBPG%yh%Q7W6M%yh%KFBGQ" &::  Publisher
 exit /b
 
 :1f32a9af-1274-48bd-ba1e-1ab7508a23e8
-set "_key=HWCXN%yh%K3WBT%yh%WJBKY%yh%R8BD9%yh%XK29P" &:: Skype for Business
+set "_key=HWCXN%yh%K3WBT%yh%WJBKY%yh%R8BD9%yh%XK29P" &::  Skype for Business
 exit /b
 
 :abe28aea-625a-43b1-8e30-225eb8fbd9e5
-set "_key=TN8H9%yh%M34D3%yh%Y64V9%yh%TR72V%yh%X79KV" &:: Word
+set "_key=TN8H9%yh%M34D3%yh%Y64V9%yh%TR72V%yh%X79KV" &::  Word
 exit /b
 
-:: Office 2019
+::  Office 2019
 :85dd8b5f-eaa4-4af3-a628-cce9e77c9a03
-set "_key=NMMKJ%yh%6RK4F%yh%KMJVX%yh%8D9MJ%yh%6MWKP" &:: Professional Plus
+set "_key=NMMKJ%yh%6RK4F%yh%KMJVX%yh%8D9MJ%yh%6MWKP" &::  Professional Plus
 exit /b
 
 :6912a74b-a5fb-401a-bfdb-2e3ab46f4b02
-set "_key=6NWWJ%yh%YQWMR%yh%QKGCB%yh%6TMB3%yh%9D9HK" &:: Standard
+set "_key=6NWWJ%yh%YQWMR%yh%QKGCB%yh%6TMB3%yh%9D9HK" &::  Standard
 exit /b
 
 :2ca2bf3f-949e-446a-82c7-e25a15ec78c4
-set "_key=B4NPR%yh%3FKK7%yh%T2MBV%yh%FRQ4W%yh%PKD2B" &:: Project Professional
+set "_key=B4NPR%yh%3FKK7%yh%T2MBV%yh%FRQ4W%yh%PKD2B" &::  Project Professional
 exit /b
 
 :1777f0e3-7392-4198-97ea-8ae4de6f6381
-set "_key=C4F7P%yh%NCP8C%yh%6CQPT%yh%MQHV9%yh%JXD2M" &:: Project Standard
+set "_key=C4F7P%yh%NCP8C%yh%6CQPT%yh%MQHV9%yh%JXD2M" &::  Project Standard
 exit /b
 
 :5b5cf08f-b81a-431d-b080-3450d8620565
-set "_key=9BGNQ%yh%K37YR%yh%RQHF2%yh%38RQ3%yh%7VCBB" &:: Visio Professional
+set "_key=9BGNQ%yh%K37YR%yh%RQHF2%yh%38RQ3%yh%7VCBB" &::  Visio Professional
 exit /b
 
 :e06d7df3-aad0-419d-8dfb-0ac37e2bdf39
-set "_key=7TQNQ%yh%K3YQQ%yh%3PFH7%yh%CCPPM%yh%X4VQ2" &:: Visio Standard
+set "_key=7TQNQ%yh%K3YQQ%yh%3PFH7%yh%CCPPM%yh%X4VQ2" &::  Visio Standard
 exit /b
 
 :9e9bceeb-e736-4f26-88de-763f87dcc485
-set "_key=9N9PT%yh%27V4Y%yh%VJ2PD%yh%YXFMF%yh%YTFQT" &:: Access
+set "_key=9N9PT%yh%27V4Y%yh%VJ2PD%yh%YXFMF%yh%YTFQT" &::  Access
 exit /b
 
 :237854e9-79fc-4497-a0c1-a70969691c6b
-set "_key=TMJWT%yh%YYNMB%yh%3BKTF%yh%644FC%yh%RVXBD" &:: Excel
+set "_key=TMJWT%yh%YYNMB%yh%3BKTF%yh%644FC%yh%RVXBD" &::  Excel
 exit /b
 
 :c8f8a301-19f5-4132-96ce-2de9d4adbd33
-set "_key=7HD7K%yh%N4PVK%yh%BHBCQ%yh%YWQRW%yh%XW4VK" &:: Outlook
+set "_key=7HD7K%yh%N4PVK%yh%BHBCQ%yh%YWQRW%yh%XW4VK" &::  Outlook
 exit /b
 
 :3131fd61-5e4f-4308-8d6d-62be1987c92c
-set "_key=RRNCX%yh%C64HY%yh%W2MM7%yh%MCH9G%yh%TJHMQ" &:: PowerPoint
+set "_key=RRNCX%yh%C64HY%yh%W2MM7%yh%MCH9G%yh%TJHMQ" &::  PowerPoint
 exit /b
 
 :9d3e4cca-e172-46f1-a2f4-1d2107051444
-set "_key=G2KWX%yh%3NW6P%yh%PY93R%yh%JXK2T%yh%C9Y9V" &:: Publisher
+set "_key=G2KWX%yh%3NW6P%yh%PY93R%yh%JXK2T%yh%C9Y9V" &::  Publisher
 exit /b
 
 :734c6c6e-b0ba-4298-a891-671772b2bd1b
-set "_key=NCJ33%yh%JHBBY%yh%HTK98%yh%MYCV8%yh%HMKHJ" &:: Skype for Business
+set "_key=NCJ33%yh%JHBBY%yh%HTK98%yh%MYCV8%yh%HMKHJ" &::  Skype for Business
 exit /b
 
 :059834fe-a8ea-4bff-b67b-4d006b5447d3
-set "_key=PBX3G%yh%NWMT6%yh%Q7XBW%yh%PYJGG%yh%WXD33" &:: Word
+set "_key=PBX3G%yh%NWMT6%yh%Q7XBW%yh%PYJGG%yh%WXD33" &::  Word
 exit /b
 
 :0bc88885-718c-491d-921f-6f214349e79c
-set "_key=VQ9DP%yh%NVHPH%yh%T9HJC%yh%J9PDT%yh%KTQRG" &:: Pro Plus 2019 Preview
+set "_key=VQ9DP%yh%NVHPH%yh%T9HJC%yh%J9PDT%yh%KTQRG" &::  Pro Plus 2019 Preview
 exit /b
 
 :fc7c4d0c-2e85-4bb9-afd4-01ed1476b5e9
-set "_key=XM2V9%yh%DN9HH%yh%QB449%yh%XDGKC%yh%W2RMW" &:: Project Pro 2019 Preview
+set "_key=XM2V9%yh%DN9HH%yh%QB449%yh%XDGKC%yh%W2RMW" &::  Project Pro 2019 Preview
 exit /b
 
 :500f6619-ef93-4b75-bcb4-82819998a3ca
-set "_key=N2CG9%yh%YD3YK%yh%936X4%yh%3WR82%yh%Q3X4H" &:: Visio Pro 2019 Preview
+set "_key=N2CG9%yh%YD3YK%yh%936X4%yh%3WR82%yh%Q3X4H" &::  Visio Pro 2019 Preview
 exit /b
 
 :f3fb2d68-83dd-4c8b-8f09-08e0d950ac3b
-set "_key=HFPBN%yh%RYGG8%yh%HQWCW%yh%26CH6%yh%PDPVF" &:: Pro Plus 2021 Preview
+set "_key=HFPBN%yh%RYGG8%yh%HQWCW%yh%26CH6%yh%PDPVF" &::  Pro Plus 2021 Preview
 exit /b
 
 :76093b1b-7057-49d7-b970-638ebcbfd873
-set "_key=WDNBY%yh%PCYFY%yh%9WP6G%yh%BXVXM%yh%92HDV" &:: Project Pro 2021 Preview
+set "_key=WDNBY%yh%PCYFY%yh%9WP6G%yh%BXVXM%yh%92HDV" &::  Project Pro 2021 Preview
 exit /b
 
 :a3b44174-2451-4cd6-b25f-66638bfb9046
-set "_key=2XYX7%yh%NXXBK%yh%9CK7W%yh%K2TKW%yh%JFJ7G" &:: Visio Pro 2021 Preview
+set "_key=2XYX7%yh%NXXBK%yh%9CK7W%yh%K2TKW%yh%JFJ7G" &::  Visio Pro 2021 Preview
 exit /b
 
-:: Office 2016
+::  Office 2016
 :829b8110-0e6f-4349-bca4-42803577788d
-set "_key=WGT24%yh%HCNMF%yh%FQ7XH%yh%6M8K7%yh%DRTW9" &:: Project Professional C2R-P
+set "_key=WGT24%yh%HCNMF%yh%FQ7XH%yh%6M8K7%yh%DRTW9" &::  Project Professional C2R-P
 exit /b
 
 :cbbaca45-556a-4416-ad03-bda598eaa7c8
-set "_key=D8NRQ%yh%JTYM3%yh%7J2DX%yh%646CT%yh%6836M" &:: Project Standard C2R-P
+set "_key=D8NRQ%yh%JTYM3%yh%7J2DX%yh%646CT%yh%6836M" &::  Project Standard C2R-P
 exit /b
 
 :b234abe3-0857-4f9c-b05a-4dc314f85557
-set "_key=69WXN%yh%MBYV6%yh%22PQG%yh%3WGHK%yh%RM6XC" &:: Visio Professional C2R-P
+set "_key=69WXN%yh%MBYV6%yh%22PQG%yh%3WGHK%yh%RM6XC" &::  Visio Professional C2R-P
 exit /b
 
 :361fe620-64f4-41b5-ba77-84f8e079b1f7
-set "_key=NY48V%yh%PPYYH%yh%3F4PX%yh%XJRKJ%yh%W4423" &:: Visio Standard C2R-P
+set "_key=NY48V%yh%PPYYH%yh%3F4PX%yh%XJRKJ%yh%W4423" &::  Visio Standard C2R-P
 exit /b
 
 :e914ea6e-a5fa-4439-a394-a9bb3293ca09
-set "_key=DMTCJ%yh%KNRKX%yh%26982%yh%JYCKT%yh%P7KB6" &:: MondoR
+set "_key=DMTCJ%yh%KNRKX%yh%26982%yh%JYCKT%yh%P7KB6" &::  MondoR
 exit /b
 
 :9caabccb-61b1-4b4b-8bec-d10a3c3ac2ce
-set "_key=HFTND%yh%W9MK4%yh%8B7MJ%yh%B6C4G%yh%XQBR2" &:: Mondo
+set "_key=HFTND%yh%W9MK4%yh%8B7MJ%yh%B6C4G%yh%XQBR2" &::  Mondo
 exit /b
 
 :d450596f-894d-49e0-966a-fd39ed4c4c64
-set "_key=XQNVK%yh%8JYDB%yh%WJ9W3%yh%YJ8YR%yh%WFG99" &:: Professional Plus
+set "_key=XQNVK%yh%8JYDB%yh%WJ9W3%yh%YJ8YR%yh%WFG99" &::  Professional Plus
 exit /b
 
 :dedfa23d-6ed1-45a6-85dc-63cae0546de6
-set "_key=JNRGM%yh%WHDWX%yh%FJJG3%yh%K47QV%yh%DRTFM" &:: Standard
+set "_key=JNRGM%yh%WHDWX%yh%FJJG3%yh%K47QV%yh%DRTFM" &::  Standard
 exit /b
 
 :4f414197-0fc2-4c01-b68a-86cbb9ac254c
-set "_key=YG9NW%yh%3K39V%yh%2T3HJ%yh%93F3Q%yh%G83KT" &:: Project Professional
+set "_key=YG9NW%yh%3K39V%yh%2T3HJ%yh%93F3Q%yh%G83KT" &::  Project Professional
 exit /b
 
 :da7ddabc-3fbe-4447-9e01-6ab7440b4cd4
-set "_key=GNFHQ%yh%F6YQM%yh%KQDGJ%yh%327XX%yh%KQBVC" &:: Project Standard
+set "_key=GNFHQ%yh%F6YQM%yh%KQDGJ%yh%327XX%yh%KQBVC" &::  Project Standard
 exit /b
 
 :6bf301c1-b94a-43e9-ba31-d494598c47fb
-set "_key=PD3PC%yh%RHNGV%yh%FXJ29%yh%8JK7D%yh%RJRJK" &:: Visio Professional
+set "_key=PD3PC%yh%RHNGV%yh%FXJ29%yh%8JK7D%yh%RJRJK" &::  Visio Professional
 exit /b
 
 :aa2a7821-1827-4c2c-8f1d-4513a34dda97
-set "_key=7WHWN%yh%4T7MP%yh%G96JF%yh%G33KR%yh%W8GF4" &:: Visio Standard
+set "_key=7WHWN%yh%4T7MP%yh%G96JF%yh%G33KR%yh%W8GF4" &::  Visio Standard
 exit /b
 
 :67c0fc0c-deba-401b-bf8b-9c8ad8395804
-set "_key=GNH9Y%yh%D2J4T%yh%FJHGG%yh%QRVH7%yh%QPFDW" &:: Access
+set "_key=GNH9Y%yh%D2J4T%yh%FJHGG%yh%QRVH7%yh%QPFDW" &::  Access
 exit /b
 
 :c3e65d36-141f-4d2f-a303-a842ee756a29
-set "_key=9C2PK%yh%NWTVB%yh%JMPW8%yh%BFT28%yh%7FTBF" &:: Excel
+set "_key=9C2PK%yh%NWTVB%yh%JMPW8%yh%BFT28%yh%7FTBF" &::  Excel
 exit /b
 
 :d8cace59-33d2-4ac7-9b1b-9b72339c51c8
-set "_key=DR92N%yh%9HTF2%yh%97XKM%yh%XW2WJ%yh%XW3J6" &:: OneNote
+set "_key=DR92N%yh%9HTF2%yh%97XKM%yh%XW2WJ%yh%XW3J6" &::  OneNote
 exit /b
 
 :ec9d9265-9d1e-4ed0-838a-cdc20f2551a1
-set "_key=R69KK%yh%NTPKF%yh%7M3Q4%yh%QYBHW%yh%6MT9B" &:: Outlook
+set "_key=R69KK%yh%NTPKF%yh%7M3Q4%yh%QYBHW%yh%6MT9B" &::  Outlook
 exit /b
 
 :d70b1bba-b893-4544-96e2-b7a318091c33
-set "_key=J7MQP%yh%HNJ4Y%yh%WJ7YM%yh%PFYGF%yh%BY6C6" &:: Powerpoint
+set "_key=J7MQP%yh%HNJ4Y%yh%WJ7YM%yh%PFYGF%yh%BY6C6" &::  Powerpoint
 exit /b
 
 :041a06cb-c5b8-4772-809f-416d03d16654
-set "_key=F47MM%yh%N3XJP%yh%TQXJ9%yh%BP99D%yh%8K837" &:: Publisher
+set "_key=F47MM%yh%N3XJP%yh%TQXJ9%yh%BP99D%yh%8K837" &::  Publisher
 exit /b
 
 :83e04ee1-fa8d-436d-8994-d31a862cab77
-set "_key=869NQ%yh%FJ69K%yh%466HW%yh%QYCP2%yh%DDBV6" &:: Skype for Business
+set "_key=869NQ%yh%FJ69K%yh%466HW%yh%QYCP2%yh%DDBV6" &::  Skype for Business
 exit /b
 
 :bb11badf-d8aa-470e-9311-20eaf80fe5cc
-set "_key=WXY84%yh%JN2Q9%yh%RBCCQ%yh%3Q3J3%yh%3PFJ6" &:: Word
+set "_key=WXY84%yh%JN2Q9%yh%RBCCQ%yh%3Q3J3%yh%3PFJ6" &::  Word
 exit /b
 
-:: Office 2013
+::  Office 2013
 :dc981c6b-fc8e-420f-aa43-f8f33e5c0923
-set "_key=42QTK%yh%RN8M7%yh%J3C4G%yh%BBGYM%yh%88CYV" &:: Mondo
+set "_key=42QTK%yh%RN8M7%yh%J3C4G%yh%BBGYM%yh%88CYV" &::  Mondo
 exit /b
 
 :b322da9c-a2e2-4058-9e4e-f59a6970bd69
-set "_key=YC7DK%yh%G2NP3%yh%2QQC3%yh%J6H88%yh%GVGXT" &:: Professional Plus
+set "_key=YC7DK%yh%G2NP3%yh%2QQC3%yh%J6H88%yh%GVGXT" &::  Professional Plus
 exit /b
 
 :b13afb38-cd79-4ae5-9f7f-eed058d750ca
-set "_key=KBKQT%yh%2NMXY%yh%JJWGP%yh%M62JB%yh%92CD4" &:: Standard
+set "_key=KBKQT%yh%2NMXY%yh%JJWGP%yh%M62JB%yh%92CD4" &::  Standard
 exit /b
 
 :4a5d124a-e620-44ba-b6ff-658961b33b9a
-set "_key=FN8TT%yh%7WMH6%yh%2D4X9%yh%M337T%yh%2342K" &:: Project Professional
+set "_key=FN8TT%yh%7WMH6%yh%2D4X9%yh%M337T%yh%2342K" &::  Project Professional
 exit /b
 
 :427a28d1-d17c-4abf-b717-32c780ba6f07
-set "_key=6NTH3%yh%CW976%yh%3G3Y2%yh%JK3TX%yh%8QHTT" &:: Project Standard
+set "_key=6NTH3%yh%CW976%yh%3G3Y2%yh%JK3TX%yh%8QHTT" &::  Project Standard
 exit /b
 
 :e13ac10e-75d0-4aff-a0cd-764982cf541c
-set "_key=C2FG9%yh%N6J68%yh%H8BTJ%yh%BW3QX%yh%RM3B3" &:: Visio Professional
+set "_key=C2FG9%yh%N6J68%yh%H8BTJ%yh%BW3QX%yh%RM3B3" &::  Visio Professional
 exit /b
 
 :ac4efaf0-f81f-4f61-bdf7-ea32b02ab117
-set "_key=J484Y%yh%4NKBF%yh%W2HMG%yh%DBMJC%yh%PGWR7" &:: Visio Standard
+set "_key=J484Y%yh%4NKBF%yh%W2HMG%yh%DBMJC%yh%PGWR7" &::  Visio Standard
 exit /b
 
 :6ee7622c-18d8-4005-9fb7-92db644a279b
-set "_key=NG2JY%yh%H4JBT%yh%HQXYP%yh%78QH9%yh%4JM2D" &:: Access
+set "_key=NG2JY%yh%H4JBT%yh%HQXYP%yh%78QH9%yh%4JM2D" &::  Access
 exit /b
 
 :f7461d52-7c2b-43b2-8744-ea958e0bd09a
-set "_key=VGPNG%yh%Y7HQW%yh%9RHP7%yh%TKPV3%yh%BG7GB" &:: Excel
+set "_key=VGPNG%yh%Y7HQW%yh%9RHP7%yh%TKPV3%yh%BG7GB" &::  Excel
 exit /b
 
 :fb4875ec-0c6b-450f-b82b-ab57d8d1677f
-set "_key=H7R7V%yh%WPNXQ%yh%WCYYC%yh%76BGV%yh%VT7GH" &:: Groove
+set "_key=H7R7V%yh%WPNXQ%yh%WCYYC%yh%76BGV%yh%VT7GH" &::  Groove
 exit /b
 
 :a30b8040-d68a-423f-b0b5-9ce292ea5a8f
-set "_key=DKT8B%yh%N7VXH%yh%D963P%yh%Q4PHY%yh%F8894" &:: InfoPath
+set "_key=DKT8B%yh%N7VXH%yh%D963P%yh%Q4PHY%yh%F8894" &::  InfoPath
 exit /b
 
 :1b9f11e3-c85c-4e1b-bb29-879ad2c909e3
-set "_key=2MG3G%yh%3BNTT%yh%3MFW9%yh%KDQW3%yh%TCK7R" &:: Lync
+set "_key=2MG3G%yh%3BNTT%yh%3MFW9%yh%KDQW3%yh%TCK7R" &::  Lync
 exit /b
 
 :efe1f3e6-aea2-4144-a208-32aa872b6545
-set "_key=TGN6P%yh%8MMBC%yh%37P2F%yh%XHXXK%yh%P34VW" &:: OneNote
+set "_key=TGN6P%yh%8MMBC%yh%37P2F%yh%XHXXK%yh%P34VW" &::  OneNote
 exit /b
 
 :771c3afa-50c5-443f-b151-ff2546d863a0
-set "_key=QPN8Q%yh%BJBTJ%yh%334K3%yh%93TGY%yh%2PMBT" &:: Outlook
+set "_key=QPN8Q%yh%BJBTJ%yh%334K3%yh%93TGY%yh%2PMBT" &::  Outlook
 exit /b
 
 :8c762649-97d1-4953-ad27-b7e2c25b972e
-set "_key=4NT99%yh%8RJFH%yh%Q2VDH%yh%KYG2C%yh%4RD4F" &:: Powerpoint
+set "_key=4NT99%yh%8RJFH%yh%Q2VDH%yh%KYG2C%yh%4RD4F" &::  Powerpoint
 exit /b
 
 :00c79ff1-6850-443d-bf61-71cde0de305f
-set "_key=PN2WF%yh%29XG2%yh%T9HJ7%yh%JQPJR%yh%FCXK4" &:: Publisher
+set "_key=PN2WF%yh%29XG2%yh%T9HJ7%yh%JQPJR%yh%FCXK4" &::  Publisher
 exit /b
 
 :d9f5b1c6-5386-495a-88f9-9ad6b41ac9b3
-set "_key=6Q7VD%yh%NX8JD%yh%WJ2VH%yh%88V73%yh%4GBJ7" &:: Word
+set "_key=6Q7VD%yh%NX8JD%yh%WJ2VH%yh%88V73%yh%4GBJ7" &::  Word
 exit /b
 
-:: Office 2010
+::  Office 2010
 :09ed9640-f020-400a-acd8-d7d867dfd9c2
-set "_key=YBJTT%yh%JG6MD%yh%V9Q7P%yh%DBKXJ%yh%38W9R" &:: Mondo
+set "_key=YBJTT%yh%JG6MD%yh%V9Q7P%yh%DBKXJ%yh%38W9R" &::  Mondo
 exit /b
 
 :ef3d4e49-a53d-4d81-a2b1-2ca6c2556b2c
-set "_key=7TC2V%yh%WXF6P%yh%TD7RT%yh%BQRXR%yh%B8K32" &:: Mondo2
+set "_key=7TC2V%yh%WXF6P%yh%TD7RT%yh%BQRXR%yh%B8K32" &::  Mondo2
 exit /b
 
 :6f327760-8c5c-417c-9b61-836a98287e0c
-set "_key=VYBBJ%yh%TRJPB%yh%QFQRF%yh%QFT4D%yh%H3GVB" &:: Professional Plus
+set "_key=VYBBJ%yh%TRJPB%yh%QFQRF%yh%QFT4D%yh%H3GVB" &::  Professional Plus
 exit /b
 
 :9da2a678-fb6b-4e67-ab84-60dd6a9c819a
-set "_key=V7QKV%yh%4XVVR%yh%XYV4D%yh%F7DFM%yh%8R6BM" &:: Standard
+set "_key=V7QKV%yh%4XVVR%yh%XYV4D%yh%F7DFM%yh%8R6BM" &::  Standard
 exit /b
 
 :df133ff7-bf14-4f95-afe3-7b48e7e331ef
-set "_key=YGX6F%yh%PGV49%yh%PGW3J%yh%9BTGG%yh%VHKC6" &:: Project Professional
+set "_key=YGX6F%yh%PGV49%yh%PGW3J%yh%9BTGG%yh%VHKC6" &::  Project Professional
 exit /b
 
 :5dc7bf61-5ec9-4996-9ccb-df806a2d0efe
-set "_key=4HP3K%yh%88W3F%yh%W2K3D%yh%6677X%yh%F9PGB" &:: Project Standard
+set "_key=4HP3K%yh%88W3F%yh%W2K3D%yh%6677X%yh%F9PGB" &::  Project Standard
 exit /b
 
 :92236105-bb67-494f-94c7-7f7a607929bd
-set "_key=D9DWC%yh%HPYVV%yh%JGF4P%yh%BTWQB%yh%WX8BJ" &:: Visio Premium
+set "_key=D9DWC%yh%HPYVV%yh%JGF4P%yh%BTWQB%yh%WX8BJ" &::  Visio Premium
 exit /b
 
 :e558389c-83c3-4b29-adfe-5e4d7f46c358
-set "_key=7MCW8%yh%VRQVK%yh%G677T%yh%PDJCM%yh%Q8TCP" &:: Visio Professional
+set "_key=7MCW8%yh%VRQVK%yh%G677T%yh%PDJCM%yh%Q8TCP" &::  Visio Professional
 exit /b
 
 :9ed833ff-4f92-4f36-b370-8683a4f13275
-set "_key=767HD%yh%QGMWX%yh%8QTDB%yh%9G3R2%yh%KHFGJ" &:: Visio Standard
+set "_key=767HD%yh%QGMWX%yh%8QTDB%yh%9G3R2%yh%KHFGJ" &::  Visio Standard
 exit /b
 
 :8ce7e872-188c-4b98-9d90-f8f90b7aad02
-set "_key=V7Y44%yh%9T38C%yh%R2VJK%yh%666HK%yh%T7DDX" &:: Access
+set "_key=V7Y44%yh%9T38C%yh%R2VJK%yh%666HK%yh%T7DDX" &::  Access
 exit /b
 
 :cee5d470-6e3b-4fcc-8c2b-d17428568a9f
-set "_key=H62QG%yh%HXVKF%yh%PP4HP%yh%66KMR%yh%CW9BM" &:: Excel
+set "_key=H62QG%yh%HXVKF%yh%PP4HP%yh%66KMR%yh%CW9BM" &::  Excel
 exit /b
 
 :8947d0b8-c33b-43e1-8c56-9b674c052832
-set "_key=QYYW6%yh%QP4CB%yh%MBV6G%yh%HYMCJ%yh%4T3J4" &:: Groove - SharePoint Workspace
+set "_key=QYYW6%yh%QP4CB%yh%MBV6G%yh%HYMCJ%yh%4T3J4" &::  Groove - SharePoint Workspace
 exit /b
 
 :ca6b6639-4ad6-40ae-a575-14dee07f6430
-set "_key=K96W8%yh%67RPQ%yh%62T9Y%yh%J8FQJ%yh%BT37T" &:: InfoPath
+set "_key=K96W8%yh%67RPQ%yh%62T9Y%yh%J8FQJ%yh%BT37T" &::  InfoPath
 exit /b
 
 :ab586f5c-5256-4632-962f-fefd8b49e6f4
-set "_key=Q4Y4M%yh%RHWJM%yh%PY37F%yh%MTKWH%yh%D3XHX" &:: OneNote
+set "_key=Q4Y4M%yh%RHWJM%yh%PY37F%yh%MTKWH%yh%D3XHX" &::  OneNote
 exit /b
 
 :ecb7c192-73ab-4ded-acf4-2399b095d0cc
-set "_key=7YDC2%yh%CWM8M%yh%RRTJC%yh%8MDVC%yh%X3DWQ" &:: Outlook
+set "_key=7YDC2%yh%CWM8M%yh%RRTJC%yh%8MDVC%yh%X3DWQ" &::  Outlook
 exit /b
 
 :45593b1d-dfb1-4e91-bbfb-2d5d0ce2227a
-set "_key=RC8FX%yh%88JRY%yh%3PF7C%yh%X8P67%yh%P4VTT" &:: Powerpoint
+set "_key=RC8FX%yh%88JRY%yh%3PF7C%yh%X8P67%yh%P4VTT" &::  Powerpoint
 exit /b
 
 :b50c4f75-599b-43e8-8dcd-1081a7967241
-set "_key=BFK7F%yh%9MYHM%yh%V68C7%yh%DRQ66%yh%83YTP" &:: Publisher
+set "_key=BFK7F%yh%9MYHM%yh%V68C7%yh%DRQ66%yh%83YTP" &::  Publisher
 exit /b
 
 :2d0882e7-a4e7-423b-8ccc-70d91e0158b1
-set "_key=HVHB3%yh%C6FV7%yh%KQX9W%yh%YQG79%yh%CRY7T" &:: Word
+set "_key=HVHB3%yh%C6FV7%yh%KQX9W%yh%YQG79%yh%CRY7T" &::  Word
 exit /b
 
 :ea509e87-07a1-4a45-9edc-eba5a39f36af
-set "_key=D6QFG%yh%VBYP2%yh%XQHM7%yh%J97RH%yh%VVRCK" &:: Small Business Basics
+set "_key=D6QFG%yh%VBYP2%yh%XQHM7%yh%J97RH%yh%VVRCK" &::  Small Business Basics
 exit /b
 
 :TheEnd
@@ -6765,7 +6762,7 @@ if not defined _tskinstalled if not defined _oldtsk (
 echo.
 if %winbuild% GEQ 9200 (
 call :leavenonexistentkms %nul%
-echo Keeping the non-existent IP address 10.0.0.10 as KMS Server.
+echo 将不存在的 IP 地址 10.0.0.10 保留作为 KMS 服务器。
 ) else (
 call :Clear-KMS-Cache
 )
@@ -6773,14 +6770,14 @@ call :Clear-KMS-Cache
 
 if not [%Act_OK%]==[1] (
 echo.
-echo In case of any issues, check https://mass%-%grave.dev/troubleshoot
+echo 如果有任何问题，请查看 https://mass%-%grave.dev/troubleshoot
 )
 
 if defined _unattended exit /b
 
 echo ____________________________________________________________________
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 
@@ -6796,12 +6793,12 @@ for /f "delims=[] tokens=2" %%# in ('ping -n 1 %%a') do (if not [%%#]==[] set _i
 )
 
 if not defined _intcon (
-call :_color %_Red% "Internet is not connected."
+call :_color %_Red% "Internet 未连接。"
 exit /b
 )
 
 if [%ERRORCODE%]==[-1073418124] (
-echo Checking Port 1688 connection, it may take a while...
+echo 正在检查端口 1688 连接，它将需要一段时间……
 echo.
 
 set /a count=0
@@ -6812,31 +6809,31 @@ set /a count+=1
 )
 
 if not defined _portcon (
-call :_color %Red% "Port 1688 is blocked in your Internet connection."
+call :_color %Red% "端口 1688 在你的 Internet 连接中被阻止。"
 echo.
-echo Reason:   Probably restricted Internet [Office/College] is connected,
-echo           or Firewall is blocking the connection.
+echo 原因：    有可能连接了受限的 Internet [办公室/院校]，
+echo           或者防火墙阻止了连接。
 echo.
-echo Solution: Either use another Internet connection or use offline KMS
+echo 解决方案：使用其他 Internet 连接或使用脱机 KMS
 echo           https://github.com/abbodi1406/KMS_VL_ALL_AIO
 ) else (
-echo Port 1688 connection test is passed.
+echo 已通过 KMS 服务器端口 1688 测试。
 echo.
-echo Make sure system files are not blocked by your firewall.
-echo If the issue persists, try offline KMS
+echo 请确保系统文件未在你的防火墙中阻止。
+echo 如果问题仍然存在，请尝试使用脱机 KMS 激活程序
 echo https://github.com/abbodi1406/KMS_VL_ALL_AIO
 )
 echo.
 )
 
-echo KMS server is not an issue in this case.
+echo 在这种情况下，KMS 服务器并非问题。
 exit /b
 
 ::========================================================================================================================================
 
 :setserv
 
-::  Multi KMS servers integration and servers randomization
+::  多 KMS 服务器集成和服务器随机化
 
 set srvlist=
 set -=
@@ -6859,8 +6856,8 @@ if defined !server%rand%! goto :getserv
 set KMS_IP=!server%rand%!
 set !server%rand%!=1
 
-::  Get IPv4 address of KMS server to use for the activation, works even if ICMP echo is disabled.
-::  Microsoft and Antivirus's may flag the issue if public KMS server host name is directly used for the activation.
+::  获取用于激活的 KMS 服务器的 IPv4 地址，即使禁用 ICMP 回显也可以工作。
+::  如果直接使用公共 KMS 服务器主机名进行激活，Microsoft 和防病毒软件可能会标记此问题。
 
 set /a server_num+=1
 (for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %KMS_IP% 2^>nul') do set "KMS_IP=%%a"
@@ -6904,14 +6901,14 @@ if %winbuild% GEQ 9600 (
 %nul% reg delete "HKLM\%OPPk%\%_oA14%" /f
 %nul% reg delete "HKLM\%OPPk%\%_oApp%" /f
 
-:: check KMS38 lock
+::  检查 KMS38 锁
 
 %nul% reg query "HKLM\%SPPk%\%_wApp%" && (
 set error_=9
-echo Failed to completely clear KMS Cache.
-reg query "HKLM\%SPPk%\%_wApp%" /s 2>nul | findstr /i "127.0.0.2" >nul && echo KMS38 activation is locked.
+echo 完全清除 KMS 缓存失败。
+reg query "HKLM\%SPPk%\%_wApp%" /s 2>nul | findstr /i "127.0.0.2" >nul && echo KMS38 激活被锁定。
 ) || (
-echo Cleared KMS Cache successfully.
+echo 已成功清除 KMS 缓存。
 )
 exit /b
 
@@ -6954,7 +6951,7 @@ goto :eof
 
 cls
 mode con: cols=91 lines=30
-title Online KMS Complete Uninstall %masver%
+title 在线 KMS 完全卸载 %masver%
 
 set "key=HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\taskcache\tasks"
 
@@ -6963,10 +6960,10 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\Cli
 for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\ClickToRun /v InstallPath /reg:32" 2^>nul') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms" set "_C16R=1"
 if %winbuild% GEQ 9200 if defined _C16R (
 echo.
-echo ## Notice ##
+echo ## 注  意 ##
 echo.
-echo To make sure Office programs do not show a non-genuine banner,
-echo please run the activation option once, and don't uninstall afterward.
+echo 为确保 Office 程序不显示非正版横幅，
+echo 请运行一次激活选项，之后不要卸载。
 echo __________________________________________________________________________________________
 )
 
@@ -6979,72 +6976,72 @@ if defined error_ (
 if [%error_%]==[1] (
 echo __________________________________________________________________________________________
 %eline%
-echo Try Again / Restart the System
+echo 请再试一次或重启系统
 echo __________________________________________________________________________________________
 )
 ) else (
 echo __________________________________________________________________________________________
 echo.
-call :_color %Green% "Online KMS Complete Uninstall was done successfully."
+call :_color %Green% "在线 KMS 完整卸载已成功完成。"
 echo __________________________________________________________________________________________
 )
 
 if defined _unattended timeout /t 2 & exit /b
 
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 
 :clearstuff
 
 reg query "%key%" /f Path /s | find /i "\Activation-Renewal" >nul && (
-echo Deleting [Task] Activation-Renewal
+echo 正在删除 [任务] Activation-Renewal
 schtasks /delete /tn Activation-Renewal /f %nul%
 )
 
 reg query "%key%" /f Path /s | find /i "\Activation-Run_Once" >nul && (
-echo Deleting [Task] Activation-Run_Once
+echo 正在删除 [任务] Activation-Run_Once
 schtasks /delete /tn Activation-Run_Once /f %nul%
 )
 
 reg query "%key%" /f Path /s | find /i "\Online_KMS_Activation_Script-Renewal" >nul && (
-echo Deleting [Task] Online_KMS_Activation_Script-Renewal
+echo 正在删除 [任务] Online_KMS_Activation_Script-Renewal
 schtasks /delete /tn Online_KMS_Activation_Script-Renewal /f %nul%
 )
 
 reg query "%key%" /f Path /s | find /i "\Online_KMS_Activation_Script-Run_Once" >nul && (
-echo Deleting [Task] Online_KMS_Activation_Script-Run_Once
+echo 正在删除 [任务] Online_KMS_Activation_Script-Run_Once
 schtasks /delete /tn Online_KMS_Activation_Script-Run_Once /f %nul%
 )
 
 If exist "%windir%\Online_KMS_Activation_Script\" (
-echo Deleting [Folder] %windir%\Online_KMS_Activation_Script\
+echo 正在删除 [文件夹] %windir%\Online_KMS_Activation_Script\
 rmdir /s /q "%windir%\Online_KMS_Activation_Script\" %nul%
 )
 
 if exist "%ProgramData%\Online_KMS_Activation.cmd" (
-echo Deleting [File] %ProgramData%\Online_KMS_Activation.cmd
+echo 正在删除 [文件] %ProgramData%\Online_KMS_Activation.cmd
 del /f /q "%ProgramData%\Online_KMS_Activation.cmd" %nul%
 )
 
 If exist "%ProgramData%\Online_KMS_Activation\" (
-echo Deleting [Folder] %ProgramData%\Online_KMS_Activation\
+echo 正在删除 [文件夹] %ProgramData%\Online_KMS_Activation\
 rmdir /s /q "%ProgramData%\Online_KMS_Activation\" %nul%
 )
 
 If exist "%ProgramData%\Activation-Renewal\" (
-echo Deleting [Folder] %ProgramData%\Activation-Renewal\
+echo 正在删除 [文件夹] %ProgramData%\Activation-Renewal\
 rmdir /s /q "%ProgramData%\Activation-Renewal\" %nul%
 )
 
 If exist "%ProgramFiles%\Activation-Renewal\" (
-echo Deleting [Folder] %ProgramFiles%\Activation-Renewal\
+echo 正在删除 [文件夹] %ProgramFiles%\Activation-Renewal\
 rmdir /s /q "%ProgramFiles%\Activation-Renewal\" %nul%
 )
 
 reg query "HKCR\DesktopBackground\shell\Activate Windows - Office" %nul% && (
-echo Deleting [Registry] HKCR\DesktopBackground\shell\Activate Windows - Office
+echo 正在删除 [注册表] HKCR\DesktopBackground\shell\Activate Windows - Office
 Reg delete "HKCR\DesktopBackground\shell\Activate Windows - Office" /f %nul%
 )
 
@@ -7065,7 +7062,7 @@ exit /b
 
 cls
 mode con cols=91 lines=30
-title  Install Activation Auto-Renewal %masver%
+title 安装激活自动续期 %masver%
 
 set error_=
 set "_dest=%ProgramFiles%\Activation-Renewal"
@@ -7075,8 +7072,8 @@ call :clearstuff %nul%
 
 if defined error_ (
 %eline%
-echo Failed to completely clear KMS related folders/tasks.
-echo Run the Uninstall option and then try again.
+echo 清除 KMS 相关文件夹/任务失败。
+echo 请运行卸载选项，然后再试一次。
 goto :RenDone
 )
 
@@ -7093,8 +7090,8 @@ if defined ActTask (s%nil%cht%nil%asks /cre%nil%ate /tn "Activation-Run_Once" /r
 if exist "%_temp%\.*" rmdir /s /q "%_temp%\" %nul%
 
 call :createInfo.txt
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split \":_extracttask\:.*`r`n\"; [io.file]::WriteAllText('%_dest%\Activation_task.cmd', '@REM Dummy ' + '%random%' + [Environment]::NewLine + $f[1].Trim(), [System.Text.Encoding]::ASCII);"
-title  Install Activation Auto-Renewal %masver%
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split \":_extracttask\:.*`r`n\"; [io.file]::WriteAllText('%_dest%\Activation_task.cmd', '@REM Dummy ' + '%random%' + [Environment]::NewLine + $f[1].Trim(), [System.Text.Encoding]::ASCII);"
+title 安装激活自动续期 %masver%
 
 ::========================================================================================================================================
 
@@ -7118,33 +7115,33 @@ rmdir /s /q "%_dest%\" %nul%
 )
 
 %eline%
-echo Run the Uninstall option and then try again.
+echo 请运行卸载选项，然后再试一次。
 goto :RenDone
 )
 
 echo __________________________________________________________________________________________
 echo.
-echo Files created:
+echo 文件已创建：
 echo %_dest%\Activation_task.cmd
 echo %_dest%\Info.txt
 echo.
-(if defined ActTask (echo Scheduled Tasks created:) else (echo Scheduled Task created:))
-echo \Activation-Renewal [Weekly]
-if defined ActTask (echo \Activation-Run_Once)
+(if defined ActTask (echo 计划任务已创建：) else (echo 计划任务已创建：))
+echo \Activation-Renewal    [续期 / 每周]
+if defined ActTask (echo \Activation-Run_Once   [激活任务 - 激活后自动删除])
 echo __________________________________________________________________________________________
 echo.
-echo Info:
-echo Activation will be renewed every week if the Internet connection is found.
-echo It'll only renew installed KMS licenses. It won't convert any license to KMS.
+echo 信息：
+echo 如果找到 Internet 连接，将在每周续期激活。
+echo 它只会续期已安装的 KMS 许可。它不会将任何许可证转换为 KMS。
 echo __________________________________________________________________________________________
 echo.
 if defined ActTask (
-call :_color %Green% "Renewal and Activation Tasks were successfully created."
+call :_color %Green% "已成功创建续期和激活任务。"
 ) else (
-call :_color %Green% "Renewal Task was successfully created."
+call :_color %Green% "已成功创建续期任务。"
 )
 echo.
-call :_color %Gray% "Make sure you have run the Activation option at least once."
+call :_color %Gray% "请确保至少运行一次“激活”选项。"
 echo __________________________________________________________________________________________
 )
 
@@ -7155,7 +7152,7 @@ echo ___________________________________________________________________________
 if defined _unattended exit /b
 
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 
@@ -7164,25 +7161,25 @@ exit /b
 :createInfo.txt
 
 (
-echo   The use of this script is to renew your Windows/Office KMS license using online KMS.
+echo   此脚本的用途是使用在线 KMS 激活/更新你的 Windows/Office 许可证。
 echo:
-echo   If renewal/activation Scheduled tasks were created then following would exist,
+echo   如果创建了续订/激活计划任务，将会存在以下内容，
 echo:
-echo   - Scheduled tasks
-echo     Activation-Renewal    [Renewal / Weekly]
-echo     Activation-Run_Once   [Activation Task - deletes itself once activated]
-echo     The scheduled tasks runs only if the system is connected to the Internet.
+echo   - 计划任务
+echo     Activation-Renewal    [续期 / 每周]
+echo     Activation-Run_Once   [激活任务 - 激活后自动删除]
+echo     计划任务仅在系统连接到 Internet 时运行。
 echo:
-echo   - Files
+echo   - 文件
 echo     C:\Program Files\Activation-Renewal\Activation_task.cmd
 echo     C:\Program Files\Activation-Renewal\Info.txt
 echo     C:\Program Files\Activation-Renewal\Logs.txt
 echo ______________________________________________________________________________________________
 echo:
-echo   Online KMS Activation Script is a part of 'Microsoft_Activation_Scripts' [MAS] project.
+echo   在线 KMS 脚本是“Microsoft 激活脚本”[MAS] 项目中的一部分
 echo:   
-echo   Homepage: mass grave[.]dev
-echo      Email: windowsaddict@protonmail.com
+echo   主    页：mass grave[.]dev
+echo      Email：windowsaddict@protonmail.com
 )>"%_dest%\Info.txt"
 exit /b
 
@@ -7196,7 +7193,7 @@ exit /b
     <Date>1999-01-01T12:00:00.34375</Date>
     <Author>WindowsAddict</Author>
     <Version>1.0</Version>
-    <Description>Online K-M-S Activation-Renewal - Weekly Task</Description>
+    <Description>在线 K-M-S 自动续期 - 每周任务</Description>
     <URI>\Activation-Renewal</URI>
     <SecurityDescriptor>D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FRFX;;;LS)(A;;FRFW;;;S-1-5-80-123231216-2592883651-3715271367-3753151631-4175906628)(A;;FR;;;S-1-5-4)</SecurityDescriptor>
   </RegistrationInfo>
@@ -7260,7 +7257,7 @@ exit /b
     <Date>1999-01-01T12:00:00.34375</Date>
     <Author>WindowsAddict</Author>
     <Version>1.0</Version>
-    <Description>Online K-M-S Activation Run Once - Run and Delete itself on first Internet Contact</Description>
+    <Description>在线 K-M-S 激活运行一次 - 在首次联网时运行并删除自身</Description>
     <URI>\Activation-Run_Once</URI>
     <SecurityDescriptor>D:P(A;;FA;;;SY)(A;;FA;;;BA)(A;;FRFX;;;LS)(A;;FRFW;;;S-1-5-80-123231216-2592883651-3715271367-3753151631-4175906628)(A;;FR;;;S-1-5-4)</SecurityDescriptor>
   </RegistrationInfo>
@@ -7311,11 +7308,11 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Extract the text from batch script without character and file encoding issue
+::  从批处理脚本中解压文本，无字符和文件编码问题
 
 :RenExport
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split \":%~1\:.*`r`n\"; [io.file]::WriteAllText('%~2',$f[1].Trim(),[System.Text.Encoding]::%~3);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split \":%~1\:.*`r`n\"; [io.file]::WriteAllText('%~2',$f[1].Trim(),[System.Text.Encoding]::%~3);"
 exit /b
 
 ::========================================================================================================================================
@@ -7323,34 +7320,34 @@ exit /b
 :_extracttask:
 @echo off
 
-::   Renew K-M-S activation with Online servers via scheduled task
+::   通过计划任务使用在线服务器更新 K-M-S 激活
 
 ::============================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
 ::============================================================================
 
 
 if not "%~1"=="Task" (
 echo.
-echo ====== Error ======
+echo ====== 错误 ======
 echo.
-echo This file is supposed to be run only by the scheduled task.
+echo 此文件仅应由计划任务运行。
 echo.
-echo Press any key to exit
+echo 请按任意键退出脚本
 pause >nul
 exit /b
 )
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
 >nul fltmc || exit /b
@@ -7364,10 +7361,10 @@ for /f "tokens=6 delims=[]. " %%G in ('ver') do set winbuild=%%G
 set psc=powershell.exe
 
 set run_once=
-set t_name=Renewal Task
+set t_name=续期任务
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\taskcache\tasks" /f Path /s | find /i "\Activation-Run_Once" >nul && (
 set run_once=1
-set t_name=Run Once Task
+set t_name=单次运行任务
 )
 
 set _wmic=0
@@ -7392,7 +7389,7 @@ call :_tasksetserv
 
 :_intrepeat
 
-::  Check Internet connection. Works even if ICMP echo is disabled.
+::  检查 Internet 连接。即使禁用 ICMP 回显也可以工作。
 
 for %%a in (%srvlist%) do (
 for /f "delims=[] tokens=2" %%# in ('ping -n 1 %%a') do (
@@ -7409,8 +7406,8 @@ goto _taskend
 )
 
 echo.
-echo Error: Internet is not connected
-echo Waiting 30 seconds
+echo 错误：Internet 未连接
+echo 等待 30 秒
 
 timeout /t 30 >nul
 set /a loop=%loop%+1
@@ -7420,7 +7417,7 @@ goto _intrepeat
 
 ::========================================================================================================================================
 
-::  Check not x86 Windows
+::  检查非 x86 Windows
 
 set notx86=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
@@ -7440,7 +7437,7 @@ set "_oA14=59a52881-a989-479d-af46-f275c6370663"
 
 ::========================================================================================================================================
 
-::  Clean existing KMS cache from the registry / Set port value to 1688
+::  从注册表中清除现有的 KMS 缓存 / 将端口值设置为 1688
 
 %nul% reg delete "HKLM\%SPPk%" /f /v KeyManagementServiceName
 %nul% reg add "HKLM\%SPPk%" /f /v KeyManagementServicePort /t REG_SZ /d "1688"
@@ -7464,7 +7461,7 @@ if %winbuild% GEQ 9600 (
 
 ::========================================================================================================================================
 
-::  Check WMI and sppsvc Errors
+::  检查 WMI 和 sppsvc 错误
 
 set applist=
 net start sppsvc /y %nul%
@@ -7478,13 +7475,13 @@ if %_wmic% EQU 1 wmic path Win32_ComputerSystem get CreationClassName /value 2>n
 if %_wmic% EQU 0 %psc% "Get-CIMInstance -Class Win32_ComputerSystem | Select-Object -Property CreationClassName" 2>nul | find /i "computersystem" 1>nul
 if !errorlevel! NEQ 0 (set e_wmispp=WMI, SPP) else (set e_wmispp=SPP)
 echo.
-echo Error: Not Respoding- !e_wmispp!
+echo 错误：没有响应—— !e_wmispp!
 echo.
 )
 
 ::========================================================================================================================================
 
-::  Check installed volume products activation ID's
+::  检查已安装的批量产品激活 ID
 
 call :_taskgetids sppwid %slp% windows
 call :_taskgetids sppoid %slp% office
@@ -7493,13 +7490,13 @@ call :_taskgetids osppid %ospp% office
 ::========================================================================================================================================
 
 echo.
-echo Renewing KMS activation for all installed Volume products
+echo 正在为所有已安装的批量产品更新 KMS 激活
 
 if not defined sppwid if not defined sppoid if not defined osppid (
 echo.
-echo No installed Volume Windows / Office product found
+echo 未找到已安装的批量 Windows / Office 产品
 echo.
-echo Renewing KMS server
+echo 正在更新 KMS 服务器
 call :_taskgetserv
 call :_taskregserv
 goto :_skipact
@@ -7507,7 +7504,7 @@ goto :_skipact
 
 ::========================================================================================================================================
 
-:: Check KMS38 activation
+::  检查 KMS38 激活
 
 set gpr=0
 set _kms38=0
@@ -7522,7 +7519,7 @@ set _kms38=1
 call :_taskchkEnterpriseG _kms38
 )
 
-:: Set specific KMS host to Local Host so that global KMS IP can not replace KMS38 activation but can be used with Office and other Windows Editions.
+::  将特定 KMS 主机设置为本地主机，使全局 KMS IP 不能代替 KMS38 激活，但可以与 Office 和其他 Windows 版本一起使用。
 
 if %_kms38% EQU 1 (
 %nul% reg add "HKLM\%SPPk%\%_wApp%\%sppwid%" /f /v KeyManagementServiceName /t REG_SZ /d "127.0.0.2"
@@ -7539,7 +7536,7 @@ call :_actprod
 call :_act act_win
 call :_actinfo act_win
 ) else (
-echo Checking: Volume version of Windows is not installed
+echo 正在检查：未安装批量版 Windows
 )
 
 if defined sppoid (
@@ -7566,7 +7563,7 @@ call :_actinfo
 
 if not defined sppoid if not defined osppid (
 echo.
-echo Checking: Volume version of Office is not installed
+echo 正在检查：未安装批量版 Office
 )
 
 :_skipact
@@ -7575,7 +7572,7 @@ echo Checking: Volume version of Office is not installed
 
 if defined run_once (
 echo.
-echo Deleting Scheduled Task Activation-Run_Once
+echo 正在删除计划任务 Activation-Run_Once
 schtasks /delete /tn Activation-Run_Once /f %nul%
 )
 
@@ -7584,7 +7581,7 @@ schtasks /delete /tn Activation-Run_Once /f %nul%
 :_taskend
 
 echo.
-echo Exiting
+echo 正在退出
 echo ______________________________________________________________________
 
 if defined _tserror (exit /b 123456789) else (exit /b 0)
@@ -7634,8 +7631,8 @@ exit /b
 
 :_actprod
 
-if %_wmic% EQU 1 for /f "tokens=2 delims==" %%x in ('"wmic path !_path! where ID='!_actid!' get Name /VALUE" 2^>nul') do call echo Activating: %%x
-if %_wmic% EQU 0 for /f "tokens=2 delims==" %%x in ('%psc% "(([WMISEARCHER]'SELECT Name FROM !_path! WHERE ID=''!_actid!''').Get()).Name | %% {echo ('Name='+$_)}" 2^>nul') do call echo Activating: %%x
+if %_wmic% EQU 1 for /f "tokens=2 delims==" %%x in ('"wmic path !_path! where ID='!_actid!' get Name /VALUE" 2^>nul') do call echo 正在激活：%%x
+if %_wmic% EQU 0 for /f "tokens=2 delims==" %%x in ('%psc% "(([WMISEARCHER]'SELECT Name FROM !_path! WHERE ID=''!_actid!''').Get()).Name | %% {echo ('Name='+$_)}" 2^>nul') do call echo 正在激活：%%x
 exit /b
 
 ::========================================================================================================================================
@@ -7643,26 +7640,26 @@ exit /b
 :_actinfo
 
 if [%1]==[act_win] if %_kms38% EQU 1 (
-echo Windows is activated with KMS38
+echo Windows 已通过 KMS38 激活
 exit /b
 )
 
 if %errorcode% EQU 12345 (
-echo Product Activation Failed
-echo Unable to test KMS servers due to restricted or no Internet
+echo 产品激活失败
+echo 由于受限或没有 Internet，无法测试 KMS 服务器
 set _tserror=1
 exit /b
 )
 
 if %errorcode% EQU -1073418187 (
-echo Product Activation Failed: 0xC004F035
-if [%1]==[act_win] if %winbuild% LSS 9200 echo Windows 7 cannot be KMS-activated on this computer due to unqualified OEM BIOS
+echo 产品激活失败：0xC004F035
+if [%1]==[act_win] if %winbuild% LSS 9200 echo 由于 OEM BIOS 不合格，无法在此计算机上激活 Windows 7
 exit /b
 )
 
 if %errorcode% EQU -1073417728 (
-echo Product Activation Failed: 0xC004F200
-echo Windows needs to rebuild the activation-related files.
+echo 产品激活失败：0xC004F200
+echo Windows 需要重建激活相关文件。
 set _tserror=1
 exit /b
 )
@@ -7673,8 +7670,8 @@ call :_taskgetgrace
 set /a "gpr2=(%gpr%+1440-1)/1440"
 
 if %errorcode% EQU 0 if %gpr% EQU 0 (
-echo Product Activation succeeded, but Remaining Period failed to increase.
-if [%1]==[act_win] if %winbuild% LSS 9200 echo This could be related to the error described in KB4487266
+echo 产品激活成功，但剩余期限增加失败。
+if [%1]==[act_win] if %winbuild% LSS 9200 echo 这可能与 KB4487266 中描述的错误有关
 set _tserror=1
 exit /b
 )
@@ -7686,18 +7683,18 @@ if %gpr% GTR 259200 if [%1]==[act_win] call :_taskchkEnterpriseG _actpass
 if %gpr% EQU 259200 set _actpass=0
 
 if %errorcode% EQU 0 if %_actpass% EQU 0 (
-echo Product Activation Successful
-echo Remaining Period: %gpr2% days ^(%gpr% minutes^)
+echo 产品激活成功
+echo 剩余期限：%gpr2% 天（%gpr% 分钟）
 exit /b
 )
 
 cmd /c exit /b %errorcode%
 if %errorcode% NEQ 0 (
-echo Product Activation Failed: 0x!=ExitCode!
+echo 产品激活失败：0x!=ExitCode!
 ) else (
-echo Product Activation Failed
+echo 产品激活失败
 )
-echo Remaining Period: %gpr2% days ^(%gpr% minutes^)
+echo 剩余期限：%gpr2% 天（%gpr% 分钟）
 set _tserror=1
 exit /b
 
@@ -7743,7 +7740,7 @@ exit /b
 
 :_tasksetserv
 
-::  Multi KMS servers integration and servers randomization
+::  多 KMS 服务器集成和服务器随机化
 
 set srvlist=
 set -=
@@ -7766,8 +7763,8 @@ if defined !server%rand%! goto :_taskgetserv
 set KMS_IP=!server%rand%!
 set !server%rand%!=1
 
-::  Get IPv4 address of KMS server to use for the activation, works even if ICMP echo is disabled.
-::  Microsoft and Antivirus's may flag the issue if public KMS server host name is directly used for the activation.
+::  获取用于激活的 KMS 服务器的 IPv4 地址，即使禁用 ICMP 回显也可以工作。
+::  如果直接使用公共 KMS 服务器主机名进行激活，Microsoft 和防病毒软件可能会标记此问题。
 
 set /a server_num+=1
 (for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %KMS_IP% 2^>nul') do set "KMS_IP=%%a"
@@ -7776,7 +7773,7 @@ if not [%KMS_IP%]==[!KMS_IP!] exit /b
 goto :_taskgetserv
 )
 
-:: Ver:1.9
+::  Ver:1.9
 ::========================================================================================================================================
 :_extracttask:
 
@@ -7802,9 +7799,9 @@ exit /b
 
 ::=======================================
 
-:: Colored text with pure batch method
-:: Thanks to @dbenham and @jeb
-:: stackoverflow.com/a/10407642
+::  纯批处理方法的彩色文本
+::  感谢 @dbenham 和 @jeb
+::  stackoverflow.com/a/10407642
 
 :batcol
 
@@ -7887,7 +7884,7 @@ exit /b
 ::========================================================================================================================================
 
 ::  https://gist.github.com/ave9858/9fff6af726ba3ddc646285d1bbf37e71
-::  This code is used to clean Office licenses
+::  此代码用于清理 Office 许可
 
 :cleanlicense:
 function UninstallLicenses($DllPath) {
@@ -7915,7 +7912,7 @@ function UninstallLicenses($DllPath) {
 
 $OSPP = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\OfficeSoftwareProtectionPlatform" -ErrorAction SilentlyContinue).Path
 if ($OSPP) {
-    Write-Output "Found Office Software Protection installed, cleaning"
+    Write-Output "发现 Office 软件保护已安装，正在清理"
     UninstallLicenses($OSPP + "osppc.dll")
 }
 UninstallLicenses("sppc.dll")
@@ -7927,15 +7924,13 @@ UninstallLicenses("sppc.dll")
 @setlocal DisableDelayedExpansion
 @echo off
 @cls
-mode con cols=100 lines=32
-powershell "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=300;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 color 07
-title Check Activation Status [vbs]
+title 检查激活状态 [vbs]
 set "SysPath=%SystemRoot%\System32"
-set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
 set "SysPath=%SystemRoot%\Sysnative"
-set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%Path%"
+set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%Path%"
 )
 
 set ohook=
@@ -7970,12 +7965,12 @@ if exist "%ProgramFiles%\Microsoft Office\Office15\ospp.vbs" (
 )
 setlocal EnableDelayedExpansion
 echo %line2%
-echo ***                   Windows Status                     ***
+echo ***                  Windows 激活状态                    ***
 echo %line2%
 pushd "!_utemp!"
 copy /y %SystemRoot%\System32\slmgr.vbs . >nul 2>&1
 net start sppsvc /y >nul 2>&1
-cscript //nologo slmgr.vbs /dli || (echo Error executing slmgr.vbs&del /f /q slmgr.vbs&popd&goto :casVend)
+cscript //nologo slmgr.vbs /dli || (echo 执行 slmgr.vbs 出错&del /f /q slmgr.vbs&popd&goto :casVend)
 cscript //nologo slmgr.vbs /xpr
 del /f /q slmgr.vbs >nul 2>&1
 popd
@@ -7985,10 +7980,10 @@ if defined ohook (
 echo.
 echo.
 echo %line2%
-echo ***            Office Ohook Activation Status            ***
+echo ***                Office Ohook 激活状态                 ***
 echo %line2%
 echo.
-powershell "write-host -back 'Black' -fore 'Yellow' 'Ohook for permanent Office activation is installed.'; write-host -back 'Black' -fore 'Yellow' 'You can ignore below Office activation status.'"
+powershell "write-host -back 'Black' -fore 'Yellow' '已使用 Ohook 永久激活 Office。'; write-host -back 'Black' -fore 'Yellow' '你可以忽略以下的 Office 激活状态。'"
 echo.
 )
 
@@ -8000,9 +7995,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016 %_bit%-bit Status               ***
+echo ***              Office 2016 %_bit%-位激活状态               ***
 ) else (
-echo ***               Office 2013/2016 Status                ***
+echo ***              Office 2013/2016 激活状态               ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -8015,9 +8010,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016 32-bit Status               ***
+echo ***              Office 2016 32-位激活状态               ***
 ) else (
-echo ***               Office 2013/2016 Status                ***
+echo ***              Office 2013/2016 激活状态               ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -8030,7 +8025,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\15.
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2013 %_bit%-bit Status               ***
+echo ***              Office 2013 %_bit%-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -8040,7 +8035,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Wow6432Node\Microsof
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2013 32-bit Status               ***
+echo ***              Office 2013 32-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -8051,7 +8046,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Microsoft\Office\14.
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2010 %_bit%-bit Status               ***
+echo ***              Office 2010 %_bit%-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -8061,7 +8056,7 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query HKLM\SOFTWARE\Wow6432Node\Microsof
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***              Office 2010 32-bit Status               ***
+echo ***              Office 2010 32-位激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -8077,9 +8072,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016-2021 C2R Status             ***
+echo ***             Office 2016-2021 C2R 激活状态            ***
 ) else (
-echo ***                Office 2013-2021 Status               ***
+echo ***               Office 2013-2021 激活状态              ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -8092,9 +8087,9 @@ set _sO16vbs=1
 echo.
 echo %line2%
 if %_sO15vbs% EQU 0 (
-echo ***              Office 2016-2021 C2R Status             ***
+echo ***             Office 2016-2021 C2R 激活状态            ***
 ) else (
-echo ***                Office 2013-2021 Status               ***
+echo ***               Office 2013-2021 激活状态              ***
 )
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
@@ -8116,7 +8111,7 @@ if exist "%ProgramFiles%\Microsoft Office\Office15\ospp.vbs" (
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***                Office 2013 C2R Status                ***
+echo ***               Office 2013 C2R 激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
@@ -8135,14 +8130,14 @@ if exist "%ProgramFiles%\Microsoft Office\Office14\ospp.vbs" (
 if exist "!office!\ospp.vbs" (
 echo.
 echo %line2%
-echo ***                Office 2010 C2R Status                ***
+echo ***               Office 2010 C2R 激活状态               ***
 echo %line2%
 cscript //nologo "!office!\ospp.vbs" /dstatus
 )
 
 :casVend
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 
@@ -8152,10 +8147,8 @@ exit /b
 
 @setlocal DisableDelayedExpansion
 @echo off
-mode con cols=100 lines=32
-powershell "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=300;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 color 07
-title Check Activation Status [wmi]
+title 检查激活状态 [wmi]
 
 set WMI_VBS=0
 @cls
@@ -8186,10 +8179,10 @@ setlocal DisableDelayedExpansion
 if %winbuild% LSS 9200 if not exist "%SystemRoot%\servicing\Packages\Microsoft-Windows-PowerShell-WTR-Package~*.mum" set _Identity=0
 
 set "SysPath=%SystemRoot%\System32"
-set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "Path=%SystemRoot%\System32;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
 set "SysPath=%SystemRoot%\Sysnative"
-set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%Path%"
+set "Path=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\Wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%Path%"
 )
 
 set ohook=
@@ -8214,11 +8207,11 @@ wmic path Win32_ComputerSystem get CreationClassName /value 2>nul | find /i "Com
 
 if %_cwmi% EQU 0 (
 echo:
-echo Error: WMI is not responding in the system.
+echo 错误：WMI 在系统中未响应。
 echo:
-echo In MAS, Goto Troubleshoot and run Fix WMI option.
+echo 在 MAS 中，请转到疑难解答并运行修复 WMI 选项。
 echo:
-echo Press any key to go back...
+echo 请按任意键返回……
 pause >nul
 exit /b
 )
@@ -8267,11 +8260,11 @@ if %winbuild% LSS 9200 call :casWpkey %ospp% %o15App% osppsvc ospp15
 )
 
 echo %line2%
-echo ***                   Windows Status                     ***
+echo ***                  Windows 激活状态                    ***
 echo %line2%
 if not defined cW1nd0ws (
 echo.
-echo Error: product key not found.
+echo 错误：未找到产品密钥。
 goto :casWcon
 )
 set winID=1
@@ -8288,10 +8281,10 @@ if defined ohook (
 echo.
 echo.
 echo %line2%
-echo ***            Office Ohook Activation Status            ***
+echo ***                Office Ohook 激活状态                 ***
 echo %line2%
 echo.
-powershell "write-host -back 'Black' -fore 'Yellow' 'Ohook for permanent Office activation is installed.'; write-host -back 'Black' -fore 'Yellow' 'You can ignore below Office activation status.'"
+powershell "write-host -back 'Black' -fore 'Yellow' '已使用 Ohook 永久激活 Office。'; write-host -back 'Black' -fore 'Yellow' '你可以忽略以下的 Office 激活状态。'"
 echo.
 )
 
@@ -8303,7 +8296,7 @@ if defined osppsvc goto :casWospp
 goto :casWend
 )
 echo %line2%
-echo ***                   Office Status                      ***
+echo ***                  Office 激活状态                     ***
 echo %line2%
 set "_qr=%_zz7% %wspp% %_zz2% %_zz5%ApplicationID='%o15App%' and PartialProductKey is not null%_zz6% %_zz3% ID %_zz8%"
 for /f "tokens=2 delims==" %%# in ('%_qr%') do (
@@ -8320,7 +8313,7 @@ goto :casWend
 :casWospp
 if %verbose% EQU 1 (
 echo %line2%
-echo ***                   Office Status                      ***
+echo ***                  Office 激活状态                     ***
 echo %line2%
 )
 set "_qr=%_zz7% %ospp% %_zz2% %_zz5%ApplicationID='%o15App%' and PartialProductKey is not null%_zz6% %_zz3% ID %_zz8%"
@@ -8359,75 +8352,75 @@ if %WMI_VBS% NEQ 0 set "_qr=%_csg% %~1 "ID='%chkID%'" "%~3""
 for /f "tokens=* delims=" %%# in ('%_qr%') do set "%%#"
 
 set /a _gpr=(GracePeriodRemaining+1440-1)/1440
-echo %Description%| findstr /i VOLUME_KMSCLIENT 1>nul && (set cKmsClient=1&set _mTag=Volume)
-echo %Description%| findstr /i TIMEBASED_ 1>nul && (set cTblClient=1&set _mTag=Timebased)
-echo %Description%| findstr /i VIRTUAL_MACHINE_ACTIVATION 1>nul && (set cAvmClient=1&set _mTag=Automatic VM)
+echo %Description%| findstr /i VOLUME_KMSCLIENT 1>nul && (set cKmsClient=1&set _mTag=批量)
+echo %Description%| findstr /i TIMEBASED_ 1>nul && (set cTblClient=1&set _mTag=基于时间的)
+echo %Description%| findstr /i VIRTUAL_MACHINE_ACTIVATION 1>nul && (set cAvmClient=1&set _mTag=自动虚拟机)
 cmd /c exit /b %LicenseStatusReason%
 set "LicenseReason=%=ExitCode%"
-set "LicenseMsg=Time remaining: %GracePeriodRemaining% minute(s) (%_gpr% day(s))"
+set "LicenseMsg=剩余时间：%GracePeriodRemaining% 分钟（%_gpr% 天）"
 if %_gpr% GEQ 1 if %_WSH% EQU 1 (
 for /f "tokens=* delims=" %%# in ('%_csx% %GracePeriodRemaining%') do set "_xpr=%%#"
 )
 if %_gpr% GEQ 1 if %_prsh% EQU 1 if not defined _xpr (
 for /f "tokens=* delims=" %%# in ('%_psc% "$([DateTime]::Now.addMinutes(%GracePeriodRemaining%)).ToString('yyyy-MM-dd HH:mm:ss')" 2^>nul') do set "_xpr=%%#"
-title Check Activation Status [wmi]
+title 检查激活状态 [wmi]
 )
 
 if %LicenseStatus% EQU 0 (
-set "License=Unlicensed"
+set "License=未许可"
 set "LicenseMsg="
 )
 if %LicenseStatus% EQU 1 (
-set "License=Licensed"
+set "License=已许可"
 set "LicenseMsg="
 if %GracePeriodRemaining% EQU 0 (
-  if %winID% EQU 1 (set "ExpireMsg=The machine is permanently activated.") else (set "ExpireMsg=The product is permanently activated.")
+  if %winID% EQU 1 (set "ExpireMsg=计算机已永久激活。") else (set "ExpireMsg=产品已永久激活。")
   ) else (
-  set "LicenseMsg=%_mTag% activation expiration: %GracePeriodRemaining% minute(s) (%_gpr% day(s))"
-  if defined _xpr set "ExpireMsg=%_mTag% activation will expire %_xpr%"
+  set "LicenseMsg=%_mTag%激活过期：%GracePeriodRemaining% 分钟（%_gpr% 天）"
+  if defined _xpr set "ExpireMsg=%_mTag%激活将于 %_xpr% 过期"
   )
 )
 if %LicenseStatus% EQU 2 (
-set "License=Initial grace period"
-if defined _xpr set "ExpireMsg=Initial grace period ends %_xpr%"
+set "License=初始宽限期"
+if defined _xpr set "ExpireMsg=初始宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 3 (
-set "License=Additional grace period (KMS license expired or hardware out of tolerance)"
-if defined _xpr set "ExpireMsg=Additional grace period ends %_xpr%"
+set "License=附加宽限期（KMS 许可证已过期或硬件超出容差范围）"
+if defined _xpr set "ExpireMsg=附加宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 4 (
-set "License=Non-genuine grace period."
-if defined _xpr set "ExpireMsg=Non-genuine grace period ends %_xpr%"
+set "License=非正版宽限期。"
+if defined _xpr set "ExpireMsg=非正版宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 6 (
-set "License=Extended grace period"
-if defined _xpr set "ExpireMsg=Extended grace period ends %_xpr%"
+set "License=延长宽限期"
+if defined _xpr set "ExpireMsg=延长宽限期将于 %_xpr% 结束"
 )
 if %LicenseStatus% EQU 5 (
-set "License=Notification"
-  if "%LicenseReason%"=="C004F200" (set "LicenseMsg=Notification Reason: 0xC004F200 (non-genuine)."
-  ) else if "%LicenseReason%"=="C004F009" (set "LicenseMsg=Notification Reason: 0xC004F009 (grace time expired)."
-  ) else (set "LicenseMsg=Notification Reason: 0x%LicenseReason%"
+set "License=通知"
+  if "%LicenseReason%"=="C004F200" (set "LicenseMsg=通知原因：0xC004F200（非正版）。"
+  ) else if "%LicenseReason%"=="C004F009" (set "LicenseMsg=通知原因：0xC004F009（宽限期到期）。"
+  ) else (set "LicenseMsg=通知原因：0x%LicenseReason%"
   )
 )
 if %LicenseStatus% GTR 6 (
-set "License=Unknown"
+set "License=未知"
 set "LicenseMsg="
 )
 if not defined cKmsClient exit /b
 
 if %KeyManagementServicePort%==0 set KeyManagementServicePort=1688
-set "KmsReg=Registered KMS machine name: %KeyManagementServiceMachine%:%KeyManagementServicePort%"
-if "%KeyManagementServiceMachine%"=="" set "KmsReg=Registered KMS machine name: KMS name not available"
+set "KmsReg=已注册的 KMS 计算机名称：%KeyManagementServiceMachine%:%KeyManagementServicePort%"
+if "%KeyManagementServiceMachine%"=="" set "KmsReg=已注册的 KMS 计算机名称：KMS 名称不可用"
 
 if %DiscoveredKeyManagementServiceMachinePort%==0 set DiscoveredKeyManagementServiceMachinePort=1688
-set "KmsDns=KMS machine name from DNS: %DiscoveredKeyManagementServiceMachineName%:%DiscoveredKeyManagementServiceMachinePort%"
-if "%DiscoveredKeyManagementServiceMachineName%"=="" set "KmsDns=DNS auto-discovery: KMS name not available"
+set "KmsDns=来自 DNS 的 KMS 计算机名称：%DiscoveredKeyManagementServiceMachineName%:%DiscoveredKeyManagementServiceMachinePort%"
+if "%DiscoveredKeyManagementServiceMachineName%"=="" set "KmsDns=DNS 自动发现：KMS 名称不可用"
 
 set "_qr="wmic path %~2 get ClientMachineID, KeyManagementServiceHostCaching /value" ^| findstr ^="
 if %WMI_VBS% NEQ 0 set "_qr=%_csg% %~2 "ClientMachineID, KeyManagementServiceHostCaching""
 for /f "tokens=* delims=" %%# in ('%_qr%') do set "%%#"
-if /i %KeyManagementServiceHostCaching%==True (set KeyManagementServiceHostCaching=Enabled) else (set KeyManagementServiceHostCaching=Disabled)
+if /i %KeyManagementServiceHostCaching%==True (set KeyManagementServiceHostCaching=启用) else (set KeyManagementServiceHostCaching=禁用)
 
 if %winbuild% LSS 9200 exit /b
 if /i %~1==%ospp% exit /b
@@ -8435,67 +8428,67 @@ if /i %~1==%ospp% exit /b
 if "%KeyManagementServiceLookupDomain%"=="" set "KeyManagementServiceLookupDomain="
 
 if %VLActivationTypeEnabled% EQU 3 (
-set VLActivationType=Token
+set VLActivationType=令牌
 ) else if %VLActivationTypeEnabled% EQU 2 (
 set VLActivationType=KMS
 ) else if %VLActivationTypeEnabled% EQU 1 (
 set VLActivationType=AD
 ) else (
-set VLActivationType=All
+set VLActivationType=所有
 )
 
 if %winbuild% LSS 9600 exit /b
-if "%DiscoveredKeyManagementServiceMachineIpAddress%"=="" set "DiscoveredKeyManagementServiceMachineIpAddress=not available"
+if "%DiscoveredKeyManagementServiceMachineIpAddress%"=="" set "DiscoveredKeyManagementServiceMachineIpAddress=不可用"
 exit /b
 
 :casWout
 echo.
-echo Name: %Name%
-echo Description: %Description%
-echo Activation ID: %ID%
-echo Extended PID: %ProductKeyID%
-if defined ProductKeyChannel echo Product Key Channel: %ProductKeyChannel%
-echo Partial Product Key: %PartialProductKey%
-echo License Status: %License%
+echo 名称：%Name%
+echo 描述：%Description%
+echo 激活 ID：%ID%
+echo 扩展 PID：%ProductKeyID%
+if defined ProductKeyChannel echo 产品密钥通道：%ProductKeyChannel%
+echo 部分产品密钥：%PartialProductKey%
+echo 许可状态：%License%
 if defined LicenseMsg echo %LicenseMsg%
-if not %LicenseStatus%==0 if not %EvaluationEndDate:~0,8%==16010101 echo Evaluation End Date: %EvaluationEndDate:~0,4%-%EvaluationEndDate:~4,2%-%EvaluationEndDate:~6,2% %EvaluationEndDate:~8,2%:%EvaluationEndDate:~10,2% UTC
+if not %LicenseStatus%==0 if not %EvaluationEndDate:~0,8%==16010101 echo 评估结束日期：%EvaluationEndDate:~0,4%-%EvaluationEndDate:~4,2%-%EvaluationEndDate:~6,2% %EvaluationEndDate:~8,2%:%EvaluationEndDate:~10,2% UTC
 if not defined cKmsClient (
 if defined ExpireMsg echo.&echo.    %ExpireMsg%
 exit /b
 )
-if defined VLActivationTypeEnabled echo Configured Activation Type: %VLActivationType%
+if defined VLActivationTypeEnabled echo 已配置的激活类型：%VLActivationType%
 echo.
 if not %LicenseStatus%==1 (
-echo Please activate the product in order to update KMS client information values.
+echo 请激活产品以更新 KMS 客户端信息值。
 exit /b
 )
-echo Most recent activation information:
-echo Key Management Service client information
-echo.    Client Machine ID (CMID): %ClientMachineID%
+echo 最新的激活信息：
+echo 密钥管理服务客户端信息
+echo.    客户端计算机 ID（CMID）：%ClientMachineID%
 echo.    %KmsDns%
 echo.    %KmsReg%
-if defined DiscoveredKeyManagementServiceMachineIpAddress echo.    KMS machine IP address: %DiscoveredKeyManagementServiceMachineIpAddress%
-echo.    KMS machine extended PID: %KeyManagementServiceProductKeyID%
-echo.    Activation interval: %VLActivationInterval% minutes
-echo.    Renewal interval: %VLRenewalInterval% minutes
-echo.    K.M.S. host caching: %KeyManagementServiceHostCaching%
-if defined KeyManagementServiceLookupDomain echo.    KMS SRV record lookup domain: %KeyManagementServiceLookupDomain%
+if defined DiscoveredKeyManagementServiceMachineIpAddress echo.    KMS 计算机 IP 地址：%DiscoveredKeyManagementServiceMachineIpAddress%
+echo.    KMS 计算机扩展 PID：%KeyManagementServiceProductKeyID%
+echo.    激活间隔：%VLActivationInterval% 分钟
+echo.    续订间隔：%VLRenewalInterval% 分钟
+echo.    KMS 主机缓存：%KeyManagementServiceHostCaching%
+if defined KeyManagementServiceLookupDomain echo.    KMS 服务器记录查找域：%KeyManagementServiceLookupDomain%
 if defined ExpireMsg echo.&echo.    %ExpireMsg%
 exit /b
 
 :casWend
 if %_Identity% EQU 1 if %_prsh% EQU 1 (
 echo %line2%
-echo ***                  Office vNext Status                 ***
+echo ***                Office vNext 激活状态                 ***
 echo %line2%
 setlocal EnableDelayedExpansion
-%_psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':vNextDiag\:.*';iex ($f[1])"
-title Check Activation Status [wmi]
+%_psc% "$f=[IO.File]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':vNextDiag\:.*';iex ($f[1])"
+title 检查激活状态 [wmi]
 echo %line3%
 echo.
 )
 echo.
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause >nul
 exit /b
 
@@ -8506,7 +8499,7 @@ function PrintModePerPridFromRegistry
 	$vNextPrids = Get-Item -Path $vNextRegkey -ErrorAction Ignore | Select-Object -ExpandProperty 'property' | Where-Object -FilterScript {$_.ToLower() -like "*retail" -or $_.ToLower() -like "*volume"}
 	If ($vNextPrids -Eq $null)
 	{
-		Write-Host "No registry keys found."
+		Write-Host "没有找到注册表项。"
 		Return
 	}
 	$vNextPrids | ForEach `
@@ -8531,7 +8524,7 @@ function PrintSharedComputerLicensing
 	$scaPolicyValue = Get-ItemProperty -Path $scaPolicyKey -ErrorAction Ignore | Select-Object -ExpandProperty "SharedComputerLicensing" -ErrorAction Ignore
 	If ($scaValue -Eq $null -And $scaValue2 -Eq $null -And $scaPolicyValue -Eq $null)
 	{
-		Write-Host "No registry keys found."
+		Write-Host "没有找到注册表项。"
 		Return
 	}
 	$scaModeValue = $scaValue -Or $scaValue2 -Or $scaPolicyValue
@@ -8553,7 +8546,7 @@ function PrintSharedComputerLicensing
 	}
 	If ($tokenFiles.length -Eq 0)
 	{
-		Write-Host "No tokens found."
+		Write-Host "没有找到令牌。"
 		Return
 	}
 	$tokenFiles | ForEach `
@@ -8590,7 +8583,7 @@ function PrintLicensesInformation
 	}
 	If ($licenseFiles.length -Eq 0)
 	{
-		Write-Host "No licenses found."
+		Write-Host "没有找到许可证。"
 		Return
 	}
 	$licenseFiles | ForEach `
@@ -8660,19 +8653,19 @@ function PrintLicensesInformation
 	}
 }
 	Write-Host
-	Write-Host "========== Mode per ProductReleaseId =========="
+	Write-Host "============== 产品 ID 及许可方式 =============="
 	Write-Host
 PrintModePerPridFromRegistry
 	Write-Host
-	Write-Host "========== Shared Computer Licensing =========="
+	Write-Host "================ 共享计算机许可 ================"
 	Write-Host
 PrintSharedComputerLicensing
 	Write-Host
-	Write-Host "========== vNext licenses =========="
+	Write-Host "================= vNext 许可证 ================="
 	Write-Host
 PrintLicensesInformation -Mode "NUL"
 	Write-Host
-	Write-Host "========== Device licenses =========="
+	Write-Host "================== 设备许可证 =================="
 	Write-Host
 PrintLicensesInformation -Mode "Device"
 :vNextDiag:
@@ -8687,7 +8680,7 @@ PrintLicensesInformation -Mode "Device"
 
 cls
 color 07
-title  Troubleshoot %masver%
+title 疑难解答 %masver%
 
 set _args=
 set _elev=
@@ -8715,14 +8708,14 @@ if %winbuild% GEQ 10586 reg query "HKCU\Console" /v ForceV2 %nul2% | find /i "0x
 
 call :_colorprep
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :_color %Red% "==== 错误 ====" &echo:"
 set "line=_________________________________________________________________________________________________"
-if %~z0 GEQ 200000 (set "_exitmsg=Go back") else (set "_exitmsg=Exit")
+if %~z0 GEQ 200000 (set "_exitmsg=返回") else (set "_exitmsg=退出")
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -8734,7 +8727,7 @@ set _PSarg="""%~f0""" -el %_args%
 
 set "_ttemp=%userprofile%\AppData\Local\Temp"
 
-::  Check desktop location
+::  检测桌面位置
 
 set desktop=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Desktop') do call set "desktop=%%b"
@@ -8742,7 +8735,7 @@ if not defined desktop for /f "delims=" %%a in ('%psc% "& {write-host $([Environ
 
 if not defined desktop (
 %eline%
-echo Desktop location was not detected, aborting...
+echo 桌面位置未被检测到，正在中止……
 goto at_done
 )
 
@@ -8754,7 +8747,7 @@ setlocal EnableDelayedExpansion
 
 cls
 color 07
-title  Troubleshoot %masver%
+title 疑难解答 %masver%
 mode con cols=77 lines=30
 
 echo:
@@ -8763,21 +8756,21 @@ echo:
 echo:
 echo:       _______________________________________________________________
 echo:                                                   
-call :_color2 %_White% "             [1] " %_Green% "Help"
+call :_color2 %_White% "             [1] " %_Green% "帮助"
 echo:             ___________________________________________________
 echo:                                                                      
 echo:             [2] Dism RestoreHealth
 echo:             [3] SFC Scannow
 echo:                                                                      
-echo:             [4] Fix WMI
-echo:             [5] Fix Licensing
-echo:             [6] Fix WPA Registry
+echo:             [4] 修复 WMI
+echo:             [5] 修复许可
+echo:             [6] 修复 WPA 注册表
 echo:             ___________________________________________________
 echo:
 echo:             [0] %_exitmsg%
 echo:       _______________________________________________________________
 echo:          
-call :_color2 %_White% "            " %_Green% "Enter a menu option in the Keyboard :"
+call :_color2 %_White% "            " %_Green% "请输入一个菜单选项 ："
 choice /C:1234560 /N
 set _erl=%errorlevel%
 
@@ -8796,12 +8789,12 @@ goto :at_menu
 
 cls
 mode 98, 30
-title  Dism /English /Online /Cleanup-Image /RestoreHealth
+title Dism /Online /Cleanup-Image /RestoreHealth
 
 if %winbuild% LSS 9200 (
 %eline%
-echo Unsupported OS version Detected.
-echo This command is supported only for Windows 8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本。
+echo 仅限 Windows 8/8.1/10/11 及其对应的 Server 支持此命令。
 goto :at_back
 )
 
@@ -8812,25 +8805,25 @@ for /f "delims=[] tokens=2" %%# in ('ping -n 1 %%a') do (if not [%%#]==[] set _i
 
 echo:
 if defined _int (
-echo      Checking Internet Connection  [Connected]
+echo      正在检查 Internet 连接        [已连接]
 ) else (
-call :_color2 %_White% "     " %Red% "Checking Internet Connection  [Not connected]"
+call :_color2 %_White% "     " %Red% "正在检查 Internet 连接        [未连接]"
 )
 
 echo %line%
 echo:
-echo      Dism uses Windows Update to provide the files required to fix corruption.
-echo      This will take 5-15 minutes or more..
+echo      Dism 使用 Windows 更新来提供修复损坏所需的文件。
+echo      这将需要 5-15 分钟或更长时间……
 echo %line%
 echo:
-echo      Notes:
+echo      注：
 echo:
-call :_color2 %_White% "     - " %Gray% "Make sure the Internet is connected."
-call :_color2 %_White% "     - " %Gray% "Make sure the Windows update is properly working."
+call :_color2 %_White% "     - " %Gray% "请确保 Internet 已连接。"
+call :_color2 %_White% "     - " %Gray% "请确保 Windows 更新正常工作。"
 echo:
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 cls
@@ -8840,9 +8833,9 @@ mode 110, 30
 set _time=
 for /f %%a in ('%psc% "Get-Date -format HH_mm_ss"') do set _time=%%a
 echo:
-echo Applying the command,
-echo dism /english /online /cleanup-image /restorehealth
-dism /english /online /cleanup-image /restorehealth
+echo 正在应用命令，
+echo Dism /Online /Cleanup-Image /RestoreHealth
+Dism /Online /Cleanup-Image /RestoreHealth
 
 %psc% Stop-Service TrustedInstaller -force %nul%
 
@@ -8860,7 +8853,7 @@ copy /y /b "%SystemRoot%\logs\DISM\dism.log" "!desktop!\AT_Logs\RHealth_DISM_%_t
 )
 
 echo:
-call :_color %Gray% "CBS and DISM logs are copied to the AT_Logs folder on the dekstop."
+call :_color %Gray% "CBS 和 DISM 日志已被复制到桌面上的 AT_Logs 文件夹中。"
 goto :at_back
 
 ::========================================================================================================================================
@@ -8869,21 +8862,21 @@ goto :at_back
 
 cls
 mode 98, 30
-title  sfc /scannow
+title sfc /scannow
 
 echo:
 echo %line%
 echo:    
-echo      System File Checker will repair missing or corrupted system files.
-echo      This will take 10-15 minutes or more..
+echo      系统文件检查器（System File Checker）将修复丢失或损坏的系统文件。
+echo      这将需要 10-15 分钟或更长时间……
 echo:
-echo      If SFC could not fix something, then run the command again to see if it may be able 
-echo      to the next time. Sometimes it may take running the sfc /scannow command 3 times
-echo      restarting the PC after each time to completely fix everything that it's able to.
+echo      如果 SFC 无法修复某些问题，则再次运行该命令以查看下一次是否能够修复。有时可能需
+echo      要运行 sfc /scannow 命令 3 次，每次之后重新启动 PC 才能完全修复它能够修复的所有
+echo      问题。
 echo:   
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 cls
@@ -8892,7 +8885,7 @@ cls
 set _time=
 for /f %%a in ('%psc% "Get-Date -format HH_mm_ss"') do set _time=%%a
 echo:
-echo Applying the command,
+echo 正在应用命令，
 echo sfc /scannow
 sfc /scannow
 
@@ -8907,7 +8900,7 @@ copy /y /b "%SystemRoot%\logs\cbs\cbs.log" "!desktop!\AT_Logs\SFC_CBS_%_time%.lo
 )
 
 echo:
-call :_color %Gray% "CBS log is copied to the AT_Logs folder on the dekstop."
+call :_color %Gray% "CBS 和主要提取的日志被复制到桌面上的 AT_Logs 文件夹中。"
 goto :at_back
 
 ::========================================================================================================================================
@@ -8917,33 +8910,33 @@ goto :at_back
 cls
 mode con cols=125 lines=32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=200;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
-title  Fix Licensing ^(ClipSVC ^+ Office vNext ^+ SPP ^+ OSPP^)
+title 修复许可（ClipSVC ^+ Office vNext ^+ SPP ^+ OSPP）
 
 echo:
 echo %line%
 echo:   
-echo      Notes:
+echo      注：
 echo:
-echo       - It helps in troubleshooting activation issues.
+echo       - 它有助于解决激活问题。
 echo:
-echo       - This option will,
-echo            - Deactivate Windows and Office, you may need to reactivate
-echo              If Windows is activated with motherboard / OEM / Digital license then don't worry
+echo       - 此选项将会，
+echo            - 反激活 Windows 和 Office，你可能需要重新激活
+echo              如果 Windows 是使用主板 / OEM / 数字许可证激活的，请不要担心
 echo:
-echo            - Clear ClipSVC, Office vNext, SPP and OSPP licenses
-echo            - Fix SPP permissions of tokens folder and registries
-echo            - Trigger the repair option for Office.
+echo            - 清理 ClipSVC、Office vNext、SPP 和 OSPP 许可
+echo            - 修复令牌文件夹和注册表的 SPP 权限
+echo            - 触发 Office 的修复选项。
 echo:
-call :_color2 %_White% "      - " %Red% "Apply it only when it is necessary."
+call :_color2 %_White% "      - " %Red% "仅在必要时应用。"
 echo:
 echo %line%
 echo:
-choice /C:09 /N /M ">    [9] Continue [0] Go back : "
+choice /C:09 /N /M ">    [9] 继续 [0] 返回 ："
 if %errorlevel%==1 goto at_menu
 
 ::========================================================================================================================================
 
-::  Rebuild ClipSVC Licences
+::  重建 ClipSVC 许可证
 
 cls
 :cleanlicensing
@@ -8951,43 +8944,43 @@ cls
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding ClipSVC Licences"
+call :_color %Blue% "正在重建 ClipSVC 许可证"
 echo:
 
 if %winbuild% LSS 10240 (
-echo ClipSVC Licence rebuilding is supported only on Win 10/11 and Server equivalent.
-echo Skipping...
+echo ClipSVC 许可证重建仅在 Win 10/11 和服务器对应版本上受支持。
+echo 正在跳过……
 goto :cleanvnext
 )
 
 %psc% "(([WMISEARCHER]'SELECT Name FROM SoftwareLicensingProduct WHERE LicenseStatus=1 AND GracePeriodRemaining=0 AND PartialProductKey IS NOT NULL').Get()).Name" %nul2% | findstr /i "Windows" %nul1% && (
-echo Windows is permanently activated.
-echo Skipping rebuilding ClipSVC licences...
+echo Windows 已永久激活。
+echo 正在跳过重建 ClipSVC 许可证……
 goto :cleanvnext
 )
 
-echo Stopping ClipSVC service...
+echo 正在停止 ClipSVC 服务……
 %psc% Stop-Service ClipSVC -force %nul%
 timeout /t 2 %nul%
 
 echo:
-echo Applying the command to Clean ClipSVC Licences...
+echo 正在将命令应用于清理 ClipSVC 许可证……
 echo rundll32 clipc.dll,ClipCleanUpState
 
 rundll32 clipc.dll,ClipCleanUpState
 
 if %winbuild% LEQ 10240 (
-echo [Successful]
+echo [成功]
 ) else (
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\tokens.dat" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 )
 
-::  Below registry key (Volatile & Protected) gets created after the ClipSVC License cleanup command, and gets automatically deleted after 
-::  system restart. It needs to be deleted to activate the system without restart.
+::  下方的注册表项（易失性和受保护）在 ClipSVC 许可证清理命令之后创建，并将在系统重新启动后自动删除。
+::  需要删除它才能激活系统，无需重新启动。
 
 set "RegKey=HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState"
 set "_ident=HKU\S-1-5-19\SOFTWARE\Microsoft\IdentityCRL"
@@ -8996,40 +8989,40 @@ reg query "%RegKey%" %nul% && %nul% call :regownstart
 reg delete "%RegKey%" /f %nul% 
 
 echo:
-echo Deleting a Volatile ^& Protected Registry Key...
+echo 正在删除易失性和受保护的注册表项……
 echo [%RegKey%]
 reg query "%RegKey%" %nul% && (
-call :_color %Red% "[Failed]"
-echo Restart the system, that will delete this registry key automatically.
+call :_color %Red% "[失败]"
+echo 重新启动系统，这将会自动删除此注册表项。
 ) || (
-echo [Successful]
+echo [成功]
 )
 
-::   Clear HWID token related registry to fix activation incase if there is any corruption
+::   清除 HWID 令牌相关注册表以修复激活，以防出现任何损坏
 
 echo:
-echo Deleting a IdentityCRL Registry Key...
+echo 正在删除 IdentityCRL 注册表项……
 echo [%_ident%]
 reg delete "%_ident%" /f %nul%
 reg query "%_ident%" %nul% && (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) || (
-echo [Successful]
+echo [成功]
 )
 
 %psc% Stop-Service ClipSVC -force %nul%
 
-::  Rebuild ClipSVC folder to fix permission issues
+::  重建 ClipSVC 文件夹以修复权限问题
 
 echo:
 if %winbuild% GTR 10240 (
-echo Deleting Folder %ProgramData%\Microsoft\Windows\ClipSVC\
+echo 正在删除文件夹 %ProgramData%\Microsoft\Windows\ClipSVC\
 rmdir /s /q "C:\ProgramData\Microsoft\Windows\ClipSvc" %nul%
 
 if exist "%ProgramData%\Microsoft\Windows\ClipSVC\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 
 echo:
@@ -9038,19 +9031,19 @@ echo Rebuilding Folder %ProgramData%\Microsoft\Windows\ClipSVC\
 timeout /t 3 %nul%
 if not exist "%ProgramData%\Microsoft\Windows\ClipSVC\" timeout /t 5 %nul%
 if not exist "%ProgramData%\Microsoft\Windows\ClipSVC\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 )
 
 echo:
-echo Restarting [wlidsvc LicenseManager] services...
+echo 正在重启 [wlidsvc LicenseManager] 服务……
 for %%# in (wlidsvc LicenseManager) do (%psc% Restart-Service %%# %nul%)
 
 ::========================================================================================================================================
 
-::  Find remnants of Office vNext license block and remove it because it stops non vNext licenses from appearing
+::  查找 Office vNext 许可证块的残余并将其删除，因为它会阻止非 vNext 许可证的显示
 ::  https://learn.microsoft.com/en-us/office/troubleshoot/activation/reset-office-365-proplus-activation-state
 
 :cleanvnext
@@ -9058,7 +9051,7 @@ for %%# in (wlidsvc LicenseManager) do (%psc% Restart-Service %%# %nul%)
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Clearing Office vNext License"
+call :_color %Blue% "正在清理 Office vNext 许可证"
 echo:
 
 setlocal DisableDelayedExpansion
@@ -9071,23 +9064,23 @@ attrib -R "!_Local!\Microsoft\Office\Licenses" %nul%
 if exist "!ProgramData!\Microsoft\Office\Licenses\" (
 rd /s /q "!ProgramData!\Microsoft\Office\Licenses\" %nul%
 if exist "!ProgramData!\Microsoft\Office\Licenses\" (
-echo Failed To Delete - !ProgramData!\Microsoft\Office\Licenses\
+echo 删除失败 - !ProgramData!\Microsoft\Office\Licenses\
 ) else (
-echo Deleted Folder - !ProgramData!\Microsoft\Office\Licenses\
+echo 已删除文件夹 - !ProgramData!\Microsoft\Office\Licenses\
 )
 ) else (
-echo Not Found - !ProgramData!\Microsoft\Office\Licenses\
+echo 未找到 - !ProgramData!\Microsoft\Office\Licenses\
 )
 
 if exist "!_Local!\Microsoft\Office\Licenses\" (
 rd /s /q "!_Local!\Microsoft\Office\Licenses\" %nul%
 if exist "!_Local!\Microsoft\Office\Licenses\" (
-echo Failed To Delete - !_Local!\Microsoft\Office\Licenses\
+echo 删除失败 - !_Local!\Microsoft\Office\Licenses\
 ) else (
-echo Deleted Folder - !_Local!\Microsoft\Office\Licenses\
+echo 已删除文件夹 - !_Local!\Microsoft\Office\Licenses\
 )
 ) else (
-echo Not Found - !_Local!\Microsoft\Office\Licenses\
+echo 未找到 - !_Local!\Microsoft\Office\Licenses\
 )
 
 
@@ -9104,51 +9097,51 @@ for %%A in (
 reg query %%A %nul% && (
 set regfound=1
 reg delete %%A /f %nul% && (
-echo Deleted Registry - %%A
+echo 已删除注册表 - %%A
 ) || (
-echo Failed to Delete - %%A
+echo 删除失败 - %%A
 )
 )
 )
 )
-if not defined regfound echo Not Found - Office vNext Registry Keys
+if not defined regfound echo 未找到 - Office vNext 注册表
 
 ::========================================================================================================================================
 
-::  Rebuild SPP Tokens
+::  重建 SPP 许可令牌
 
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding SPP Licensing Tokens"
+call :_color %Blue% "正在重建 SPP 许可令牌"
 echo:
 
 call :scandat check
 
 if not defined token (
-call :_color %Red% "tokens.dat file not found."
+call :_color %Red% "未找到 tokens.dat 文件。"
 ) else (
-echo tokens.dat file: [%token%]
+echo tokens.dat 文件：[%token%]
 )
 
 echo:
 set wpainfo=
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':wpatest\:.*';iex ($f[1]);" %nul6%') do (set wpainfo=%%a)
 echo "%wpainfo%" | find /i "Error Found" %nul% && (
-call :_color %Red% "WPA Registry Error: %wpainfo%"
+call :_color %Red% "WPA 注册错误：%wpainfo%"
 ) || (
-echo WPA Registry Count: %wpainfo%
+echo WPA 注册表数：%wpainfo%
 )
 
 set tokenstore=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" /v TokenStore %nul6%') do call set "tokenstore=%%b"
 
-::  Check sppsvc permissions and apply fixes
+::  检查 sppsvc 权限并应用修补程序
 
 if %winbuild% GEQ 10240 (
 
 echo:
-echo Checking SPP permission related issues...
+echo 正在检查 SPP 权限相关问题……
 call :checkperms
 
 if defined permerror (
@@ -9174,17 +9167,17 @@ set "d=!d! Set-Acl -Path '%%A' -AclObject $acl"
 
 call :checkperms
 if defined permerror (
-call :_color %Red% "[Failed To Fix]"
+call :_color %Red% "[修复失败]"
 ) else (
-echo [Successfully Fixed]
+echo [修复成功]
 )
 ) else (
-echo [No Error Found]
+echo [未发现错误]
 )
 )
 
 echo:
-echo Stopping sppsvc service...
+echo 正在停止 sppsvc 服务   ...
 %psc% Stop-Service sppsvc -force %nul%
 
 echo:
@@ -9193,55 +9186,55 @@ call :scandat check
 
 if defined token (
 echo:
-call :_color %Red% "Failed to delete .dat files."
+call :_color %Red% "删除 .dat 文件失败。"
 echo:
 )
 
 echo:
-echo Reinstalling System Licenses [slmgr /rilc]...
+echo 正在重新安装系统许可 [slmgr /rilc]……
 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 if %errorlevel% NEQ 0 cscript //nologo %windir%\system32\slmgr.vbs /rilc %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 )
 
 call :scandat check
 
 echo:
 if not defined token (
-call :_color %Red% "Failed to rebuilt tokens.dat file."
+call :_color %Red% "重建 tokens.dat 文件失败。"
 ) else (
-echo tokens.dat file was rebuilt successfully.
+echo tokens.dat 文件已成功重建。
 )
 
 ::========================================================================================================================================
 
-::  Rebuild OSPP Tokens
+::  重建 OSPP 令牌
 
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Rebuilding OSPP Licensing Tokens"
+call :_color %Blue% "正在重建 OSPP 许可令牌"
 echo:
 
 sc qc osppsvc %nul% || (
-echo OSPP based Office is not installed
-echo Skipping rebuilding OSPP tokens...
+echo 未安装基于 OSPP 的 Office
+echo 正在跳过重建 OSPP 令牌……
 goto :repairoffice
 )
 
 call :scandatospp check
 
 if not defined token (
-call :_color %Red% "tokens.dat file not found."
+call :_color %Red% "未找到 tokens.dat 文件。"
 ) else (
-echo tokens.dat file: [%token%]
+echo tokens.dat 文件：[%token%]
 )
 
 echo:
-echo Stopping osppsvc service...
+echo 正在停止 osppsvc 服务……
 %psc% Stop-Service osppsvc -force %nul%
 
 echo:
@@ -9250,12 +9243,12 @@ call :scandatospp check
 
 if defined token (
 echo:
-call :_color %Red% "Failed to delete .dat files."
+call :_color %Red% "删除 .dat 文件失败。"
 echo:
 )
 
 echo:
-echo Starting osppsvc service to generate tokens.dat
+echo 正在启动 osppsvc 服务以生成 tokens.dat
 %psc% Start-Service osppsvc %nul%
 call :scandatospp check
 if not defined token (
@@ -9268,9 +9261,9 @@ call :scandatospp check
 
 echo:
 if not defined token (
-call :_color %Red% "Failed to rebuilt tokens.dat file."
+call :_color %Red% "重建 tokens.dat 文件失败。"
 ) else (
-echo tokens.dat file was rebuilt successfully.
+echo tokens.dat 文件已成功重建。
 )
 
 ::========================================================================================================================================
@@ -9280,15 +9273,15 @@ echo tokens.dat file was rebuilt successfully.
 echo:
 echo %line%
 echo:
-call :_color %Blue% "Repairing Office Licenses"
+call :_color %Blue% "正在修复 Office 许可证"
 echo:
 
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PROCESSOR_ARCHITECTURE') do set arch=%%b
 
 if /i "%arch%"=="ARM64" (
 echo:
-echo ARM64 Windows Found.
-echo You need to use repair option in Windows settings for Office.
+echo 已发现 ARM64 Windows。
+echo 你需要在 Office 的 Windows 设置中使用修复选项。
 echo:
 start ms-settings:appsfeatures
 goto :repairend
@@ -9328,7 +9321,7 @@ if %winbuild% GEQ 10240 (
 )
 
 set /a counter=0
-echo Checking installed Office versions...
+echo 正在检查已安装的 Office 版本……
 echo:
 
 for %%# in (
@@ -9356,29 +9349,29 @@ set /a counter+=1
 
 if %counter% GTR 1 (
 %eline%
-echo Multiple office versions found.
-echo It's recommended to install only one version of office.
+echo 已找到多个 office 版本。
+echo 建议只安装 office 的一个版本。
 echo ________________________________________________________________
 echo:
 )
 
 if %counter% EQU 0 (
 echo:
-echo Installed Office is not found.
+echo 没有找到已安装的 Office。
 goto :repairend
 echo:
 ) else (
 echo:
-call :_color %_Yellow% "A Window will popup, in that Window you need to select [Quick] Repair Option..."
-call :_color %_Yellow% "Press any key to continue..."
+call :_color %_Yellow% "将弹出一个窗口，在此窗口中你需要选择 [快速] 修复选项……"
+call :_color %_Yellow% "请按任意键继续执行……"
 echo:
 pause %nul1%
 )
 
 if defined uwp16 (
 echo:
-echo Note: Skipping repair for Office 16.0 UWP. 
-echo       You need to use reset option in Windows settings for it.
+echo 注：正在跳过针对 Office 16.0 UWP 的修复。
+echo     你需要在 Windows 设置中使用重置选项。
 echo ________________________________________________________________
 echo:
 start ms-settings:appsfeatures
@@ -9390,23 +9383,23 @@ if defined c2r14_86 set c2r14=1
 
 if defined c2r14 (
 echo:
-echo Note: Skipping repair for Office 14.0 C2R 
-echo       You need to use Repair option in Windows settings for it.
+echo 注：正在跳过 Office 14.0 C2R 的修复
+echo     你需要在 Windows 设置中使用修复选项。
 echo ________________________________________________________________
 echo:
 start appwiz.cpl
 )
 
-if defined msi14_68 if exist "%msi14repair68%" echo Running - "%msi14repair68%"                    & "%msi14repair68%"
-if defined msi14_86 if exist "%msi14repair86%" echo Running - "%msi14repair86%"                    & "%msi14repair86%"
-if defined msi15_68 if exist "%msi15repair68%" echo Running - "%msi15repair68%"                    & "%msi15repair68%"
-if defined msi15_86 if exist "%msi15repair86%" echo Running - "%msi15repair86%"                    & "%msi15repair86%"
-if defined msi16_68 if exist "%msi16repair68%" echo Running - "%msi16repair68%"                    & "%msi16repair68%"
-if defined msi16_86 if exist "%msi16repair86%" echo Running - "%msi16repair86%"                    & "%msi16repair86%"
-if defined c2r15_68 if exist "%c2r15repair68%" echo Running - "%c2r15repair68%" REPAIRUI RERUNMODE & "%c2r15repair68%" REPAIRUI RERUNMODE
-if defined c2r15_86 if exist "%c2r15repair86%" echo Running - "%c2r15repair86%" REPAIRUI RERUNMODE & "%c2r15repair86%" REPAIRUI RERUNMODE
-if defined c2r16_68 if exist "%c2r16repair68%" echo Running - "%c2r16repair68%" scenario=Repair    & "%c2r16repair68%" scenario=Repair
-if defined c2r16_86 if exist "%c2r16repair86%" echo Running - "%c2r16repair86%" scenario=Repair    & "%c2r16repair86%" scenario=Repair
+if defined msi14_68 if exist "%msi14repair68%" echo 正在运行 - "%msi14repair68%"                    & "%msi14repair68%"
+if defined msi14_86 if exist "%msi14repair86%" echo 正在运行 - "%msi14repair86%"                    & "%msi14repair86%"
+if defined msi15_68 if exist "%msi15repair68%" echo 正在运行 - "%msi15repair68%"                    & "%msi15repair68%"
+if defined msi15_86 if exist "%msi15repair86%" echo 正在运行 - "%msi15repair86%"                    & "%msi15repair86%"
+if defined msi16_68 if exist "%msi16repair68%" echo 正在运行 - "%msi16repair68%"                    & "%msi16repair68%"
+if defined msi16_86 if exist "%msi16repair86%" echo 正在运行 - "%msi16repair86%"                    & "%msi16repair86%"
+if defined c2r15_68 if exist "%c2r15repair68%" echo 正在运行 - "%c2r15repair68%" REPAIRUI RERUNMODE & "%c2r15repair68%" REPAIRUI RERUNMODE
+if defined c2r15_86 if exist "%c2r15repair86%" echo 正在运行 - "%c2r15repair86%" REPAIRUI RERUNMODE & "%c2r15repair86%" REPAIRUI RERUNMODE
+if defined c2r16_68 if exist "%c2r16repair68%" echo 正在运行 - "%c2r16repair68%" scenario=Repair    & "%c2r16repair68%" scenario=Repair
+if defined c2r16_86 if exist "%c2r16repair86%" echo 正在运行 - "%c2r16repair86%" scenario=Repair    & "%c2r16repair86%" scenario=Repair
 
 :repairend
 
@@ -9414,7 +9407,7 @@ echo:
 echo %line%
 echo:
 echo:
-call :_color %Green% "Finished"
+call :_color %Green% "已完成"
 goto :at_back
 
 ::========================================================================================================================================
@@ -9423,27 +9416,27 @@ goto :at_back
 
 cls
 mode 98, 34
-title  Fix WMI
+title 修复 WMI
 
 ::  https://techcommunity.microsoft.com/t5/ask-the-performance-team/wmi-repository-corruption-or-not/ba-p/375484
 
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" (
 %eline%
-echo WMI rebuild is not recommended on Windows Server. Aborting...
+echo 不建议在 Windows Server 上重建 WMI。正在中止……
 goto :at_back
 )
 
 for %%# in (wmic.exe) do @if "%%~$PATH:#"=="" (
 %eline%
-echo wmic.exe file is not found in the system. Aborting...
+echo 在系统中找不到 WMIC.exe 文件。正在中止……
 goto :at_back
 )
 
 echo:
-echo Checking WMI
+echo 正在检查 WMI
 call :checkwmi
 
-::  Apply basic fix first and check
+::  首先应用基本修复并检查
 
 if defined error (
 %psc% Stop-Service Winmgmt -force %nul%
@@ -9452,12 +9445,12 @@ call :checkwmi
 )
 
 if not defined error (
-echo [Working]
-echo No need to apply this option. Aborting...
+echo [正在工作]
+echo 无需应用此选项。正在中止……
 goto :at_back
 )
 
-call :_color %Red% "[Not Responding]"
+call :_color %Red% "[未响应]"
 
 set _corrupt=
 sc start Winmgmt %nul%
@@ -9468,16 +9461,16 @@ for %%G in (DependOnService Description DisplayName ErrorControl ImagePath Objec
 echo:
 if defined _corrupt (
 %eline%
-echo Winmgmt service is corrupted. Aborting...
+echo Winmgmt 服务未安装。正在中止……
 goto :at_back
 )
 
-echo Disabling Winmgmt service
+echo 正在停止 Winmgmt 服务
 sc config Winmgmt start= disabled %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed] Aborting..."
+call :_color %Red% "[失败] 正在中止……"
 sc config Winmgmt start= auto %nul%
 goto :at_back
 )
@@ -9488,60 +9481,60 @@ echo Stopping Winmgmt service
 %psc% Stop-Service Winmgmt -force %nul%
 %psc% Stop-Service Winmgmt -force %nul%
 sc query Winmgmt | find /i "STOPPED" %nul% && (
-echo [Successful]
+echo [成功]
 ) || (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 echo:
-call :_color %Blue% "Its recommended to select [Restart] option and then apply Fix WMI option again."
+call :_color %Blue% "建议选择 [重新启动] 选项，然后再次应用修复 WMI 选项。"
 echo %line%
 echo:
-choice /C:21 /N /M "> [1] Restart  [2] Revert Back Changes :"
+choice /C:21 /N /M "> [1] 重新启动  [2] 恢复更改 ："
 if !errorlevel!==1 (sc config Winmgmt start= auto %nul%&goto :at_back)
 echo:
-echo Restarting...
+echo 正在重启……
 shutdown -t 5 -r
 exit
 )
 
 echo:
-echo Deleting WMI repository
+echo 正在删除 WMI 存储库
 rmdir /s /q "%windir%\System32\wbem\repository\" %nul%
 if exist "%windir%\System32\wbem\repository\" (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 ) else (
-echo [Successful]
+echo [成功]
 )
 
 echo:
-echo Enabling Winmgmt service
+echo 正在启用 Winmgmt 服务
 sc config Winmgmt start= auto %nul%
 if %errorlevel% EQU 0 (
-echo [Successful]
+echo [成功]
 ) else (
-call :_color %Red% "[Failed]"
+call :_color %Red% "[失败]"
 )
 
 call :checkwmi
 if not defined error (
 echo:
-echo Checking WMI
-call :_color %Green% "[Working]"
+echo 正在检查 WMI
+call :_color %Green% "[正在工作]"
 goto :at_back
 )
 
 echo:
-echo Registering .dll's and Compiling .mof's, .mfl's
+echo 正在注册 .dll 并编译 .mof 和 .mfl
 call :registerobj %nul%
 
 echo:
-echo Checking WMI
+echo 正在检查 WMI
 call :checkwmi
 if defined error (
-call :_color %Red% "[Not Responding]"
+call :_color %Red% "[未响应]"
 echo:
-echo Run [Dism RestoreHealth] and [SFC Scannow] options and make sure there are no errors.
+echo 运行 [Dism RestoreHealth] 和 [SFC Scannow] 选项，并确保没有错误。
 ) else (
-call :_color %Green% "[Working]"
+call :_color %Green% "[正在工作]"
 )
 
 goto :at_back
@@ -9589,7 +9582,7 @@ exit /b
 echo:
 echo %line%
 echo:
-call :_color %_Yellow% "Press any key to go back..."
+call :_color %_Yellow% "请按任意键返回……"
 pause %nul1%
 goto :at_menu
 
@@ -9598,7 +9591,7 @@ goto :at_menu
 :at_done
 
 echo:
-echo Press any key to %_exitmsg%...
+echo 请按任意键%_exitmsg%脚本……
 pause %nul1%
 exit /b
 
@@ -9704,10 +9697,10 @@ exit /b
 
 :regownstart
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regown\:.*';iex ($f[1]);"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':regown\:.*';iex ($f[1]);"
 exit /b
 
-::  Below code takes ownership of a volatile registry key and deletes it
+::  以下是获取易失性注册表项的所有权并将其删除的代码
 ::  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState
 
 :regown:
@@ -9740,14 +9733,14 @@ $key.SetAccessControl($acl)
 @setlocal DisableDelayedExpansion
 @echo off
 
-::  To stage current edition while changing edition with CBS Upgrade Method, change 0 to 1 in below line
+::  要在使用 CBS 升级方法更改版本时标记当前版本，请在以下行中将 0 更改为 1
 set _stg=0
 
 ::========================================================================================================================================
 
 cls
 color 07
-title  Change Windows Edition %masver%
+title 更改 Windows 版本 %masver%
 
 set _args=
 set _elev=
@@ -9792,14 +9785,14 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 set "line=echo ___________________________________________________________________________________________"
-if %~z0 GEQ 200000 (set "_exitmsg=Go back") else (set "_exitmsg=Exit")
+if %~z0 GEQ 200000 (set "_exitmsg=返回") else (set "_exitmsg=退出")
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -9819,24 +9812,24 @@ cls
 mode 98, 30
 
 echo:
-echo Initializing...
+echo 正在初始化……
 echo:
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
 ::========================================================================================================================================
 
-::  Check Activation IDs
+::  检查激活 ID
 
 call :dk_actids
 if not defined applist (
@@ -9847,9 +9840,9 @@ call :dk_refresh
 call :dk_actids
 if not defined applist (
 %eline%
-echo Activation IDs not found. Aborting...
+echo 未找到激活 ID。正在中止……
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto ced_done
 )
 )
@@ -9860,13 +9853,13 @@ call :dk_checksku
 
 if not defined osSKU (
 %eline%
-echo SKU value was not detected properly. Aborting...
+echo 未正确检测到 SKU 值。正在中止……
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Check Windows Edition
+::  检查 Windows 版本
 
 set osedition=
 set dismedition=
@@ -9881,7 +9874,7 @@ if not defined osedition (
 for /f "skip=2 tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul6%') do set "osedition=%%a"
 )
 
-::  Workaround for an issue in builds between 1607 and 1709 where ProfessionalEducation is shown as Professional
+::  解决了在1607至1709版本中将专业教育版显示为专业版的问题。
 
 if %osSKU%==164 set osedition=ProfessionalEducation
 if %osSKU%==165 set osedition=ProfessionalEducationN
@@ -9895,10 +9888,10 @@ if not defined osedition (
 %eline%
 DISM /English /Online /Get-CurrentEdition %nul%
 cmd /c exit /b !errorlevel!
-echo DISM command failed [Error Code - 0x!=ExitCode!]
-echo OS Edition was not detected properly. Aborting...
+echo DISM 命令失败 [错误代码 - 0x!=ExitCode!]
+echo 操作系统版本未被正确检测到。正在中止……
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
@@ -9907,22 +9900,22 @@ goto ced_done
 set branch=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v BuildBranch %nul6%') do set "branch=%%b"
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Get Target editions list
+::  获取目标版本列表
 
 set _target=
 set _dtarget=
@@ -9931,7 +9924,7 @@ set _ntarget=
 set _wtarget=
 
 if %winbuild% GEQ 10240 for /f "tokens=4" %%a in ('dism /online /english /Get-TargetEditions ^| findstr /i /c:"Target Edition : "') do (if defined _dtarget (set "_dtarget= !_dtarget! %%a ") else (set "_dtarget= %%a "))
-if %winbuild% LSS 10240 for /f "tokens=4" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -GetTargetEditions;" ^| findstr /i /c:"Target Edition : "') do (if defined _ptarget (set "_ptarget= !_ptarget! %%a ") else (set "_ptarget= %%a "))
+if %winbuild% LSS 10240 for /f "tokens=4" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -GetTargetEditions;" ^| findstr /i /c:"Target Edition : "') do (if defined _ptarget (set "_ptarget= !_ptarget! %%a ") else (set "_ptarget= %%a "))
 
 if %winbuild% GEQ 10240 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" (
 call :ced_edilist
@@ -9941,13 +9934,13 @@ set "_dtarget= %_dtarget% !_wtarget! "
 
 ::========================================================================================================================================
 
-::  Block the change to/from CloudEdition editions
+::  阻止更改到 CloudEdition 版本或从 CloudEdition 升级
 
 for %%# in (202 203) do if %osSKU%==%%# (
 %eline%
-echo [%winos% ^| SKU:%osSKU% ^| %winbuild%]
-echo It's not recommended to change this installed edition to any other.
-echo Aborting...
+echo [%winos% ^| SKU：%osSKU% ^| %winbuild%]
+echo 不建议将此已安装版本更改到任何其他版本。
+echo 正在中止……
 goto ced_done
 )
 
@@ -9964,9 +9957,9 @@ echo %%# | findstr /i "CountrySpecific CloudEdition ServerRdsh" %nul% || (set "_
 if not defined _ntarget (
 %line%
 echo:
-if defined dismnotworking call :dk_color %Red% "DISM.exe is not responding."
-call :dk_color %Gray% "Target Edition not found."
-echo Current Edition [%osedition% ^| %winbuild%] can not be changed to any other Edition.
+if defined dismnotworking call :dk_color %Red% "DISM.exe 没有响应。"
+call :dk_color %Gray% "目标版本未找到。"
+echo 当前版本 [%osedition% ^| %winbuild%] 无法更改为任何其他版本。
 %line%
 goto ced_done
 )
@@ -9984,10 +9977,10 @@ set targetedition=
 
 %line%
 echo:
-call :dk_color %Gray% "You can change the Edition [%osedition%] [%winbuild%] to one of the following."
+call :dk_color %Gray% "你可以将当前版本 [%osedition%] [%winbuild%] 更改为下列之一。"
 if defined dismnotworking (
-call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-if /i "%osedition:~0,4%"=="Core" call :dk_color %_Yellow% "     - You will see more edition options to choose once its changed to Pro."
+call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+if /i "%osedition:~0,4%"=="Core" call :dk_color %_Yellow% "     - 在更改为 Pro 后，你将会看到更多版本选项可供选择。"
 )
 %line%
 echo:
@@ -10002,7 +9995,7 @@ set targetedition!counter!=%%A
 echo:
 echo [0]  %_exitmsg%
 echo:
-call :dk_color %_Green% "Enter option number in keyboard, and press "Enter":"
+call :dk_color %_Green% "请输入选项编号，并按“Enter”键："
 set /p inpt=
 if "%inpt%"=="" goto cedmenu2
 if "%inpt%"=="0" exit /b
@@ -10022,7 +10015,7 @@ set key=
 set _chan=
 set _dismapi=0
 
-::  Check if DISM Api or slmgr.vbs is required for edition upgrade
+::  检查版本升级是否需要 DISM API 或 slmgr.vbs
 
 if not exist "%SystemRoot%\System32\spp\tokens\skus\%targetedition%\" (
 set _dismapi=1
@@ -10038,24 +10031,24 @@ if not defined key call :changeeditiondata
 if not defined key (
 %eline%
 echo [%targetedition% ^| %winbuild%]
-echo Unable to get product key from pkeyhelper.dll
+echo 无法从 pkeyhelper.dll 中获取产品密钥
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Changing from Core to Non-Core & Changing editions in Windows build older than 17134 requires "changepk /productkey" or DISM Api method and restart
-::  In other cases, editions can be changed instantly with "slmgr /ipk"
+::  在早于 17134 的 Windows 版本中从 Core 更改为非 Core 和更改版本需要“changepk /productkey”方法并重新启动
+::  在其他情况下，可以使用“slmgr /ipk”立即更改版本
 
 if %_dismapi%==1 (
 mode con cols=105 lines=40
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending Reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 )
@@ -10063,26 +10056,26 @@ goto ced_done
 cls
 %line%
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
 
 if %_dismapi%==1 (
-call :dk_color %Green% "Notes-"
+call :dk_color %Green% "注——"
 echo:
-echo  - Save your work before continue, system will auto restart.
+echo  - 在继续之前保存你的工作，系统将会自动重新启动。
 echo:
-echo  - You will need to activate with HWID option once the edition is changed.
+echo  - 在版本更改后，你将需要使用 HWID 选项激活。
 %line%
 echo:
-choice /C:21 /N /M "[1] Continue [2] %_exitmsg% : "
+choice /C:21 /N /M "[1] 继续 [2] %_exitmsg% ："
 if !errorlevel!==1 exit /b
 )
 
 ::========================================================================================================================================
 
 if %_dismapi%==0 (
-echo Installing %_chan% Key [%key%]
+echo 正在安装 %_chan% 密钥 [%key%]
 echo:
 if %_wmic% EQU 1 wmic path SoftwareLicensingService where __CLASS='SoftwareLicensingService' call InstallProductKey ProductKey="%key%" %nul%
 if %_wmic% EQU 0 %psc% "(([WMISEARCHER]'SELECT Version FROM SoftwareLicensingService').Get()).InstallProductKey('%key%')" %nul%
@@ -10094,24 +10087,24 @@ if !error_code! NEQ 0 set "error_code=[0x!=ExitCode!]"
 
 if !error_code! EQU 0 (
 call :dk_refresh
-call :dk_color %Green% "[Successful]"
+call :dk_color %Green% "[成功]"
 echo:
-call :dk_color %Gray% "Reboot is required to properly change the Edition."
+call :dk_color %Gray% "需要重新启动才能更改为正确的版本。"
 ) else (
-call :dk_color %Red% "[Unsuccessful] [Error Code: 0x!=ExitCode!]"
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Red% "[不成功] [错误代码：0x!=ExitCode!]"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 )
 )
 
 if %_dismapi%==1 (
 echo:
-echo Applying the DISM API method with %_chan% Key %key%. Please wait...
+echo 正在使用 %_chan% 密钥 %key% 应用 DISM API 方法。请稍候……
 echo:
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':dismapi\:.*';& ([ScriptBlock]::Create($f[1])) %targetedition% %key%;"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':dismapi\:.*';& ([ScriptBlock]::Create($f[1])) %targetedition% %key%;"
 timeout /t 3 %nul1%
 echo:
-call :dk_color %Blue% "Incase of errors, you must restart your system before trying again."
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Blue% "如果错误，你必须重新启动系统，然后重试。"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 )
 %line%
 
@@ -10125,32 +10118,32 @@ cls
 mode con cols=105 lines=32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=200;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
-call :dk_color %Blue% "Important - Save your work before continue, system will auto reboot."
+call :dk_color %Blue% "重要信息 —— 请在继续之前保存你的工作，系统将自动重新启动。"
 echo:
-choice /C:01 /N /M "[1] Continue [0] %_exitmsg% : "
+choice /C:01 /N /M "[1] 继续 [0] %_exitmsg% ："
 if %errorlevel%==1 exit /b
 
 echo:
-echo Initializing...
+echo 正在初始化……
 echo:
 
 if %_stg%==0 (set stage=) else (set stage=-StageCurrent)
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -SetEdition %targetedition% %stage%;"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -SetEdition %targetedition% %stage%;"
 echo:
-call :dk_color %Blue% "Incase of errors, you must restart your system before trying again."
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Blue% "如果错误，你必须重新启动系统，然后重试。"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 %line%
 
 goto ced_done
@@ -10175,46 +10168,46 @@ if not defined key call :changeeditiondata
 if not defined key (
 %eline%
 echo [%targetedition% ^| %winbuild%]
-echo Unable to get product key from pkeyhelper.dll
+echo 无法从 pkeyhelper.dll 中获取产品密钥
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 
 cls
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
-echo Applying the command with %_chan% Key
+echo 正在使用 %_chan% 密钥应用命令
 echo DISM /online /Set-Edition:%targetedition% /ProductKey:%key% /AcceptEula
 DISM /online /Set-Edition:%targetedition% /ProductKey:%key% /AcceptEula
 
-call :dk_color %Blue% "You must restart the system at this stage."
-echo Help: %mas%troubleshoot
+call :dk_color %Blue% "你必须在此阶段重新启动系统。"
+echo 帮助：%mas%troubleshoot
 
 ::========================================================================================================================================
 
 :ced_done
 
 echo:
-call :dk_color %_Yellow% "Press any key to %_exitmsg%..."
+call :dk_color %_Yellow% "请按任意键%_exitmsg%脚本……"
 pause %nul1%
 exit /b
 
 ::========================================================================================================================================
 
-::  Get Edition list
+::  获取版本列表
 
 :ced_edilist
 
@@ -10229,7 +10222,7 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Check pending reboot flags
+::  检查正在挂起的重启标识
 
 :checkrebootflag:
 function Test-PendingReboot
@@ -10378,14 +10371,14 @@ function Write-UpgradeCandidates {
     )
 
     $editionCount = 0
-    Write-Host 'Editions that can be upgraded to:'
+    Write-Host '可升级到的版本：'
     foreach($candidate in $InstallCandidates.Keys) {
-        Write-Host "Target Edition : $candidate"
+        Write-Host "目标版本 ：$candidate"
         $editionCount++
     }
 
     if($editionCount -eq 0) {
-        Write-Host '(no editions are available)'
+        Write-Host '（无版本可用）'
     }
 }
 
@@ -10464,7 +10457,7 @@ if($getTargetsParam) {
 }
 
 if($false -eq ($installCandidates.Keys -contains $SetEdition)) {
-    Write-Error "The system cannot be upgraded to `"$SetEdition`""
+    Write-Error "系统无法升级到“$SetEdition”"
     Exit 1
 }
 
@@ -10476,10 +10469,10 @@ Write-UpgradeXml -RemovalCandidates $removalCandidates `
 
 $editionXml = Find-EditionXml -Edition $SetEdition
 if($null -eq $editionXml) {
-    Write-Warning 'Unable to find edition specific settings XML. Proceeding without it...'
+    Write-Warning '无法找到特定于版本的设置 XML。不使用它继续……'
 }
 
-Write-Host 'Starting the upgrade process. This may take a while...'
+Write-Host '正在开始升级过程。这可能需要一段时间……'
 
 DISM.EXE /English /NoRestart /Online /Apply-Unattend:$xmlPath
 $dismError = $LASTEXITCODE
@@ -10487,7 +10480,7 @@ $dismError = $LASTEXITCODE
 Remove-Item -Path $xmlPath -Force
 
 if(($dismError -ne 0) -and ($dismError -ne 3010)) {
-    Write-Error 'Failed to upgrade to the target edition'
+    Write-Error '升级到目标版本失败'
     Exit $dismError
 }
 
@@ -10499,7 +10492,7 @@ if($null -ne $editionXml) {
     $dismError = $LASTEXITCODE
 
     if(($dismError -ne 0) -and ($dismError -ne 3010)) {
-        Write-Error 'Failed to apply edition specific settings'
+        Write-Error '应用版本特定设置失败'
         Exit $dismError
     }
 }
@@ -10509,8 +10502,8 @@ Restart-Computer
 
 ::========================================================================================================================================
 
-::  Change edition using DISM API
-::  Thanks to Alex (aka may, ave9858)
+::  使用 DISM API 更改版本
+::  感谢 Alex（感谢 may，ave9858）
 
 :dismapi:[
 param (
@@ -10540,14 +10533,14 @@ if (!$Dism::_DismSetEdition($Session, "$TargetEdition", "$Key", 0, 0, 0)) {
 
 ::========================================================================================================================================
 
-::  1st column = Generic Retail/OEM/MAK/GVLK Key
-::  2nd column = Key Type
-::  3rd column = WMI Edition ID
-::  4th column = Version name incase same Edition ID is used in different OS versions with different key
-::  Separator  = _
+::  第 1 列 = 通用零售/OEM/MAK/GVLK 密钥
+::  第 2 列 = 密钥类型
+::  第 3 列 = WMI 版本 ID
+::  第 4 列 = 版本名称，以防止相同的版本 ID 用于具有不同密钥的不同操作系统版本
+::  分隔符  = _
 
-::  For Windows 10/11 editions, HWID key is listed where ever possible, in Server versions, KMS key is listed where ever possible.
-::  Only RS3 and older version Generic keys are stored here, later ones are extracted from the pkeyhelper.dll itself
+::  对于 Windows 10/11 版本，尽可能列出 HWID 密钥，在服务器版本中，尽可能列出 KMS 密钥。
+::  这里仅存储 RS3 和旧版本的通用密钥，以后的密钥是从 pkeyhelper.dll 中提取的本身
 
 :changeeditiondata
 
@@ -10615,9 +10608,9 @@ exit /b
 :MASend
 echo:
 if defined _MASunattended timeout /t 2 & exit /b
-echo Press any key to exit...
+echo 请按任意键退出脚本……
 pause >nul
 exit /b
 
 ::========================================================================================================================================
-:: Leave empty line below
+::  下方保留空行

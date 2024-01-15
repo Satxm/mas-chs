@@ -4,33 +4,33 @@
 
 
 
-::============================================================================
+::=================================================================================================
 ::
-::   This script is a part of 'Microsoft_Activation_Scripts' (MAS) project.
+::   此脚本是“Microsoft 激活脚本”（MAS）项目中的一部分。
 ::
-::   Homepage: mass grave[.]dev
-::      Email: windowsaddict@protonmail.com
+::   主    页：mass grave[.]dev
+::      Email：windowsaddict@protonmail.com
 ::
-::============================================================================
+::=================================================================================================
 
 
 
-::  To stage current edition while changing edition with CBS Upgrade Method, change 0 to 1 in below line
+::  要在使用 CBS 升级方法更改版本时标记当前版本，请在以下行中将 0 更改为 1
 set _stg=0
 
 
 
 ::========================================================================================================================================
 
-::  Set Path variable, it helps if it is misconfigured in the system
+::  设置路径变量，如果在系统中配置错误时会有所帮助
 
-set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\"
+set "PATH=%SystemRoot%\System32;%SystemRoot%\System32\wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\"
 if exist "%SystemRoot%\Sysnative\reg.exe" (
-set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%PATH%"
+set "PATH=%SystemRoot%\Sysnative;%SystemRoot%\Sysnative\wbem;%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\;%LocalAppData%\Microsoft\WindowsApps\;%PATH%"
 )
 
-:: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
-:: or with ARM64 process if it was initiated by x86/ARM32 process on ARM64 Windows
+::  如果脚本是由 x64 位 Windows 上的 x86 进程启动的，则将使用 x64 进程重新启动脚本
+::  或者如果它是由 ARM64 Windows 上的 x86/ARM32 进程启动的，则将使用 ARM64 进程
 
 set "_cmdf=%~f0"
 for %%# in (%*) do (
@@ -38,22 +38,22 @@ if /i "%%#"=="r1" set r1=1
 if /i "%%#"=="r2" set r2=1
 if /i "%%#"=="-qedit" (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "1" /f %nul1%
-rem check the code below admin elevation to understand why it's here
+rem 查看下方的管理员提升代码了解它为什么在这里
 )
 )
 
 if exist %SystemRoot%\Sysnative\cmd.exe if not defined r1 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
+start wt.exe new-tab %SystemRoot%\Sysnative\cmd.exe /c ""!_cmdf!" %* r1" && exit /b
 )
 
-:: Re-launch the script with ARM32 process if it was initiated by x64 process on ARM64 Windows
+::  使用 ARM32 进程重新启动脚本（如果此脚本是由 ARM64 Windows 上的 x64 进程启动的）
 
 if exist %SystemRoot%\SysArm32\cmd.exe if %PROCESSOR_ARCHITECTURE%==AMD64 if not defined r2 (
 setlocal EnableDelayedExpansion
-start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2"
-exit /b
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
+start wt.exe new-tab %SystemRoot%\SysArm32\cmd.exe /c ""!_cmdf!" %* r2" && exit /b
 )
 
 ::========================================================================================================================================
@@ -61,27 +61,27 @@ exit /b
 set "blank="
 set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
 
-::  Check if Null service is working, it's important for the batch script
+::  检查 Null 服务是否正常工作，这对批处理脚本很重要
 
 sc query Null | find /i "RUNNING"
 if %errorlevel% NEQ 0 (
 echo:
-echo Null service is not running, script may crash...
+echo Null 服务未运行，脚本可能会崩溃……
 echo:
 echo:
-echo Help - %mas%troubleshoot.html
+echo 帮助 - %mas%troubleshoot.html
 echo:
 echo:
 ping 127.0.0.1 -n 10
 )
 cls
 
-::  Check LF line ending
+::  检查 LF 行尾
 
 pushd "%~dp0"
 >nul findstr /v "$" "%~nx0" && (
 echo:
-echo Error: Script either has LF line ending issue or an empty line at the end of the script is missing.
+echo 错误：脚本存在以 LF 行结束的问题，或者在脚本末尾缺少空行。
 echo:
 ping 127.0.0.1 -n 6 >nul
 popd
@@ -93,7 +93,7 @@ popd
 
 cls
 color 07
-title  Change Windows Edition %masver%
+title 更改 Windows 版本 %masver%
 
 set _args=
 set _elev=
@@ -138,29 +138,29 @@ set  "_Green="Black" "Green""
 set "_Yellow="Black" "Yellow""
 )
 
-set "nceline=echo: &echo ==== ERROR ==== &echo:"
-set "eline=echo: &call :dk_color %Red% "==== ERROR ====" &echo:"
+set "nceline=echo: &echo ==== 错误 ==== &echo:"
+set "eline=echo: &call :dk_color %Red% "==== 错误 ====" &echo:"
 set "line=echo ___________________________________________________________________________________________"
-if %~z0 GEQ 200000 (set "_exitmsg=Go back") else (set "_exitmsg=Exit")
+if %~z0 GEQ 200000 (set "_exitmsg=返回") else (set "_exitmsg=退出")
 
 ::========================================================================================================================================
 
 if %winbuild% LSS 7600 (
 %nceline%
-echo Unsupported OS version detected [%winbuild%].
-echo Project is supported only for Windows 7/8/8.1/10/11 and their Server equivalent.
+echo 检测到不受支持的操作系统版本 [%winbuild%]。
+echo 此项目仅支持 Windows 7/8/8.1/10/11 和它们对应的服务器版本。
 goto ced_done
 )
 
 for %%# in (powershell.exe) do @if "%%~$PATH:#"=="" (
 %nceline%
-echo Unable to find powershell.exe in the system.
+echo 在系统中未找到 powershell.exe。
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Fix special characters limitation in path name
+::  修复路径名称中的特殊字符限制
 
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
@@ -179,43 +179,45 @@ setlocal EnableDelayedExpansion
 echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %eline%
-echo Script is launched from the temp folder,
-echo Most likely you are running the script directly from the archive file.
+echo 脚本是从 temp 文件夹启动的，
+echo 最有可能的原因是，你是直接从压缩文件运行脚本。
 echo:
-echo Extract the archive file and launch the script from the extracted folder.
+echo 请解压压缩文件并从解压文件夹中启动脚本。
 goto ced_done
 )
 )
 
 ::========================================================================================================================================
 
-::  Elevate script as admin and pass arguments and preventing loop
+::  将脚本提升为管理员权限及传递参数并防止循环
 
 %nul1% fltmc || (
-if not defined _elev %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev for %%# in (wt.exe) do @if "%%~$PATH:#"=="" %psc% "start cmd.exe -arg '/c \"!_PSarg:'=''!\"' -verb runas" && exit /b
+if not defined _elev %psc% "start wt.exe -arg 'new-tab cmd.exe /c \"!_PSarg:'=''!\"' -verb runas" && exit /b
 %eline%
-echo This script needs admin rights.
-echo To do so, right click on this script and select 'Run as administrator'.
+echo 此脚本需要管理员权限。
+echo 为此，右键单击此脚本并选择“以管理员身份运行”。
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  This code disables QuickEdit for this cmd.exe session only without making permanent changes to the registry
-::  It is added because clicking on the script window pauses the operation and leads to the confusion that script stopped due to an error
+::  此代码仅禁用此 cmd.exe 会话的快速编辑，而不对注册表进行永久更改
+::  添加它的原因是单击脚本窗口会暂停操作并导致脚本因错误而停止的混乱
 
 for %%# in (%_args%) do (if /i "%%#"=="-qedit" set quedit=1)
 
 reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% || if not defined quedit (
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d "0" /f %nul1%
-start cmd.exe /c ""!_batf!" %_args% -qedit"
-rem quickedit reset code is added at the starting of the script instead of here because it takes time to reflect in some cases
+for %%# in (wt.exe) do @if "%%~$PATH:#"=="" start cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+start wt.exe new-tab cmd.exe /c ""!_batf!" %_args% -qedit" && exit /b
+rem 快速编辑重置代码应添加在脚本的开头而不是此处，因为在某些情况下需要时间来反映
 exit /b
 )
 
 ::========================================================================================================================================
 
-::  Check for updates
+::  检查更新
 
 set -=
 set old=
@@ -227,13 +229,13 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version MAS %masver%
+echo echo 你正在运行旧版本的 MAS 版本 %masver%
 echo ________________________________________________
 echo:
-echo [1] Get Latest MAS
-echo [0] Continue Anyway
+echo [1] 下载最新版本 MAS
+echo [0] 仍然继续
 echo:
-call :dk_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
+call :dk_color %_Green% "请输入一个菜单选项 [1,0] ："
 choice /C:10 /N
 if !errorlevel!==2 rem
 if !errorlevel!==1 (start ht%-%tps://github.com/mass%-%gravel/Microsoft-Acti%-%vation-Scripts & start %mas% & exit /b)
@@ -245,24 +247,24 @@ cls
 mode 98, 30
 
 echo:
-echo Initializing...
+echo 正在初始化……
 echo:
 call :dk_product
 call :dk_ckeckwmic
 
-::  Show info for potential script stuck scenario
+::  显示潜在的脚本卡住情况的信息
 
 sc start sppsvc %nul%
 if %errorlevel% NEQ 1056 if %errorlevel% NEQ 0 (
 echo:
-echo Error code: %errorlevel%
-call :dk_color %Red% "Failed to start [sppsvc] service, rest of the process may take a long time..."
+echo 错误代码：%errorlevel%
+call :dk_color %Red% "启动 [sppsvc] 服务失败，其余的进程可能需要很长时间……"
 echo:
 )
 
 ::========================================================================================================================================
 
-::  Check Activation IDs
+::  检查激活 ID
 
 call :dk_actids
 if not defined applist (
@@ -273,9 +275,9 @@ call :dk_refresh
 call :dk_actids
 if not defined applist (
 %eline%
-echo Activation IDs not found. Aborting...
+echo 未找到激活 ID。正在中止……
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto ced_done
 )
 )
@@ -286,13 +288,13 @@ call :dk_checksku
 
 if not defined osSKU (
 %eline%
-echo SKU value was not detected properly. Aborting...
+echo 未正确检测到 SKU 值。正在中止……
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Check Windows Edition
+::  检查 Windows 版本
 
 set osedition=
 set dismedition=
@@ -307,7 +309,7 @@ if not defined osedition (
 for /f "skip=2 tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul6%') do set "osedition=%%a"
 )
 
-::  Workaround for an issue in builds between 1607 and 1709 where ProfessionalEducation is shown as Professional
+::  解决了在1607至1709版本中将专业教育版显示为专业版的问题。
 
 if %osSKU%==164 set osedition=ProfessionalEducation
 if %osSKU%==165 set osedition=ProfessionalEducationN
@@ -321,10 +323,10 @@ if not defined osedition (
 %eline%
 DISM /English /Online /Get-CurrentEdition %nul%
 cmd /c exit /b !errorlevel!
-echo DISM command failed [Error Code - 0x!=ExitCode!]
-echo OS Edition was not detected properly. Aborting...
+echo DISM 命令失败 [错误代码 - 0x!=ExitCode!]
+echo 操作系统版本未被正确检测到。正在中止……
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
@@ -333,22 +335,22 @@ goto ced_done
 set branch=
 for /f "skip=2 tokens=2*" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v BuildBranch %nul6%') do set "branch=%%b"
 
-::  Check PowerShell
+::  检查 PowerShell
 
 %psc% $ExecutionContext.SessionState.LanguageMode %nul2% | find /i "Full" %nul1% || (
 %eline%
 %psc% $ExecutionContext.SessionState.LanguageMode
 echo:
-echo PowerShell is not working. Aborting...
-echo If you have applied restrictions on Powershell then undo those changes.
+echo PowerShell 不可用，正在中止……
+echo 如果你对Powershell施加了限制，请撤销这些更改。
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获得帮助。 %mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Get Target editions list
+::  获取目标版本列表
 
 set _target=
 set _dtarget=
@@ -357,7 +359,7 @@ set _ntarget=
 set _wtarget=
 
 if %winbuild% GEQ 10240 for /f "tokens=4" %%a in ('dism /online /english /Get-TargetEditions ^| findstr /i /c:"Target Edition : "') do (if defined _dtarget (set "_dtarget= !_dtarget! %%a ") else (set "_dtarget= %%a "))
-if %winbuild% LSS 10240 for /f "tokens=4" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -GetTargetEditions;" ^| findstr /i /c:"Target Edition : "') do (if defined _ptarget (set "_ptarget= !_ptarget! %%a ") else (set "_ptarget= %%a "))
+if %winbuild% LSS 10240 for /f "tokens=4" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -GetTargetEditions;" ^| findstr /i /c:"Target Edition : "') do (if defined _ptarget (set "_ptarget= !_ptarget! %%a ") else (set "_ptarget= %%a "))
 
 if %winbuild% GEQ 10240 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" (
 call :ced_edilist
@@ -367,13 +369,13 @@ set "_dtarget= %_dtarget% !_wtarget! "
 
 ::========================================================================================================================================
 
-::  Block the change to/from CloudEdition editions
+::  阻止更改到 CloudEdition 版本或从 CloudEdition 升级
 
 for %%# in (202 203) do if %osSKU%==%%# (
 %eline%
-echo [%winos% ^| SKU:%osSKU% ^| %winbuild%]
-echo It's not recommended to change this installed edition to any other.
-echo Aborting...
+echo [%winos% ^| SKU：%osSKU% ^| %winbuild%]
+echo 不建议将此已安装版本更改到任何其他版本。
+echo 正在中止……
 goto ced_done
 )
 
@@ -390,9 +392,9 @@ echo %%# | findstr /i "CountrySpecific CloudEdition ServerRdsh" %nul% || (set "_
 if not defined _ntarget (
 %line%
 echo:
-if defined dismnotworking call :dk_color %Red% "DISM.exe is not responding."
-call :dk_color %Gray% "Target Edition not found."
-echo Current Edition [%osedition% ^| %winbuild%] can not be changed to any other Edition.
+if defined dismnotworking call :dk_color %Red% "DISM.exe 没有响应。"
+call :dk_color %Gray% "目标版本未找到。"
+echo 当前版本 [%osedition% ^| %winbuild%] 无法更改为任何其他版本。
 %line%
 goto ced_done
 )
@@ -410,10 +412,10 @@ set targetedition=
 
 %line%
 echo:
-call :dk_color %Gray% "You can change the Edition [%osedition%] [%winbuild%] to one of the following."
+call :dk_color %Gray% "你可以将当前版本 [%osedition%] [%winbuild%] 更改为下列之一。"
 if defined dismnotworking (
-call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-if /i "%osedition:~0,4%"=="Core" call :dk_color %_Yellow% "     - You will see more edition options to choose once its changed to Pro."
+call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+if /i "%osedition:~0,4%"=="Core" call :dk_color %_Yellow% "     - 在更改为 Pro 后，你将会看到更多版本选项可供选择。"
 )
 %line%
 echo:
@@ -428,7 +430,7 @@ set targetedition!counter!=%%A
 echo:
 echo [0]  %_exitmsg%
 echo:
-call :dk_color %_Green% "Enter option number in keyboard, and press "Enter":"
+call :dk_color %_Green% "请输入选项编号，并按“Enter”键："
 set /p inpt=
 if "%inpt%"=="" goto cedmenu2
 if "%inpt%"=="0" exit /b
@@ -448,7 +450,7 @@ set key=
 set _chan=
 set _dismapi=0
 
-::  Check if DISM Api or slmgr.vbs is required for edition upgrade
+::  检查版本升级是否需要 DISM API 或 slmgr.vbs
 
 if not exist "%SystemRoot%\System32\spp\tokens\skus\%targetedition%\" (
 set _dismapi=1
@@ -464,24 +466,24 @@ if not defined key call :changeeditiondata
 if not defined key (
 %eline%
 echo [%targetedition% ^| %winbuild%]
-echo Unable to get product key from pkeyhelper.dll
+echo 无法从 pkeyhelper.dll 中获取产品密钥
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-::  Changing from Core to Non-Core & Changing editions in Windows build older than 17134 requires "changepk /productkey" or DISM Api method and restart
-::  In other cases, editions can be changed instantly with "slmgr /ipk"
+::  在早于 17134 的 Windows 版本中从 Core 更改为非 Core 和更改版本需要“changepk /productkey”方法并重新启动
+::  在其他情况下，可以使用“slmgr /ipk”立即更改版本
 
 if %_dismapi%==1 (
 mode con cols=105 lines=40
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending Reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 )
@@ -489,26 +491,26 @@ goto ced_done
 cls
 %line%
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
 
 if %_dismapi%==1 (
-call :dk_color %Green% "Notes-"
+call :dk_color %Green% "注——"
 echo:
-echo  - Save your work before continue, system will auto restart.
+echo  - 在继续之前保存你的工作，系统将会自动重新启动。
 echo:
-echo  - You will need to activate with HWID option once the edition is changed.
+echo  - 在版本更改后，你将需要使用 HWID 选项激活。
 %line%
 echo:
-choice /C:21 /N /M "[1] Continue [2] %_exitmsg% : "
+choice /C:21 /N /M "[1] 继续 [2] %_exitmsg% ："
 if !errorlevel!==1 exit /b
 )
 
 ::========================================================================================================================================
 
 if %_dismapi%==0 (
-echo Installing %_chan% Key [%key%]
+echo 正在安装 %_chan% 密钥 [%key%]
 echo:
 if %_wmic% EQU 1 wmic path SoftwareLicensingService where __CLASS='SoftwareLicensingService' call InstallProductKey ProductKey="%key%" %nul%
 if %_wmic% EQU 0 %psc% "(([WMISEARCHER]'SELECT Version FROM SoftwareLicensingService').Get()).InstallProductKey('%key%')" %nul%
@@ -520,24 +522,24 @@ if !error_code! NEQ 0 set "error_code=[0x!=ExitCode!]"
 
 if !error_code! EQU 0 (
 call :dk_refresh
-call :dk_color %Green% "[Successful]"
+call :dk_color %Green% "[成功]"
 echo:
-call :dk_color %Gray% "Reboot is required to properly change the Edition."
+call :dk_color %Gray% "需要重新启动才能更改为正确的版本。"
 ) else (
-call :dk_color %Red% "[Unsuccessful] [Error Code: 0x!=ExitCode!]"
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Red% "[不成功] [错误代码：0x!=ExitCode!]"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 )
 )
 
 if %_dismapi%==1 (
 echo:
-echo Applying the DISM API method with %_chan% Key %key%. Please wait...
+echo 正在使用 %_chan% 密钥 %key% 应用 DISM API 方法。请稍候……
 echo:
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':dismapi\:.*';& ([ScriptBlock]::Create($f[1])) %targetedition% %key%;"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':dismapi\:.*';& ([ScriptBlock]::Create($f[1])) %targetedition% %key%;"
 timeout /t 3 %nul1%
 echo:
-call :dk_color %Blue% "Incase of errors, you must restart your system before trying again."
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Blue% "如果错误，你必须重新启动系统，然后重试。"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 )
 %line%
 
@@ -551,32 +553,32 @@ cls
 mode con cols=105 lines=32
 %psc% "&{$W=$Host.UI.RawUI.WindowSize;$B=$Host.UI.RawUI.BufferSize;$W.Height=31;$B.Height=200;$Host.UI.RawUI.WindowSize=$W;$Host.UI.RawUI.BufferSize=$B;}"
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
-call :dk_color %Blue% "Important - Save your work before continue, system will auto reboot."
+call :dk_color %Blue% "重要信息 —— 请在继续之前保存你的工作，系统将自动重新启动。"
 echo:
-choice /C:01 /N /M "[1] Continue [0] %_exitmsg% : "
+choice /C:01 /N /M "[1] 继续 [0] %_exitmsg% ："
 if %errorlevel%==1 exit /b
 
 echo:
-echo Initializing...
+echo 正在初始化……
 echo:
 
 if %_stg%==0 (set stage=) else (set stage=-StageCurrent)
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -SetEdition %targetedition% %stage%;"
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':cbsxml\:.*';& ([ScriptBlock]::Create($f[1])) -SetEdition %targetedition% %stage%;"
 echo:
-call :dk_color %Blue% "Incase of errors, you must restart your system before trying again."
-echo Check this page for help. %mas%troubleshoot
+call :dk_color %Blue% "如果错误，你必须重新启动系统，然后重试。"
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 %line%
 
 goto ced_done
@@ -601,46 +603,46 @@ if not defined key call :changeeditiondata
 if not defined key (
 %eline%
 echo [%targetedition% ^| %winbuild%]
-echo Unable to get product key from pkeyhelper.dll
+echo 无法从 pkeyhelper.dll 中获取产品密钥
 echo:
-echo Check this page for help. %mas%troubleshoot
+echo 请查看此页面以获取帮助。%mas%troubleshoot
 goto ced_done
 )
 
 ::========================================================================================================================================
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
+%psc% "$f=[io.file]::ReadAllText('!_batp!',[Text.Encoding]::Default) -split ':checkrebootflag\:.*';iex ($f[1]);" | find /i "True" %nul% && (
 %eline%
-echo Pending reboot flags found.
+echo 已找到挂起的重启标识。
 echo:
-echo Restart the system and try again.
+echo 请重新启动系统，然后再试一次。
 goto ced_done
 )
 
 cls
 echo:
-if defined dismnotworking call :dk_color %_Yellow% "Note - DISM.exe is not responding."
-echo Changing the Current Edition [%osedition%] %winbuild% to [%targetedition%]
+if defined dismnotworking call :dk_color %_Yellow% "注 - DISM.exe 没有响应。"
+echo 正在将当前版本 [%osedition%] %winbuild% 更改为 [%targetedition%]
 echo:
-echo Applying the command with %_chan% Key
+echo 正在使用 %_chan% 密钥应用命令
 echo DISM /online /Set-Edition:%targetedition% /ProductKey:%key% /AcceptEula
 DISM /online /Set-Edition:%targetedition% /ProductKey:%key% /AcceptEula
 
-call :dk_color %Blue% "You must restart the system at this stage."
-echo Help: %mas%troubleshoot
+call :dk_color %Blue% "你必须在此阶段重新启动系统。"
+echo 帮助：%mas%troubleshoot
 
 ::========================================================================================================================================
 
 :ced_done
 
 echo:
-call :dk_color %_Yellow% "Press any key to %_exitmsg%..."
+call :dk_color %_Yellow% "请按任意键%_exitmsg%脚本……"
 pause %nul1%
 exit /b
 
 ::========================================================================================================================================
 
-::  Check SKU value
+::  检查 SKU 值
 
 :dk_checksku
 
@@ -665,7 +667,7 @@ if not defined osSKU set osSKU=%wmiSKU%
 if not defined osSKU set osSKU=%regSKU%
 exit /b
 
-::  Refresh license status
+::  刷新许可证状态
 
 :dk_refresh
 
@@ -673,7 +675,7 @@ if %_wmic% EQU 1 wmic path SoftwareLicensingService where __CLASS='SoftwareLicen
 if %_wmic% EQU 0 %psc% "$null=(([WMICLASS]'SoftwareLicensingService').GetInstances()).RefreshLicenseStatus()" %nul%
 exit /b
 
-::  Get Windows Activation IDs
+::  获取 Windows 激活 ID
 
 :dk_actids
 
@@ -683,7 +685,7 @@ if %_wmic% EQU 0 set "chkapp=for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISE
 %chkapp% do (if defined applist (call set "applist=!applist! %%a") else (call set "applist=%%a"))
 exit /b
 
-::  Get Edition list
+::  获取版本列表
 
 :ced_edilist
 
@@ -696,7 +698,7 @@ call set "_wtarget= !_wtarget! %%a "
 )
 exit /b
 
-::  Check wmic.exe
+::  检查 wmic.exe
 
 :dk_ckeckwmic
 
@@ -706,7 +708,7 @@ wmic path Win32_ComputerSystem get CreationClassName /value %nul2% | find /i "co
 )
 exit /b
 
-::  Get Product name (WMI/REG methods are not reliable in all conditions, hence winbrand.dll method is used)
+::  获取产品名称（WMI/REG 方法并非在所有条件下都可靠，因此使用 winbrand.dll 方法）
 
 :dk_product
 
@@ -725,7 +727,7 @@ set winos=!winos:Windows 10=Windows 11!
 )
 exit /b
 
-::  Common lines used in PowerShell reflection code
+::  PowerShell 中使用反射代码的常见行
 
 :dk_reflection
 
@@ -736,14 +738,14 @@ exit /b
 
 ::========================================================================================================================================
 
-::  Check pending reboot flags
+::  检查正在挂起的重启标识
 
 :checkrebootflag:
 function Test-PendingReboot
 {
  if (Test-Path -Path "$env:windir\WinSxS\pending.xml") { return $true }
- if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA SilentlyContinue) { return $true }
- if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA SilentlyContinue) { return $true }
+ if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) { return $true }
+ if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) { return $true }
  try { 
    $util = [wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities"
    $status = $util.DetermineIfRebootPending()
@@ -759,8 +761,8 @@ Test-PendingReboot
 
 ::========================================================================================================================================
 
-::  Get Product Key from pkeyhelper.dll for future new editions
-::  It works on Windows 10 1803 (17134) and later builds.
+::  从 pkeyhelper.dll 获取产品序列用于未来的新版本
+::  它工作在 Windows 10 1803（17134）及以上版本。
 
 :dk_pkey
 
@@ -774,7 +776,7 @@ for /f %%a in ('%psc% "%d1%"') do if not errorlevel 1 (set pkey=%%a)
 exit /b
 
 
-::  Get channel name for the key which was extracted from pkeyhelper.dll
+::  获取从 pkeyhelper.dll 中提取的密钥的通道名称
 
 :dk_pkeychannel
 
@@ -936,14 +938,14 @@ function Write-UpgradeCandidates {
     )
 
     $editionCount = 0
-    Write-Host 'Editions that can be upgraded to:'
+    Write-Host '可升级到的版本：'
     foreach($candidate in $InstallCandidates.Keys) {
-        Write-Host "Target Edition : $candidate"
+        Write-Host "目标版本 ：$candidate"
         $editionCount++
     }
 
     if($editionCount -eq 0) {
-        Write-Host '(no editions are available)'
+        Write-Host '（无版本可用）'
     }
 }
 
@@ -1022,7 +1024,7 @@ if($getTargetsParam) {
 }
 
 if($false -eq ($installCandidates.Keys -contains $SetEdition)) {
-    Write-Error "The system cannot be upgraded to `"$SetEdition`""
+    Write-Error "系统无法升级到“$SetEdition”"
     Exit 1
 }
 
@@ -1034,10 +1036,10 @@ Write-UpgradeXml -RemovalCandidates $removalCandidates `
 
 $editionXml = Find-EditionXml -Edition $SetEdition
 if($null -eq $editionXml) {
-    Write-Warning 'Unable to find edition specific settings XML. Proceeding without it...'
+    Write-Warning '无法找到特定于版本的设置 XML。不使用它继续……'
 }
 
-Write-Host 'Starting the upgrade process. This may take a while...'
+Write-Host '正在开始升级过程。这可能需要一段时间……'
 
 DISM.EXE /English /NoRestart /Online /Apply-Unattend:$xmlPath
 $dismError = $LASTEXITCODE
@@ -1045,7 +1047,7 @@ $dismError = $LASTEXITCODE
 Remove-Item -Path $xmlPath -Force
 
 if(($dismError -ne 0) -and ($dismError -ne 3010)) {
-    Write-Error 'Failed to upgrade to the target edition'
+    Write-Error '升级到目标版本失败'
     Exit $dismError
 }
 
@@ -1057,7 +1059,7 @@ if($null -ne $editionXml) {
     $dismError = $LASTEXITCODE
 
     if(($dismError -ne 0) -and ($dismError -ne 3010)) {
-        Write-Error 'Failed to apply edition specific settings'
+        Write-Error '应用版本特定设置失败'
         Exit $dismError
     }
 }
@@ -1067,8 +1069,8 @@ Restart-Computer
 
 ::========================================================================================================================================
 
-::  Change edition using DISM API
-::  Thanks to Alex (aka may, ave9858)
+::  使用 DISM API 更改版本
+::  感谢 Alex（感谢 may，ave9858）
 
 :dismapi:[
 param (
@@ -1098,14 +1100,14 @@ if (!$Dism::_DismSetEdition($Session, "$TargetEdition", "$Key", 0, 0, 0)) {
 
 ::========================================================================================================================================
 
-::  1st column = Generic Retail/OEM/MAK/GVLK Key
-::  2nd column = Key Type
-::  3rd column = WMI Edition ID
-::  4th column = Version name incase same Edition ID is used in different OS versions with different key
-::  Separator  = _
+::  第 1 列 = 通用零售/OEM/MAK/GVLK 密钥
+::  第 2 列 = 密钥类型
+::  第 3 列 = WMI 版本 ID
+::  第 4 列 = 版本名称，以防止相同的版本 ID 用于具有不同密钥的不同操作系统版本
+::  分隔符  = _
 
-::  For Windows 10/11 editions, HWID key is listed where ever possible, in Server versions, KMS key is listed where ever possible.
-::  Only RS3 and older version Generic keys are stored here, later ones are extracted from the pkeyhelper.dll itself
+::  对于 Windows 10/11 版本，尽可能列出 HWID 密钥，在服务器版本中，尽可能列出 KMS 密钥。
+::  这里仅存储 RS3 和旧版本的通用密钥，以后的密钥是从 pkeyhelper.dll 中提取的本身
 
 :changeeditiondata
 
@@ -1169,4 +1171,4 @@ echo "%branch%" | find /i "%%D" %nul1% && (set "key=%%A" & set "_chan=%%B")
 exit /b
 
 ::========================================================================================================================================
-:: Leave empty line below
+::  下方保留空行
